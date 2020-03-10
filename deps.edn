@@ -4,4 +4,8 @@
   criterium {:mvn/version "0.4.5"}
   }
 
+ :aliases
+ {:dev
+  {:extra-paths ["test"]}}
+
  }
