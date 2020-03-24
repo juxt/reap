@@ -216,7 +216,6 @@
               (p/sequence (keep second)))]
 
      (fn [matcher]
-       (.usePattern matcher media-range-pattern)
        (when-let [result
                   ((some-fn
                     #(when-let [type (get % 1)]
@@ -225,7 +224,7 @@
                        {:match (get % 0) :type type :subtype (get % 4)})
                     #(when-let [type (get % 5)]
                        {:match (get % 0) :type type :subtype (get % 6)}))
-                   (re-find matcher))]
+                   (re/re-find-with-pattern matcher media-range-pattern))]
 
          [:media-range
           (conj
