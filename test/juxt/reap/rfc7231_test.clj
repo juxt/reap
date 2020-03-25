@@ -9,7 +9,7 @@
 (deftest subtype-test
   (is (= "html" (re-matches (re-pattern rfc7231/subtype) "html"))))
 
-(deftest parameter-matcher-test
+(deftest parameter-test
   (testing "value"
     (is
      (=
