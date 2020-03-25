@@ -53,7 +53,19 @@
       :subtype "html",
       :params [{:name "foo", :value "bar"} {:name "baz", :value "qu'x" :raw-value "\"qu\\'x\""}]}]
     ((rfc7231/media-range)
-     (re/input "text/html;foo=bar;baz=\"qu\\'x\"")))))
+     (re/input "text/html;foo=bar;baz=\"qu\\'x\""))))
+
+  ;; "The type, subtype, and parameter name tokens are
+  ;; case-insensitive." -- RFC 7231 Section 3.1.1.1
+  (testing "case insensitivity"
+    (is
+     (=
+      [:media-range
+       {:type "text"
+        :subtype "html"
+        :params []}]
+      ((rfc7231/media-range)
+       (re/input "TEXT/Html"))))))
 
 
 (deftest qvalue-test

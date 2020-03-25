@@ -6,7 +6,8 @@
    [juxt.reap.regex :as re]
    [juxt.reap.parse :as p]
    [juxt.reap.rfc7230 :as rfc7230 :refer [OWS token]]
-   [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]))
+   [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]
+   [clojure.string :as str]))
 
 (defn- common-parameter
   "A shared implementation of parameter parsing that can support
@@ -197,11 +198,11 @@
 (def media-range-result
   (some-fn
    #(when-let [type (get % 1)]
-      {:type type :subtype (get % 2)})
+      {:type (str/lower-case type) :subtype (str/lower-case (get % 2))})
    #(when-let [type (get % 3)]
-      {:type type :subtype (get % 4)})
+      {:type (str/lower-case type) :subtype (str/lower-case (get % 4))})
    #(when-let [type (get % 5)]
-      {:type type :subtype (get % 6)})))
+      {:type (str/lower-case type) :subtype (str/lower-case (get % 6))})))
 
 (defn media-range
   ([] (media-range {}))
