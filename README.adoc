@@ -132,6 +132,12 @@ multiple programmers.
 
 *reap* is built from some old ideas.
 
+=== Lisp (1958)
+
+Clojure is used as the implementation language to facilitate faster
+research and prototyping. If this project proves useful/stable it
+might be a good idea to port to Java and provide a Clojure wrapper.
+
 === Regular Expressions (1950s)
 
 Everything in *reap* is ultimately compiled into a
@@ -149,10 +155,3 @@ regular expression.
 
 https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators]
 are used to combine parsers built from regular expressions.
-
-
-=== Clojure (2008)
-
-Clojure is used as the implementation language to facilitate faster
-research and prototyping. If this project proves useful/stable it
-might be a good idea to provide a Java implementation.
