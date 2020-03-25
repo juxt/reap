@@ -70,7 +70,8 @@
 (deftest accept-test
   (is
    (=
-    [{:type "text",
+    [{:match "text/html"
+      :type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
       :weight (float 0.3)

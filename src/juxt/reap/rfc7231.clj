@@ -194,6 +194,15 @@
 
 ;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
 ;;  ";" OWS parameter )
+(def media-range-result
+  (some-fn
+   #(when-let [type (get % 1)]
+      {:match (get % 0) :type type :subtype (get % 2)})
+   #(when-let [type (get % 3)]
+      {:match (get % 0) :type type :subtype (get % 4)})
+   #(when-let [type (get % 5)]
+      {:match (get % 0) :type type :subtype (get % 6)})))
+
 (defn media-range
   ([] (media-range {}))
   ([opts]
@@ -217,13 +226,7 @@
 
      (fn [matcher]
        (when-let [result
-                  ((some-fn
-                    #(when-let [type (get % 1)]
-                       {:match (get % 0) :type type :subtype (get % 2)})
-                    #(when-let [type (get % 3)]
-                       {:match (get % 0) :type type :subtype (get % 4)})
-                    #(when-let [type (get % 5)]
-                       {:match (get % 0) :type type :subtype (get % 6)}))
+                  (media-range-result
                    (re/re-find-with-pattern matcher media-range-pattern))]
 
          [:media-range
@@ -310,13 +313,7 @@
         (fn [matcher]
           (when-let
               [result
-               ((some-fn
-                 #(when-let [typ (get % 1)]
-                    {:type typ :subtype (get % 2)})
-                 #(when-let [typ (get % 3)]
-                    {:type typ :subtype (get % 4)})
-                 #(when-let [typ (get % 5)]
-                    {:type typ :subtype (get % 6)}))
+               (media-range-result
                 (re/re-find-with-pattern matcher media-range-pattern))]
               (into
                {}
