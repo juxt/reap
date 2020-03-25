@@ -25,6 +25,7 @@
                       qs [[:value (rfc7230/unescape-quoted-string qs)]
                           [:raw-value (str "\"" qs "\"")]])))))))
 
+;; parameter = token "=" ( token / quoted-string )
 (defn parameter
   "Matches a parameter and returns a map containing :name and :value
   entries. If the value is in a quoted string, this matcher extracts
@@ -188,7 +189,6 @@
 
 ;; quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
 
-;; parameter = token "=" ( token / quoted-string )
 
 ;;(identity rfc7230/quoted-string)
 
