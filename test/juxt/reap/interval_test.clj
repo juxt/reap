@@ -71,34 +71,34 @@
   30 :preceded-by #juxt.reap/interval [10 20])
 
 
-(deftest spliceable-test
+(deftest joinable-test
   ;; Comprehensively including all 13 relations
   (are [x rel y expected]
       (and
        (= rel (i/relation x y))
-       (case expected :spliceable (i/spliceable? x y) :not-spliceable (not (i/spliceable? x y))))
-    ;; Cannot splice two intervals that have a gap between them
-    #juxt.reap/interval [10 20] :precedes #juxt.reap/interval [30 40] :not-spliceable
-    #juxt.reap/interval [10 20] :meets #juxt.reap/interval [21 40] :spliceable
-    #juxt.reap/interval [10 15] :starts #juxt.reap/interval [10 20] :spliceable
+       (case expected :joinable (i/joinable? x y) :not-joinable (not (i/joinable? x y))))
+    ;; Cannot join two intervals that have a gap between them
+    #juxt.reap/interval [10 20] :precedes #juxt.reap/interval [30 40] :not-joinable
+    #juxt.reap/interval [10 20] :meets #juxt.reap/interval [21 40] :joinable
+    #juxt.reap/interval [10 15] :starts #juxt.reap/interval [10 20] :joinable
     ;; Wrong ordering
-    #juxt.reap/interval [10 13] :during #juxt.reap/interval [8 20] :not-spliceable
+    #juxt.reap/interval [10 13] :during #juxt.reap/interval [8 20] :not-joinable
     ;; Wrong ordering
-    #juxt.reap/interval [12 15] :finishes #juxt.reap/interval [10 15] :not-spliceable
-    #juxt.reap/interval [10 20] :overlaps #juxt.reap/interval [15 30] :spliceable
-    #juxt.reap/interval [10 20] :equals #juxt.reap/interval [10 20] :spliceable
-    #juxt.reap/interval [8 20] :contains #juxt.reap/interval [10 13] :spliceable
-    #juxt.reap/interval [10 20] :started-by #juxt.reap/interval [10 15] :spliceable
-    #juxt.reap/interval [10 15] :finished-by #juxt.reap/interval [12 15] :spliceable
+    #juxt.reap/interval [12 15] :finishes #juxt.reap/interval [10 15] :not-joinable
+    #juxt.reap/interval [10 20] :overlaps #juxt.reap/interval [15 30] :joinable
+    #juxt.reap/interval [10 20] :equals #juxt.reap/interval [10 20] :joinable
+    #juxt.reap/interval [8 20] :contains #juxt.reap/interval [10 13] :joinable
+    #juxt.reap/interval [10 20] :started-by #juxt.reap/interval [10 15] :joinable
+    #juxt.reap/interval [10 15] :finished-by #juxt.reap/interval [12 15] :joinable
     ;; Wrong ordering
-    #juxt.reap/interval [15 30] :overlapped-by #juxt.reap/interval [10 20] :not-spliceable
+    #juxt.reap/interval [15 30] :overlapped-by #juxt.reap/interval [10 20] :not-joinable
     ;; Wrong ordering
-    #juxt.reap/interval [21 40] :met-by #juxt.reap/interval [10 20] :not-spliceable
+    #juxt.reap/interval [21 40] :met-by #juxt.reap/interval [10 20] :not-joinable
     ;; Wrong ordering
-    #juxt.reap/interval [30 40] :preceded-by #juxt.reap/interval [10 20] :not-spliceable))
+    #juxt.reap/interval [30 40] :preceded-by #juxt.reap/interval [10 20] :not-joinable))
 
-(deftest splice-test
-  (are [x y _ expected] (= expected (i/splice x y))
+(deftest join-test
+  (are [x y _ expected] (= expected (i/join x y))
     10 11 :=> #juxt.reap/interval [10 11]
     #juxt.reap/interval [10 11] #juxt.reap/interval [12 13] :=> #juxt.reap/interval [10 13]
     #juxt.reap/interval [8 10] 11 :=> #juxt.reap/interval [8 11]

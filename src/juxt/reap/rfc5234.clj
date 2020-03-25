@@ -20,11 +20,12 @@
      (if y
        (if (i/precedes? x y)
          (cons x (normalize (cons y coll)))
-         ;; Ordering is implicitly asserted by splice asserting spiceable
+         ;; Ordering is implicitly asserted by `join` asserting
+         ;; `joinable?`
          (try
-           (normalize (cons (i/splice x y) coll))
+           (normalize (cons (i/join x y) coll))
            (catch clojure.lang.ExceptionInfo e
-             (if (= ::unspliceable (:error (ex-data e)))
+             (if (= ::unjoinable (:error (ex-data e)))
                (throw
                 (ex-info
                  "Input to normalize is detected to be unordered"
@@ -63,7 +64,7 @@
           (apply
            list
            (cons
-            (i/splice (first c1) (first c2))
+            (i/join (first c1) (first c2))
             (next c1))
            (next c2)
            r)))))))

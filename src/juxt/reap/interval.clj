@@ -138,16 +138,16 @@
 
 (def apart? (some-of precedes? preceded-by?))
 
-(def spliceable? (some-of meets? starts? overlaps? equals? contains? started-by? finished-by?))
+(def joinable? (some-of meets? starts? overlaps? equals? contains? started-by? finished-by?))
 
-(defn splice
+(defn join
   "Combine two chars or ranges into a range. Assumes x and y are
-  spliceable, which means that the beginning of x is prior or equal to
-  the beginning of y, and that the two values can be spliced (they are
+  joinable, which means that the beginning of x is prior or equal to
+  the beginning of y, and that the two values can be joined (they are
   touching and not apart)."
   [x y]
-  (if (spliceable? x y)
+  (if (joinable? x y)
     (->interval
      [(beginning x)
       (if (> (end x) (end y)) (end x) (end y))])
-    (throw (ex-info "Unspliceable values/ranges" {:error ::unspliceable :x x :y y}))))
+    (throw (ex-info "Unjoinable values/ranges" {:error ::unjoinable :x x :y y}))))
