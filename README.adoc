@@ -1,3 +1,153 @@
 = reap
 
 Regular Expressions And Parsing
+
+== Introduction
+
+The Internet is a system of interoperable computer software written to
+a set of exacting specifications
+(https://tools.ietf.org/rfc/index[RFCs]) published by the
+https://www.ietf.org/[Internet Engineering Task Force].
+
+Many Internet protocols are textual in nature. HTTP is a good example.
+
+Software components of the Internet must be able to efficiently parse
+strings of text in order to understand its meaning.
+
+== Problem Statement
+
+There are not many tools of sufficient quality which can help with the
+parsing of strings of text, especially those defined in RFCs.
+
+Therefore, programmers are often left to write their own 'quick and
+dirty' code to parse text. This leads to software that does not
+properly implement (and is not fully conformant with) the rules
+defined in the RFCs.
+
+Programmers often have to strike a balance between conforming to the
+rules layed down by the RFCs and competing priorities such as meeting
+performance requirements and project deadlines.
+
+Unfortunately, code that violates any aspect of a specification can
+lead to an unhealthy Internet. Time is wasted debugging
+interoperability problems, buggy implementations cause problems for
+users and, in some cases, lead to security vulnerabilities.
+
+== Example: the HTTP Accept header
+
+In RFC 7231 (which defines part of HTTP), the `Accept`
+header is specified by the following rule:
+
+[source]
+----
+Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
+    OWS ( media-range [ accept-params ] ) ] ) ]
+----
+
+As well as indicating the ways that various punctuation and other
+characters can combined, the rule makes references to other rules,
+such as `media-range`:
+
+[source]
+----
+media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
+    ";" OWS parameter )
+----
+
+A `type` here is a `token`, defined in another RFC (RFC 7230), which
+states a `token` is a sequence of at least one `tchar`:
+
+[source]
+----
+token = 1*tchar
+tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
+    "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+----
+
+Let's leave aside DIGIT and ALPHA and return to the `parameter` rule,
+which itself is hardly trivial:
+
+[source]
+----
+parameter = token "=" ( token / quoted-string )
+----
+
+The rule tells us that values can be tokens, but can _alternatively_
+be separated by quotation marks:
+
+[source]
+----
+quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+----
+
+What is contained within these quotation marks is subject to further
+exacting rules about which characters and character ranges are valid
+and how characters can be escaped by using ``quoted-pair``s:
+
+[source]
+----
+qdtext = HTAB / SP / "!" / %x23-5B ; '#'-'['
+    / %x5D-7E ; ']'-'~'
+    / obs-text
+obs-text = %x80-FF
+quoted-pair = "\" ( HTAB / SP / VCHAR / obs-text )
+----
+
+A `media-range`, itself containing parameters (which require values)
+can be optionally followed by a special parameter indicating the
+term's `weight`, optionally followed by further parameters (where
+values are optional!).
+
+These are the rules for just one HTTP request header, and it's by far
+from the most complex!
+
+So it's no surprise that programmers who resort to writing custom
+parsing code might skip a few details!
+
+== Alternatives
+
+There are a number of excellent tools for generating text parsers,
+from venerable ones such as flex/bison to more modern ones including
+https://www.antlr.org/[Antlr] and Instaparse.
+
+Unfortunately, these tools tend to be designed more for parsing
+languages than strings of characters. I haven't found one which has
+built-in support for even some Internet RFCs. They also tend to be
+less efficient than Regular Expressions, which have been around for
+decades and have been heavily optimised in that time.
+
+////
+Another solution is a library of reusable code that can provide efficient
+parsing implementations and which can be shared (and debugged) by
+multiple programmers.
+////
+
+
+== Ingredients
+
+*reap* is built from some old ideas.
+
+=== Regular Expressions (1950s)
+
+Everything in *reap* is ultimately compiled into a
+https://en.wikipedia.org/wiki/Regular_expressions[regular
+expression]. Regexes provide the performance.
+
+=== Allen's Interval Algebra (1983)
+
+https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's
+interval algebra] allows character intervals to be manipulated and
+combined, to form optimal ranges to maximise the performance of the
+regular expression.
+
+=== Parser Combinators (1989)
+
+https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators]
+are used to combine parsers built from regular expressions.
+
+
+=== Clojure (2008)
+
+Clojure is used as the implementation language to facilitate faster
+research and prototyping. If this project proves useful/stable it
+might be a good idea to provide a Java implementation.
