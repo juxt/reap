@@ -2,6 +2,11 @@
 
 Regular Expressions And Parsing
 
+[WARNING]
+--
+STATUS: Alpha. Designed for production use but not yet ready for deployment.
+--
+
 == Introduction
 
 The Internet is a system of interoperable computer software written to
