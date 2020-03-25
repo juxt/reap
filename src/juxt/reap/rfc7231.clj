@@ -20,7 +20,7 @@
       (let [[_ n v qs] (re-groups matcher)]
         (re/advance-and-return
          matcher
-         (apply conj {:name n}
+         (apply conj {:name (str/lower-case n)}
                 (cond v [[:value v]]
                       qs [[:value (rfc7230/unescape-quoted-string qs)]
                           [:raw-value (str "\"" qs "\"")]])))))))

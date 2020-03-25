@@ -21,6 +21,22 @@
       ((rfc7231/parameter {})
        (re/input "foo")))))
 
+  ;; "The type, subtype, and parameter name tokens are
+  ;; case-insensitive. Parameter values might or might not be
+  ;; case-sensitive, depending on the semantics of the parameter
+  ;; name." -- RFC 7231 Section 3.1.1.1
+  (testing "case-insensitivity"
+    (is
+     (=
+      ;; :name should be lower-case, but value unchanged.
+      {:name "foo", :value "Bar"}
+      ((rfc7231/parameter {})
+       (re/input "FOO=Bar"))))
+    (is
+     (nil?
+      ((rfc7231/parameter {})
+       (re/input "foo")))))
+
   (testing "quoted-string"
     (is
      (=
