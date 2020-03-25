@@ -52,12 +52,21 @@
      (if (nil? c2)
        c1
        (if (i/apart? (first c1) (first c2))
-         (cons (first c1) (apply merge-alternatives* (apply list (next c1) c2 r)))
-         (apply merge-alternatives* (apply list
-                                           (cons (i/splice (first c1) (first c2))
-                                                 (next c1))
-                                           (next c2)
-                                           r)))))))
+         (cons
+          (first c1)
+          (apply
+           merge-alternatives*
+           (apply list (next c1) c2 r)))
+
+         (apply
+          merge-alternatives*
+          (apply
+           list
+           (cons
+            (i/splice (first c1) (first c2))
+            (next c1))
+           (next c2)
+           r)))))))
 
 (defprotocol AlternativesCoercion
   (as-alternatives [_] "Coerce to alternatives"))
