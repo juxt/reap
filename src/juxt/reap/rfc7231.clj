@@ -197,11 +197,11 @@
 (def media-range-result
   (some-fn
    #(when-let [type (get % 1)]
-      {:match (get % 0) :type type :subtype (get % 2)})
+      {:type type :subtype (get % 2)})
    #(when-let [type (get % 3)]
-      {:match (get % 0) :type type :subtype (get % 4)})
+      {:type type :subtype (get % 4)})
    #(when-let [type (get % 5)]
-      {:match (get % 0) :type type :subtype (get % 6)})))
+      {:type type :subtype (get % 6)})))
 
 (defn media-range
   ([] (media-range {}))

@@ -49,8 +49,7 @@
   (is
    (=
     [:media-range
-     {:match "text/html",
-      :type "text",
+     {:type "text",
       :subtype "html",
       :params [{:name "foo", :value "bar"} {:name "baz", :value "qu'x" :raw-value "\"qu\\'x\""}]}]
     ((rfc7231/media-range)
@@ -70,8 +69,7 @@
 (deftest accept-test
   (is
    (=
-    [{:match "text/html"
-      :type "text",
+    [{:type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
       :weight (float 0.3)
