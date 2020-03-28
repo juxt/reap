@@ -3,6 +3,8 @@
 (ns juxt.reap.parse
   (:refer-clojure :exclude [comp sequence cons concat]))
 
+(set! *warn-on-reflection* true)
+
 (defn zero-or-more [parser]
   (let [super
         (fn this [matcher]
@@ -47,8 +49,10 @@
 
 (defn pattern-parser [pat]
   (fn [matcher]
-    (.usePattern matcher pat)
-    (when (.lookingAt matcher)
-      (let [res (.group matcher 0)]
-        (.region matcher (.end matcher) (.regionEnd matcher))
+    (.usePattern ^java.util.regex.Matcher matcher pat)
+    (when (.lookingAt ^java.util.regex.Matcher matcher)
+      (let [res (.group ^java.util.regex.Matcher matcher 0)]
+        (.region ^java.util.regex.Matcher matcher
+                 (.end ^java.util.regex.Matcher matcher)
+                 (.regionEnd ^java.util.regex.Matcher matcher))
         res))))

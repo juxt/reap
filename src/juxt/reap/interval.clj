@@ -6,6 +6,8 @@
    [clojure.pprint :as pprint]
    [juxt.reap.regex :as re]))
 
+(set! *warn-on-reflection* true)
+
 ;; Intervals
 
 (defprotocol IInterval
@@ -25,8 +27,8 @@
 
 (defmethod print-method Interval [obj writer]
   (if *print-readably*
-    (.write writer (format "#juxt.reap/interval [%s %s]" (beginning obj) (end obj)))
-    (.write writer (format "%%x%02X-%%x%02X" (beginning obj) (end obj)))))
+    (.write ^java.io.Writer writer (format "#juxt.reap/interval [%s %s]" (beginning obj) (end obj)))
+    (.write ^java.io.Writer writer (format "%%x%02X-%%x%02X" (beginning obj) (end obj)))))
 
 (defmethod pprint/simple-dispatch Interval [obj]
   (.write *out* (format "[%%x%02X-%%x%02X]" (beginning obj) (end obj))))

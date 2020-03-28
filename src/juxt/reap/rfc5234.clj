@@ -4,6 +4,8 @@
   (:require
    [juxt.reap.interval :as i]))
 
+(set! *warn-on-reflection* true)
+
 (defn sort-by-beginning
   "Some functions require the collection to be ordered. Rather than sort
   already sorted collections, this function is available to be called

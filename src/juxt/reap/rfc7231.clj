@@ -9,13 +9,15 @@
    [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn- common-parameter
   "A shared implementation of parameter parsing that can support
   different patterns. Patterns must yield at least 3 groups (name,
   value and, optionally, quoted-string)."
   [pattern _]
   (fn [matcher]
-    (.usePattern matcher pattern)
+    (.usePattern ^java.util.regex.Matcher matcher pattern)
     (when-let [[_ n v qs] (re-find matcher)]
       (re/advance-and-return
        matcher
@@ -129,9 +131,9 @@
 (defn weight []
   (let [pat (re-pattern (re/re-concat OWS \; OWS "q=" (re/group qvalue)))]
     (fn [matcher]
-      (.usePattern matcher pat)
-      (when (.lookingAt matcher)
-        (Float/parseFloat (re/advance-and-return matcher (.group matcher 1)))))))
+      (.usePattern ^java.util.regex.Matcher matcher pat)
+      (when (.lookingAt ^java.util.regex.Matcher matcher)
+        (Float/parseFloat (re/advance-and-return matcher (.group ^java.util.regex.Matcher matcher 1)))))))
 
 ;; accept-params = weight *accept-ext
 (defn accept-params []

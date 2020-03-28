@@ -6,6 +6,8 @@
    [juxt.reap.regex :as re]
    [juxt.reap.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]))
 
+(set! *warn-on-reflection* true)
+
 ;; RFC 7230
 
 ;; Appendix B.  Collected ABNF

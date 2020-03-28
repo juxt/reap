@@ -2,6 +2,8 @@
 
 (ns juxt.reap.regex)
 
+(set! *warn-on-reflection* true)
+
 (def regex-chars
   (merge
    {(int \\) "\\\\"
