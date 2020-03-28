@@ -87,9 +87,3 @@
   [^java.util.regex.Matcher m ^java.util.regex.Pattern re]
   (.usePattern m re)
   (re-find m))
-
-(defn pattern-parser [pat]
-  (fn [matcher]
-    (.usePattern matcher pat)
-    (when (.lookingAt matcher)
-      (advance-and-return matcher (.group matcher 0)))))

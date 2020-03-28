@@ -117,7 +117,7 @@
 (defn accept-ext []
   (let [parser
         (p/concat
-         (re/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
+         (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
          (optional-parameter))]
     (fn [matcher]
       (parser matcher))))
@@ -215,7 +215,7 @@
            (format "(%s)/(%s)" (re/re-str type) (re/re-str type))))
 
          parameter-prefix
-         (re/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
+         (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
 
          parameters
          (->> (p/zero-or-more
@@ -281,7 +281,7 @@
           (format "(%s)/(%s)" (re/re-str type) (re/re-str type))))
 
         media-range-parameter-prefix
-        (re/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
+        (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
 
         media-range-parameter-pattern
         (p/concat media-range-parameter-prefix (parameter))
@@ -319,29 +319,52 @@
                {}
                (concat
                 (re/advance-and-return matcher result)
-                (parameters matcher)))))]
+                (parameters matcher)))))
+
+        parser
+        (p/sequence
+         (remove boolean?)
+         (p/cons
+          (p/comp
+           #(if (map? %) % true)
+           (some-fn
+            (p/pattern-parser #",")
+            media-range-with-accept-params-parser))
+          (p/zero-or-more
+           (p/comp
+            second
+            (p/concat
+             (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
+             (p/optionally
+              (p/comp
+               second
+               (p/concat
+                (p/pattern-parser (re-pattern OWS))
+                media-range-with-accept-params-parser))))))))]
 
     (fn [matcher]
-      (let [parser
-            (p/sequence
-             (remove boolean?)
-             (p/cons
-              (p/comp
-               #(if (map? %) % true)
-               (some-fn
-                (re/pattern-parser #",")
-                media-range-with-accept-params-parser))
-              (p/zero-or-more
-               (p/comp
-                second
-                (p/concat
-                 (re/pattern-parser (re-pattern (re/re-concat OWS ",")))
-                 (p/optionally
-                  (p/comp
-                   second
-                   (p/concat
-                    (re/pattern-parser (re-pattern OWS))
-                    media-range-with-accept-params-parser))))))))]
-        (parser matcher)))))
+      (parser matcher))))
 
 ;; year = 4DIGIT
+
+
+;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
+;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
+
+#_(require 'criterium.core)
+
+#_(let [p (accept)]
+  (criterium.core/quick-bench
+   (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1")))
+
+
+#_(let [matcher (re/input "   UTF-8;q=0.8,shift_JIS;q=0.4")]
+  (let [parser (p/concat
+                (p/pattern-parser (re/zero-or-more (re/re-concat \, OWS)))
+                (p/pattern-parser (re-pattern charset)))]
+    (parser matcher)
+    ))
+
+(defn accept-charset []
+
+  )

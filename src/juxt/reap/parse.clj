@@ -44,3 +44,11 @@
   [parser parsers]
   (fn [matcher]
     (clojure.core/cons (parser matcher) (parsers matcher))))
+
+(defn pattern-parser [pat]
+  (fn [matcher]
+    (.usePattern matcher pat)
+    (when (.lookingAt matcher)
+      (let [res (.group matcher 0)]
+        (.region matcher (.end matcher) (.regionEnd matcher))
+        res))))
