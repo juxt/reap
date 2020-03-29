@@ -71,8 +71,7 @@
 (defn input [input]
   (re-matcher #"" input))
 
-(defn ^java.util.regex.Matcher advance-and-return
-  [^java.util.regex.Matcher matcher res]
+(defn advance-and-return ^java.util.regex.Matcher [^java.util.regex.Matcher matcher res]
   (.region matcher (.end matcher) (.regionEnd matcher))
   res)
 
