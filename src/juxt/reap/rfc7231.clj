@@ -66,8 +66,6 @@
 (def ^String type token)
 
 
-;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
-;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
 ;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
@@ -345,11 +343,26 @@
 
 
 
+;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
+;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
 
-#_(let [p (accept)]
-  (p
-   (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1")))
-
+(let [matcher (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")]
+  (let [parser
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser
+           (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))
+           ))
+         (p/sequence-group
+          (p/alternatives
+           (p/pattern-parser
+            (re-pattern charset))
+           (p/pattern-parser
+            (re-pattern (re/re-str \*))))
+          (p/optionally (weight)
+                        )))]
+    (parser matcher)
+    ))
 
 
 #_(require 'criterium.core)
@@ -358,14 +371,3 @@
   (criterium.core/quick-bench
    (p
     (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1"))))
-
-
-#_(let [matcher (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")]
-  (let [parser (p/sequence-group
-                (p/pattern-parser
-                 (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))
-)
-                (p/pattern-parser
-                 (re-pattern charset)))]
-    (parser matcher)
-    ))

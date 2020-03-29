@@ -105,3 +105,12 @@
 (defn map [f parser]
   (fn [matcher]
     (clojure.core/map f (parser matcher))))
+
+;; Data construction
+(defn as-entry [k parser]
+  (fn [matcher]
+    [k (parser matcher)]))
+
+(defn as-map [parser]
+  (fn [matcher]
+    (into {} (parser matcher))))
