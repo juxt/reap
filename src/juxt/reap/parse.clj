@@ -1,7 +1,7 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.parse
-  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first]))
+  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map]))
 
 (set! *warn-on-reflection* true)
 
@@ -64,14 +64,14 @@
 (defn list
   [& parsers]
   (fn [matcher]
-    (doall (map #(% matcher) parsers))))
+    (doall (clojure.core/map #(% matcher) parsers))))
 
 (defn concat [& parsers]
   (fn [matcher]
     (doall
      (apply
       clojure.core/concat
-      (map #(% matcher) parsers)))))
+      (clojure.core/map #(% matcher) parsers)))))
 
 (defn constantly [constant]
   (fn [_] constant))
