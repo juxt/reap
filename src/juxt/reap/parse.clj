@@ -1,7 +1,7 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.parse
-  (:refer-clojure :exclude [comp sequence cons concat filter list constantly]))
+  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first]))
 
 (set! *warn-on-reflection* true)
 
@@ -23,7 +23,8 @@
                  (when-let [x (p matcher)]
                    (clojure.core/cons x (f ps))))))
           res (f parsers)]
-      (when (seq res) (vec res)))))
+      (when (seq res)
+        (remove #(= :ignored %) (vec res))))))
 
 ;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
@@ -54,7 +55,11 @@
 (defn cons
   [parser parsers]
   (fn [matcher]
-    (clojure.core/cons (parser matcher) (parsers matcher))))
+    (let [cell (parser matcher)
+          rest (parsers matcher)]
+      (if (= cell :ignored)
+        rest
+        (clojure.core/cons cell rest)))))
 
 (defn list
   [& parsers]
@@ -69,8 +74,11 @@
       (map #(% matcher) parsers)))))
 
 (defn constantly [constant]
-  (fn [_]
-    constant))
+  (fn [_] constant))
+
+(defn ignore [parser]
+  (fn [matcher]
+    (when (some? (parser matcher)) :ignored)))
 
 (defn pattern-parser [pat]
   (fn [matcher]
@@ -82,12 +90,18 @@
                  (.regionEnd ^java.util.regex.Matcher matcher))
         res))))
 
+(defn first [parser]
+  (fn [matcher]
+    (clojure.core/first (parser matcher))))
+
+(defn second [parser]
+  (fn [matcher]
+    (clojure.core/second (parser matcher))))
+
 (defn filter [pred parser]
   (fn [matcher]
     (clojure.core/filter pred (parser matcher))))
 
-(defn first-of [pred parser]
-  (comp first (filter pred parser)))
-
-(defn first-map [parser]
-  (first-of map? parser))
+(defn map [f parser]
+  (fn [matcher]
+    (clojure.core/map f (parser matcher))))

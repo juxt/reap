@@ -323,23 +323,45 @@
                {}
                (concat
                 (re/advance-and-return matcher result)
-                (parameters matcher)))))
-        ]
+                (parameters matcher)))))]
 
-    (p/concat
-     (p/list
-      (p/alternatives
-       (p/pattern-parser #",")
-       media-range-with-accept-params-parser))
+    (p/cons
+     (p/alternatives
+      (p/ignore (p/pattern-parser #","))
+      media-range-with-accept-params-parser)
      (p/zero-or-more
-      (p/first-map
+      (p/first
        (p/sequence-group
-        (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
+        (p/ignore (p/pattern-parser (re-pattern (re/re-concat OWS ","))))
         (p/optionally
-         (p/first-map
+         (p/first
           (p/sequence-group
-           (p/pattern-parser (re-pattern OWS))
+           (p/ignore (p/pattern-parser (re-pattern OWS)))
            media-range-with-accept-params-parser)))))))))
 
 
 ;; year = 4DIGIT
+
+(let [p (accept)]
+  (p
+   (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1")))
+
+
+
+#_(require 'criterium.core)
+
+#_(let [p (accept)]
+  (criterium.core/quick-bench
+   (p
+    (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1"))))
+
+
+#_(let [matcher (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")]
+  (let [parser (p/sequence-group
+                (p/pattern-parser
+                 (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))
+)
+                (p/pattern-parser
+                 (re-pattern charset)))]
+    (parser matcher)
+    ))
