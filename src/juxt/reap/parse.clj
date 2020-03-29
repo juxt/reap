@@ -24,7 +24,7 @@
                    (clojure.core/cons x (f ps))))))
           res (f parsers)]
       (when (seq res)
-        (remove #(= :ignored %) (vec res))))))
+        (remove #(= :ignore %) (vec res))))))
 
 ;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
@@ -57,7 +57,7 @@
   (fn [matcher]
     (let [cell (parser matcher)
           rest (parsers matcher)]
-      (if (= cell :ignored)
+      (if (= cell :ignore)
         rest
         (clojure.core/cons cell rest)))))
 
@@ -78,7 +78,7 @@
 
 (defn ignore [parser]
   (fn [matcher]
-    (when (some? (parser matcher)) :ignored)))
+    (when (some? (parser matcher)) :ignore)))
 
 (defn pattern-parser [pat]
   (fn [matcher]
