@@ -1,10 +1,31 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.parse
-  (:refer-clojure :exclude [comp sequence cons concat filter]))
+  (:refer-clojure :exclude [comp sequence cons concat filter list constantly]))
 
 (set! *warn-on-reflection* true)
 
+;; RFC 5234 Section 3.2. Alternatives: Rule1 / Rule2
+(def alternatives some-fn)
+
+;; RFC 5234 Section 3.3. Incremental Alternatives: Rule1 =/ Rule2
+
+;; NOTE: This can be achieved by using alternatives recursively
+
+;; RFC 5234 Section 3.5. Sequence Group: (Rule1 Rule2)
+(defn sequence-group
+  "Create a parser that matches sequentially on each of the arguments."
+  [& parsers]
+  (fn [matcher]
+    (let [f (fn f [[p & ps]]
+              (when p
+                (lazy-seq
+                 (when-let [x (p matcher)]
+                   (clojure.core/cons x (f ps))))))
+          res (f parsers)]
+      (when (seq res) (vec res)))))
+
+;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
   (let [super
         (fn this [matcher]
@@ -17,18 +38,6 @@
 (defn optionally [parser]
   (fn [matcher]
     (or (parser matcher) true)))
-
-(defn concat
-  "Create a parser that matches sequentially on each of the arguments."
-  [& parsers]
-  (fn [matcher]
-    (let [f (fn f [[p & ps]]
-              (when p
-                (lazy-seq
-                 (when-let [x (p matcher)]
-                   (clojure.core/cons x (f ps))))))
-          res (f parsers)]
-      (when (seq res) (vec res)))))
 
 (defn comp
   "Wrap a parser in parser middleware."
@@ -46,6 +55,22 @@
   [parser parsers]
   (fn [matcher]
     (clojure.core/cons (parser matcher) (parsers matcher))))
+
+(defn list
+  [& parsers]
+  (fn [matcher]
+    (doall (map #(% matcher) parsers))))
+
+(defn concat [& parsers]
+  (fn [matcher]
+    (doall
+     (apply
+      clojure.core/concat
+      (map #(% matcher) parsers)))))
+
+(defn constantly [constant]
+  (fn [_]
+    constant))
 
 (defn pattern-parser [pat]
   (fn [matcher]

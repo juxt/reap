@@ -118,7 +118,7 @@
 ;; accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
 (defn accept-ext []
   (let [parser
-        (p/concat
+        (p/sequence-group
          (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
          (optional-parameter))]
     (fn [matcher]
@@ -138,10 +138,10 @@
 ;; accept-params = weight *accept-ext
 (defn accept-params []
   (let [parser
-        (p/concat
+        (p/sequence-group
          (weight)
          (p/sequence
-          (keep second)
+          (keep second) ; transducer
           (p/zero-or-more (accept-ext))))]
     (fn [matcher]
       (when-let [[weight accept-ext] (parser matcher)]
@@ -155,6 +155,8 @@
 ;; asctime-date = day-name SP date3 SP time-of-day SP year
 
 ;; charset = token
+(def ^String charset token)
+
 ;; codings = content-coding / "identity" / "*"
 ;; comment = <comment, see [RFC7230], Section 3.2.6>
 ;; content-coding = token
@@ -221,7 +223,7 @@
 
          parameters
          (->> (p/zero-or-more
-               (p/concat
+               (p/sequence-group
                 parameter-prefix
                 (parameter opts)))
               (p/sequence (keep second)))]
@@ -286,7 +288,7 @@
         (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
 
         media-range-parameter-pattern
-        (p/concat media-range-parameter-prefix (parameter))
+        (p/sequence-group media-range-parameter-prefix (parameter))
 
         accept-params (accept-params)
 
@@ -321,50 +323,23 @@
                {}
                (concat
                 (re/advance-and-return matcher result)
-                (parameters matcher)))))]
+                (parameters matcher)))))
+        ]
 
-    (p/filter
-     map?
-     (p/cons
-      (some-fn
+    (p/concat
+     (p/list
+      (p/alternatives
        (p/pattern-parser #",")
-       media-range-with-accept-params-parser)
-      (p/zero-or-more
-       (p/first-map
-        (p/concat
-         (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
-         (p/optionally
-          (p/first-map
-           (p/concat
-            (p/pattern-parser (re-pattern OWS))
-            media-range-with-accept-params-parser))))))))))
+       media-range-with-accept-params-parser))
+     (p/zero-or-more
+      (p/first-map
+       (p/sequence-group
+        (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
+        (p/optionally
+         (p/first-map
+          (p/sequence-group
+           (p/pattern-parser (re-pattern OWS))
+           media-range-with-accept-params-parser)))))))))
 
-
-
-
-    (fn [matcher]
-      (parser matcher))))
 
 ;; year = 4DIGIT
-
-
-;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
-;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
-
-#_(require 'criterium.core)
-
-#_(let [p (accept)]
-  (criterium.core/quick-bench
-   (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1")))
-
-
-#_(let [matcher (re/input "   UTF-8;q=0.8,shift_JIS;q=0.4")]
-  (let [parser (p/concat
-                (p/pattern-parser (re/zero-or-more (re/re-concat \, OWS)))
-                (p/pattern-parser (re-pattern charset)))]
-    (parser matcher)
-    ))
-
-(defn accept-charset []
-
-  )
