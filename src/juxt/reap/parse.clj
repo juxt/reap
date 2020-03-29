@@ -38,7 +38,7 @@
 
 (defn optionally [parser]
   (fn [matcher]
-    (or (parser matcher) true)))
+    (or (parser matcher) :ignore)))
 
 (defn comp
   "Wrap a parser in parser middleware."
