@@ -62,15 +62,6 @@
 (defn group [& args]
   (str "(" (apply re-concat args) ")"))
 
-(defn ^String zero-or-more [alts]
-  (re-str (str "[" (apply str (map re-str alts)) "]*")))
-
-(defn ^String one-or-more [alts]
-  (re-str (str "[" (apply str (map re-str alts)) "]+")))
-
-(defn ^String optional [alts]
-  (re-str (str "[" (apply str (map re-str alts)) "]")))
-
 (defn find-zero-or-more [m]
   (lazy-seq
    (loop []

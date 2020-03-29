@@ -27,7 +27,7 @@
 
 ;; OWS = *( SP / HTAB )
 
-(def ^String OWS (re/zero-or-more (rfc5234/alternatives SP HTAB)))
+(def ^String OWS (rfc5234/zero-or-more (rfc5234/alternatives SP HTAB)))
 
 
 ;; RWS = 1*( SP / HTAB )
@@ -115,7 +115,7 @@
 
 ;; quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
 (def quoted-string ; exposes group
-  (re/re-compose "%s((?:%s|%s)*)%s" rfc5234/DQUOTE (re/optional qdtext) quoted-pair rfc5234/DQUOTE))
+  (re/re-compose "%s((?:%s|%s)*)%s" rfc5234/DQUOTE (rfc5234/optional qdtext) quoted-pair rfc5234/DQUOTE))
 
 (defn unescape-quoted-string
   "Take a quoted-string and replace escaped characters."
@@ -149,7 +149,7 @@
 ;; token = 1*tchar
 (def ^{:tag String
        :ref "RFC7230 Section 3.2.6"}
-  token (re/one-or-more tchar))
+  token (rfc5234/one-or-more tchar))
 
 ;; trailer-part = *( header-field CRLF )
 ;; transfer-coding = "chunked" / "compress" / "deflate" / "gzip" /

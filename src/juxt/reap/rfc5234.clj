@@ -2,6 +2,7 @@
 
 (ns juxt.reap.rfc5234
   (:require
+   [juxt.reap.regex :as re]
    [juxt.reap.interval :as i]))
 
 (set! *warn-on-reflection* true)
@@ -84,6 +85,17 @@
 
 (defn merge-alternatives [& colls]
   (apply merge-alternatives* (map as-alternatives colls)))
+
+;; Groupings
+
+(defn ^String zero-or-more [alts]
+  (re/re-str (str "[" (apply str (map re/re-str alts)) "]*")))
+
+(defn ^String one-or-more [alts]
+  (re/re-str (str "[" (apply str (map re/re-str alts)) "]+")))
+
+(defn ^String optional [alts]
+  (re/re-str (str "[" (apply str (map re/re-str alts)) "]")))
 
 ;; Section B.1
 
