@@ -1,7 +1,7 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.parse
-  (:refer-clojure :exclude [comp sequence cons concat]))
+  (:refer-clojure :exclude [comp sequence cons concat filter]))
 
 (set! *warn-on-reflection* true)
 
@@ -56,3 +56,13 @@
                  (.end ^java.util.regex.Matcher matcher)
                  (.regionEnd ^java.util.regex.Matcher matcher))
         res))))
+
+(defn filter [pred parser]
+  (fn [matcher]
+    (clojure.core/filter pred (parser matcher))))
+
+(defn first-of [pred parser]
+  (comp first (filter pred parser)))
+
+(defn first-map [parser]
+  (first-of map? parser))
