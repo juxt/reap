@@ -321,28 +321,26 @@
                {}
                (concat
                 (re/advance-and-return matcher result)
-                (parameters matcher)))))
+                (parameters matcher)))))]
 
-        parser
-        (p/sequence
-         (remove boolean?)
-         (p/cons
-          (p/comp
-           #(if (map? %) % true)
-           (some-fn
-            (p/pattern-parser #",")
-            media-range-with-accept-params-parser))
-          (p/zero-or-more
-           (p/comp
-            second
-            (p/concat
-             (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
-             (p/optionally
-              (p/comp
-               second
-               (p/concat
-                (p/pattern-parser (re-pattern OWS))
-                media-range-with-accept-params-parser))))))))]
+    (p/filter
+     map?
+     (p/cons
+      (some-fn
+       (p/pattern-parser #",")
+       media-range-with-accept-params-parser)
+      (p/zero-or-more
+       (p/first-map
+        (p/concat
+         (p/pattern-parser (re-pattern (re/re-concat OWS ",")))
+         (p/optionally
+          (p/first-map
+           (p/concat
+            (p/pattern-parser (re-pattern OWS))
+            media-range-with-accept-params-parser))))))))))
+
+
+
 
     (fn [matcher]
       (parser matcher))))
