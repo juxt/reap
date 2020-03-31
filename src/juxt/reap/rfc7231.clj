@@ -131,7 +131,10 @@
     (fn [matcher]
       (.usePattern ^java.util.regex.Matcher matcher pat)
       (when (.lookingAt ^java.util.regex.Matcher matcher)
-        (Float/parseFloat (re/advance-and-return matcher (.group ^java.util.regex.Matcher matcher 1)))))))
+        (Double/parseDouble
+         (re/advance-and-return
+          matcher
+          (.group ^java.util.regex.Matcher matcher 1)))))))
 
 ;; accept-params = weight *accept-ext
 (defn accept-params []
@@ -345,51 +348,37 @@
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
 ;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
-(let [parser
-      (let [charset-with-weight
-            (p/as-map
-             (p/sequence-group
-              (p/alternatives
-               (p/as-entry
-                :charset
-                (p/pattern-parser
-                 (re-pattern charset)))
-               (p/pattern-parser
-                (re-pattern (re/re-str \*))))
-              (p/optionally
-               (p/as-entry
-                :weight (weight)))))]
-        (p/cons
+(defn accept-charset []
+  (let [charset-with-weight
+        (p/as-map
+         (p/sequence-group
+          (p/alternatives
+           (p/as-entry
+            :charset
+            (p/pattern-parser
+             (re-pattern charset)))
+           (p/pattern-parser
+            (re-pattern (re/re-str \*))))
+          (p/optionally
+           (p/as-entry
+            :weight (weight)))))]
+    (p/cons
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/pattern-parser
+         (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
+       charset-with-weight))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern (re/re-compose "%s%s" OWS ","))))
+        (p/optionally
          (p/first
           (p/sequence-group
            (p/ignore
             (p/pattern-parser
-             (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
-           charset-with-weight))
-         (p/zero-or-more
-          (p/first
-           (p/sequence-group
-            (p/ignore
-             (p/pattern-parser
-              (re-pattern (re/re-compose "%s%s" OWS ","))))
-            (p/optionally
-             (p/first
-              (p/sequence-group
-               (p/ignore
-                (p/pattern-parser
-                 (re-pattern OWS)))
-               charset-with-weight))))))))]
-  (criterium.core/quick-bench
-   (let [matcher (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4,a,b")]
-     (parser matcher))))
-
-(criterium.core/quick-bench
-   (let [matcher (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4,a,b")]
-     (parser matcher)))
-
-(require 'criterium.core)
-
-#_(let [p (accept)]
-  (criterium.core/quick-bench
-   (p
-    (re/input "text/html;charset=utf-8;q=0.3,text/xml;q=1"))))
+             (re-pattern OWS)))
+           charset-with-weight)))))))))

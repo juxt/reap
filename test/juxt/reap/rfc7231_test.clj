@@ -100,7 +100,7 @@
     [{:type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
-      :weight (float 0.3)
+      :weight 0.3
       :accept-ext [{:name "zip"} {:name "qux", :value "quik"}]}]
     ((rfc7231/accept)
      (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))))
@@ -125,3 +125,10 @@
     (is
      ((rfc7231/accept)
       (re/input "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")))))
+
+(deftest accept-charset-test
+  (is
+   (= '({:charset "UTF-8", :weight 0.8}
+        {:charset "shift_JIS", :weight 0.4})
+      ((rfc7231/accept-charset)
+       (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")))))
