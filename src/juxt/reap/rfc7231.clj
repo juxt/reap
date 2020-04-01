@@ -13,11 +13,8 @@
 
 ;; parameter = token "=" ( token / quoted-string )
 
-(defn parameter
-  "Return a parameter parser that parses into map containing :name
-  and :value keys. The :name value is case insensitive and therefore
-  converted to lower-case."
-  []
+(defn- common-parameter
+  [optional?]
   (p/as-map
    (p/sequence-group
     (p/as-entry
@@ -26,43 +23,37 @@
       str/lower-case
       (p/pattern-parser
        (re-pattern token))))
-    (p/first
-     (p/sequence-group
-      (p/ignore (p/pattern-parser #"="))
-      (p/as-entry
-       :value
-       (p/alternatives
-        (p/pattern-parser (re-pattern token))
-        (p/comp
-         rfc7230/unescape-quoted-string
-         (p/pattern-parser
-          (re-pattern rfc7230/quoted-string) 1)))))))))
+    (cond->
+        (p/first
+         (p/sequence-group
+          (p/ignore (p/pattern-parser #"="))
+          (p/as-entry
+           :value
+           (p/alternatives
+            (p/pattern-parser (re-pattern token))
+            (p/comp
+             rfc7230/unescape-quoted-string
+             (p/pattern-parser
+              (re-pattern rfc7230/quoted-string) 1))))))
+      optional? (p/optionally)))))
+
+(defn parameter
+  "Return a parameter parser that parses into map containing :name
+  and :value keys. The :name value is case insensitive and therefore
+  converted to lower-case."
+  []
+  (common-parameter false))
 
 (defn optional-parameter
   "Return a parameter parser that parses into map containing :name and,
   optionally, :value key. The :name value is case insensitive and
   therefore converted to lower-case."
   []
-  (p/as-map
-   (p/sequence-group
-    (p/as-entry
-     :name
-     (p/comp
-      str/lower-case
-      (p/pattern-parser
-       (re-pattern token))))
-    (p/optionally
-     (p/first
-      (p/sequence-group
-       (p/ignore (p/pattern-parser #"="))
-       (p/as-entry
-        :value
-        (p/alternatives
-         (p/pattern-parser (re-pattern token))
-         (p/comp
-          rfc7230/unescape-quoted-string
-          (p/pattern-parser
-           (re-pattern rfc7230/quoted-string) 1))))))))))
+  (common-parameter true))
+
+((optional-parameter)
+ (re/input "a")
+ )
 
 ;; token = <token, see [RFC7230], Section 3.2.6>
 
@@ -400,7 +391,9 @@
      (p/zero-or-more
       (p/first
        (p/sequence-group
-        (p/ignore (p/pattern-parser (re-pattern (re/re-concat OWS ","))))
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern (re/re-concat OWS ","))))
         (p/optionally
          (p/first
           (p/sequence-group
