@@ -1,7 +1,9 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.parse
-  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map]))
+  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map])
+  (:import [java.util.regex Pattern Matcher])
+  (:require [juxt.reap.regex :as re]))
 
 (set! *warn-on-reflection* true)
 
@@ -13,18 +15,47 @@
 ;; NOTE: This can be achieved by using alternatives recursively
 
 ;; RFC 5234 Section 3.5. Sequence Group: (Rule1 Rule2)
+
+;; -  (fn [matcher]
+;; -    (let [f (fn f [[p & ps]]
+;; -              (when p
+;; -                (lazy-seq
+;; -                 (when-let [x (p matcher)]
+;; -                   (clojure.core/cons x (f ps))))))
+;; -          res (f parsers)]
+;; -      (when (seq res)
+
+
+#_(defn sequence-group
+  "Create a parser that matches sequentially on each of the arguments."
+  [& parsers]
+  ;; TODO: This needs to be optimized - try shortcutting, don't try to match with juxt
+  (let [p (apply juxt parsers)]
+    (fn [matcher]
+      (let [res (p matcher)]
+        (when (not (some nil? res))
+          res)))))
+
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
   [& parsers]
-  (fn [matcher]
-    (let [f (fn f [[p & ps]]
-              (when p
-                (lazy-seq
-                 (when-let [x (p matcher)]
-                   (clojure.core/cons x (f ps))))))
-          res (f parsers)]
-      (when (seq res)
-        (remove #(= :ignore %) (vec res))))))
+  (fn this [matcher]
+    (loop [results []
+           [p & parsers] parsers]
+      (if p
+        (if-let [res (p matcher)]
+          (recur (conj results res) parsers))
+        results))))
+
+
+#_((sequence-group
+  (fn [m] :a)
+  (fn [m] :b)
+  (fn [m] nil)
+
+  )
+ (re/input "abc")
+ )
 
 ;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
@@ -44,7 +75,8 @@
   "Wrap a parser in parser middleware."
   [f parser]
   (fn [matcher]
-    (f (parser matcher))))
+    (when-let [res (parser matcher)]
+      (if (= res :ignore) res (f res)))))
 
 (defn sequence
   "Wrap a parser in parser middleware."
@@ -80,19 +112,23 @@
   (fn [matcher]
     (when (some? (parser matcher)) :ignore)))
 
-(defn pattern-parser [pat]
-  (fn [matcher]
-    (.usePattern ^java.util.regex.Matcher matcher pat)
-    (when (.lookingAt ^java.util.regex.Matcher matcher)
-      (let [res (.group ^java.util.regex.Matcher matcher 0)]
-        (.region ^java.util.regex.Matcher matcher
-                 (.end ^java.util.regex.Matcher matcher)
-                 (.regionEnd ^java.util.regex.Matcher matcher))
-        res))))
+(defn pattern-parser
+  "Extract "
+  ([pat] (pattern-parser pat 0))
+  ([^Pattern pat ^long grp]
+   (fn [matcher]
+     (.usePattern ^Matcher matcher pat)
+     (when (.lookingAt ^Matcher matcher)
+       (let [res (.group ^Matcher matcher grp)]
+         (.region ^Matcher matcher
+                  (.end ^Matcher matcher)
+                  (.regionEnd ^Matcher matcher))
+         res)))))
 
 (defn first [parser]
   (fn [matcher]
-    (clojure.core/first (parser matcher))))
+    (clojure.core/first
+     (clojure.core/filter #(not= % :ignore) (parser matcher)))))
 
 (defn second [parser]
   (fn [matcher]
@@ -109,8 +145,11 @@
 ;; Data construction
 (defn as-entry [k parser]
   (fn [matcher]
-    [k (parser matcher)]))
+    (when-let [v (parser matcher)]
+      [k v])))
 
 (defn as-map [parser]
   (fn [matcher]
-    (into {} (parser matcher))))
+    (let [res (parser matcher)]
+      (when (seq res)
+        (into {} res)))))

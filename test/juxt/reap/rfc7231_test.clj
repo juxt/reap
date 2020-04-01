@@ -14,11 +14,11 @@
     (is
      (=
       {:name "foo", :value "bar"}
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo=bar"))))
     (is
      (nil?
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo")))))
 
   ;; "The type, subtype, and parameter name tokens are
@@ -30,11 +30,11 @@
      (=
       ;; :name should be lower-case, but value unchanged.
       {:name "foo", :value "Bar"}
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "FOO=Bar"))))
     (is
      (nil?
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo")))))
 
   (testing "quoted-string"
