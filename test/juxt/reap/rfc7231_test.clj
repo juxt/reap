@@ -93,6 +93,19 @@
 
 ;; TODO: weight tests
 
+#_(let [p (rfc7231/accept)]
+  (criterium.core/quick-bench
+   (p
+    (re/input "application/xml,application/xhtml+xml,text/html;q=0.9,\r\ntext/plain;q=0.8,image/png,*/*;q=0.5"))))
+
+#_(let [p (rfc7231/accept)]
+  (criterium.core/quick-bench
+   (p
+    (re/input "image/jpeg, application/x-ms-application, image/gif,\r\napplication/xaml+xml, image/pjpeg, application/x-ms-xbap,\r\napplication/x-shockwave-flash, application/msword, */*"))))
+
+;; TODO: Create a very cryptic Accept test designed to catch out all but the most compliant of parsers
+
+
 (deftest accept-test
   (is
    (=

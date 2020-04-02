@@ -339,8 +339,7 @@
           (p/sequence-group
            (p/ignore
             (p/pattern-parser
-             (re-pattern
-              (re/re-concat OWS))))
+             (re-pattern OWS)))
            (p/comp
             #(apply merge %)
             (p/sequence-group
