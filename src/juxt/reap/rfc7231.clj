@@ -46,14 +46,10 @@
 
 (defn optional-parameter
   "Return a parameter parser that parses into map containing :name and,
-  optionally, :value key. The :name value is case insensitive and
+  optionally, a :value key. The :name value is case insensitive and
   therefore converted to lower-case."
   []
   (common-parameter true))
-
-((optional-parameter)
- (re/input "a")
- )
 
 ;; token = <token, see [RFC7230], Section 3.2.6>
 
@@ -113,34 +109,57 @@
 
 ;; accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
 (defn accept-ext []
-  (let [parser
-        (p/first
-         (p/sequence-group
-          (p/ignore (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS))))
-          (optional-parameter)))]
-    (fn [matcher]
-      (parser matcher))))
+  (p/first
+   (p/sequence-group
+    (p/ignore
+     (p/pattern-parser
+      (re-pattern
+       (re/re-concat OWS \; OWS))))
+    (optional-parameter))))
 
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 (def qvalue (re/re-compose "0(?:\\.[%s]{0,3})?|1(?:\\.[0]{0,3})?" DIGIT))
 
 ;; weight = OWS ";" OWS "q=" qvalue
 (defn weight []
-  (let [pat (re-pattern (re/re-concat OWS \; OWS "q=" (re/group qvalue)))]
-    (fn [matcher]
-      (.usePattern ^java.util.regex.Matcher matcher pat)
-      (when (.lookingAt ^java.util.regex.Matcher matcher)
-        (Double/parseDouble
-         (re/advance-and-return
-          matcher
-          (.group ^java.util.regex.Matcher matcher 1)))))))
+  (p/comp
+   #(Double/parseDouble %)
+   (p/pattern-parser
+    (re-pattern
+     (re/re-concat
+      OWS \; OWS "q=" (re/group qvalue)))
+    1)))
+
+(comment
+  ((weight) (re/input ";q=0.8")))
 
 ;; accept-params = weight *accept-ext
 (defn accept-params []
   (p/as-map
    (p/sequence-group
-    (p/as-entry :weight (weight))
-    (p/as-entry :accept-ext (p/zero-or-more (accept-ext))))))
+    (p/as-entry
+     :weight
+     (weight))
+    (p/as-entry
+     :accept-ext
+     (p/comp
+      vec
+      (p/seq ; ignore if empty list
+       (p/zero-or-more
+        (accept-ext))))))))
+
+(comment
+  ((accept-params) (re/input ";foo=bar")))
+
+(comment
+  ((accept-params) (re/input ";q=0.8")))
+
+(comment
+  ((accept-params) (re/input ";q=0.8;a;b;c=d")))
+
+(comment
+  ((p/zero-or-more (accept-ext)) (re/input ";a;b;c=d")))
+
 
 ;; asctime-date = day-name SP date3 SP time-of-day SP year
 
@@ -188,43 +207,26 @@
 
 ;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
 ;;  ";" OWS parameter )
-(def media-range-result
-  (some-fn
-   #(when-let [type (get % 1)]
-      {:type (str/lower-case type) :subtype (str/lower-case (get % 2))})
-   #(when-let [type (get % 3)]
-      {:type (str/lower-case type) :subtype (str/lower-case (get % 4))})
-   #(when-let [type (get % 5)]
-      {:type (str/lower-case type) :subtype (str/lower-case (get % 6))})))
-
 (defn media-range []
-  (let [media-range-pattern
-        (re-pattern
-         (re/re-compose
-          "%s|%s|%s"
-          (str "(\\*)/(\\*)")
-          (format "(%s)/(\\*)" (re/re-str type))
-          (format "(%s)/(%s)" (re/re-str type) (re/re-str type))))
-
-        parameter-prefix
-        (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
-
-        parameters
-        (->> (p/zero-or-more
-              (p/sequence-group
-               parameter-prefix
-               (parameter)))
-             (p/sequence (keep second)))]
-
-    (fn [matcher]
-      (when-let [result
-                 (media-range-result
-                  (re/re-find-with-pattern matcher media-range-pattern))]
-
-        [:media-range
-         (conj
-          (re/advance-and-return matcher result)
-          [:params (parameters matcher)])]))))
+  (p/as-map
+   (p/sequence-group
+    (p/as-entry
+     :media-type
+     (p/alternatives
+      (p/pattern-parser #"\*/\*")
+      (p/pattern-parser
+       (re-pattern (re/re-compose "(%s)/\\*" type)))
+      (p/pattern-parser
+       (re-pattern (re/re-compose "(%s)/(%s)" type subtype)))))
+    (p/as-entry
+     :parameters
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern (re/re-concat OWS \; OWS))))
+        (parameter))))))))
 
 (comment
   ((media-range)
@@ -263,91 +265,14 @@
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
 
-(comment
-  (let [p
-        (p/sequence-group
-         (p/ignore (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS))))
-         (parameter))]
-    (p (re/input ";foo=bar"))
-    ))
-
-
-(let [media-range-pattern
-      (p/pattern-parser
-       (re-pattern
-        (re/re-compose
-         "%s|%s|%s"
-         (str "(\\*)/(\\*)")
-         (format "(%s)/(\\*)" (re/re-str type))
-         (format "(%s)/(%s)" (re/re-str type) (re/re-str type)))))
-
-      media-range-parameter-prefix
-      (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
-
-      media-range-parameter-pattern
-      (p/sequence-group
-       (p/ignore media-range-parameter-prefix)
-       (parameter))
-
-      accept-params (accept-params)
-
-      ;; The reason why we can't just use `media-range` is that we
-      ;; need to resolve the ambiguity whereby the "q" parameter
-      ;; separates media type parameters from Accept extension
-      ;; parameters. This is more fully discussed in RFC 7231
-      ;; Section 5.3.2.
-      ;;
-      ;; The trick is to create a parameter parser modelled on
-      ;; `zero-or-more` which attempts to match `accept-params` for
-      ;; each parameter. Since `accept-params` matches on a leading
-      ;; `weight`, a weight parameter will be detected and cause the
-      ;; loop to end.
-      parameters
-      (fn this [matcher]
-        (loop [matcher matcher
-               result {:parameters []}]
-          (if-let [accept-params (accept-params matcher)]
-            (merge result accept-params)
-            (if-let [match (media-range-parameter-pattern matcher)]
-              (recur matcher (update result :parameters conj (second match)))
-              result))))
-
-      media-range-with-accept-params-parser
-      (fn [matcher]
-        (when-let
-            [result
-             (media-range-result
-              (re/re-find-with-pattern matcher media-range-pattern))]
-            (into
-             {}
-             (concat
-              (re/advance-and-return matcher result)
-              (parameters matcher)))))]
-
-;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
-;;  OWS ( media-range [ accept-params ] ) ] ) ]
-
-  (media-range-pattern (re/input "text/html;foo=bar"))
-  #_(media-range-with-accept-params-parser
-     (re/input "text/html;foo=bar")))
-
-
 (defn accept []
-  (let [media-range-pattern
-        (re-pattern
-         (re/re-compose
-          "%s|%s|%s"
-          (str "(\\*)/(\\*)")
-          (format "(%s)/(\\*)" (re/re-str type))
-          (format "(%s)/(%s)" (re/re-str type) (re/re-str type))))
-
-        media-range-parameter-prefix
-        (p/pattern-parser (re-pattern (re/re-concat OWS \; OWS)))
-
-        media-range-parameter-pattern
-        (p/sequence-group
-         (p/ignore media-range-parameter-prefix)
-         (parameter))
+  (let [media-range-parameter
+        (p/first
+         (p/sequence-group
+          (p/ignore
+           (p/pattern-parser
+            (re-pattern (re/re-concat OWS \; OWS))))
+          (parameter)))
 
         accept-params (accept-params)
 
@@ -365,52 +290,33 @@
         parameters
         (fn this [matcher]
           (loop [matcher matcher
-                 result {:parameters []}]
+                 result {:parameters []
+                         }]
             (if-let [accept-params (accept-params matcher)]
               (merge result accept-params)
-              (if-let [match (media-range-parameter-pattern matcher)]
-                (recur matcher (update result :parameters conj (second match)))
-                result))))
+              (if-let [match (media-range-parameter matcher)]
+                (recur matcher (update result :parameters conj match))
+                result))))]
 
-        media-range-with-accept-params-parser
-        (fn [matcher]
-          (when-let
-              [result
-               (media-range-result
-                (re/re-find-with-pattern matcher media-range-pattern))]
-              (into
-               {}
-               (concat
-                (re/advance-and-return matcher result)
-                (parameters matcher)))))]
+    (p/comp
+     #(apply merge %)
+     (p/sequence-group
+      (p/as-map
+       (p/list
+        (p/as-entry
+         :media-type
+         (p/alternatives
+          (p/pattern-parser #"\*/\*")
+          (p/pattern-parser
+           (re-pattern (re/re-compose "(%s)/\\*" type)))
+          (p/pattern-parser
+           (re-pattern (re/re-compose "(%s)/(%s)" type subtype)))))))
+      parameters))))
 
-    (p/cons
-     (p/alternatives
-      (p/ignore (p/pattern-parser #","))
-      media-range-with-accept-params-parser)
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern (re/re-concat OWS ","))))
-        (p/optionally
-         (p/first
-          (p/sequence-group
-           (p/ignore (p/pattern-parser (re-pattern OWS)))
-           media-range-with-accept-params-parser)))))))))
-
-
-#_((accept-params )
- (re/input ";foo=bar;q=0.3;zip;\t qux=quik"))
-
-#_((accept)
- (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))
+(comment
+  ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a")))
 
 ;; year = 4DIGIT
-
-
-
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
 ;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )

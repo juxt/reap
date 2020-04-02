@@ -40,7 +40,7 @@
   (testing "quoted-string"
     (is
      (=
-      {:name "foo", :value "ba'r" :raw-value "\"ba\\'r\""}
+      {:name "foo", :value "ba'r"}
       ((rfc7231/parameter)
        (re/input "foo=\"ba\\'r\"")))))
 
@@ -57,7 +57,7 @@
        (re/input "foo=bar"))))
     (is
      (=
-      {:name "foo", :value "ba'r" :raw-value "\"ba\\'r\""}
+      {:name "foo", :value "ba'r"}
       ((rfc7231/optional-parameter)
        (re/input "foo=\"ba\\'r\""))))))
 
