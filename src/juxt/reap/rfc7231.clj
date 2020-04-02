@@ -61,8 +61,6 @@
 (def ^String type token)
 
 
-;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
-;;  ( codings [ weight ] ) ] ) ]
 
 ;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
 
@@ -166,9 +164,17 @@
 ;; charset = token
 (def ^String charset token)
 
-;; codings = content-coding / "identity" / "*"
-;; comment = <comment, see [RFC7230], Section 3.2.6>
 ;; content-coding = token
+(def ^String content-coding token)
+
+;; codings = content-coding / "identity" / "*"
+(defn codings []
+  (p/alternatives
+   (p/pattern-parser (re-pattern content-coding))
+   (p/pattern-parser (re-pattern "identity"))
+   (p/pattern-parser (re-pattern "\\*"))))
+
+;; comment = <comment, see [RFC7230], Section 3.2.6>
 
 ;; date1 = day SP month SP year
 ;; date2 = day "-" month "-" 2DIGIT
@@ -430,3 +436,43 @@
             (p/as-entry
              :weight
              (weight)))))))))))))
+
+
+;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
+;;  ( codings [ weight ] ) ] ) ]
+
+;;  ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
+;;  ( codings [ weight ] ) ] )
+(defn accept-encoding []
+  (p/optionally
+   (p/cons
+    (p/first
+     (p/sequence-group
+      (p/alternatives
+       (p/ignore
+        (p/pattern-parser
+         (re-pattern ",")))
+       (p/as-map
+        (p/sequence-group
+         (p/as-entry :codings (codings))
+         (p/optionally
+          (p/as-entry :weight (weight))))))))
+
+    (p/zero-or-more
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/pattern-parser
+         (re-pattern
+          (re/re-concat OWS ","))))
+       (p/optionally
+        (p/first
+         (p/sequence-group
+          (p/ignore
+           (p/pattern-parser
+            (re-pattern OWS)))
+          (p/as-map
+           (p/sequence-group
+            (p/as-entry :codings (codings))
+            (p/optionally
+             (p/as-entry :weight (weight))))))))))))))
