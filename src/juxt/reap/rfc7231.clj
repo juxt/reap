@@ -293,7 +293,6 @@
 
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
-
 (defn accept []
   (let [media-range-parameter
         (p/first
@@ -373,8 +372,7 @@
            (p/pattern-parser
             (re-pattern (re/re-str \*))))
           (p/optionally
-           (p/as-entry
-            :weight (weight)))))]
+           (p/as-entry :weight (weight)))))]
     (p/cons
      (p/first
       (p/sequence-group
@@ -409,9 +407,7 @@
     (p/cons
      (p/as-map
       (p/sequence-group
-       (p/as-entry
-        :language-range
-        (rfc4647/language-range))
+       (p/as-entry :language-range (rfc4647/language-range))
        (p/optionally
         (p/as-entry
          :weight
@@ -429,20 +425,12 @@
            (p/ignore
             (p/pattern-parser
              (re-pattern OWS)))
-           (p/as-entry
-            :language-range
-            (rfc4647/language-range))
+           (p/as-entry :language-range (rfc4647/language-range))
            (p/optionally
-            (p/as-entry
-             :weight
-             (weight)))))))))))))
-
+            (p/as-entry :weight (weight)))))))))))))
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
-
-;;  ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
-;;  ( codings [ weight ] ) ] )
 (defn accept-encoding []
   (p/optionally
    (p/cons
@@ -457,7 +445,6 @@
          (p/as-entry :codings (codings))
          (p/optionally
           (p/as-entry :weight (weight))))))))
-
     (p/zero-or-more
      (p/first
       (p/sequence-group

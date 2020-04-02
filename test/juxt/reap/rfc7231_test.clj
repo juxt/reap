@@ -155,7 +155,6 @@
       ((rfc7231/accept-language)
        (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3")))))
 
-
 (deftest accept-encoding-test
   (is
    (= '({:codings "gzip" :weight 0.3}
