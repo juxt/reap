@@ -64,10 +64,10 @@
 (deftest media-range-test
   (is
    (=
-    [:media-range
-     {:type "text",
-      :subtype "html",
-      :params [{:name "foo", :value "bar"} {:name "baz", :value "qu'x" :raw-value "\"qu\\'x\""}]}]
+    {:media-type "text/html"
+     :type "text",
+     :subtype "html",
+     :parameters [{:name "foo", :value "bar"} {:name "baz", :value "qu'x"}]}
     ((rfc7231/media-range)
      (re/input "text/html;foo=bar;baz=\"qu\\'x\""))))
 
@@ -76,13 +76,12 @@
   (testing "case insensitivity"
     (is
      (=
-      [:media-range
-       {:type "text"
-        :subtype "html"
-        :params []}]
+      {:media-type "text/html"
+       :type "text"
+       :subtype "html"
+       :parameters []}
       ((rfc7231/media-range)
        (re/input "TEXT/Html"))))))
-
 
 (deftest qvalue-test
   (is (re-matches (re-pattern rfc7231/qvalue) "1"))
@@ -97,7 +96,8 @@
 (deftest accept-test
   (is
    (=
-    [{:type "text",
+    [{:media-type "text/html"
+      :type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
       :weight 0.3

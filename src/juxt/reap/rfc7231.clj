@@ -204,29 +204,47 @@
 
 ;;(identity rfc7230/quoted-string)
 
+(defn media-range-without-parameters []
+  (p/alternatives
+   (p/comp
+    (fn [_]
+      {:media-type "*/*"
+       :type "*"
+       :subtype "*"})
+    (p/pattern-parser #"\*/\*"))
+   (p/comp
+    (fn [[media-type type]]
+      {:media-type (str/lower-case media-type)
+       :type (str/lower-case type)
+       :subtype "*"})
+    (p/pattern-parser
+     (re-pattern (re/re-compose "(%s)/\\*" type)) :all))
+   (p/comp
+    (fn [[media-type type subtype]]
+      {:media-type (str/lower-case media-type)
+       :type (str/lower-case type)
+       :subtype (str/lower-case subtype)})
+    (p/pattern-parser
+     (re-pattern (re/re-compose "(%s)/(%s)" type subtype)) :all))))
 
 ;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
 ;;  ";" OWS parameter )
 (defn media-range []
-  (p/as-map
+  (p/comp
+   #(apply merge %)
    (p/sequence-group
-    (p/as-entry
-     :media-type
-     (p/alternatives
-      (p/pattern-parser #"\*/\*")
-      (p/pattern-parser
-       (re-pattern (re/re-compose "(%s)/\\*" type)))
-      (p/pattern-parser
-       (re-pattern (re/re-compose "(%s)/(%s)" type subtype)))))
-    (p/as-entry
-     :parameters
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern (re/re-concat OWS \; OWS))))
-        (parameter))))))))
+    (media-range-without-parameters)
+    (p/as-map
+     (p/list
+      (p/as-entry
+       :parameters
+       (p/zero-or-more
+        (p/first
+         (p/sequence-group
+          (p/ignore
+           (p/pattern-parser
+            (re-pattern (re/re-concat OWS \; OWS))))
+          (parameter))))))))))
 
 (comment
   ((media-range)
@@ -265,6 +283,8 @@
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
 
+;; TODO: zero or more
+
 (defn accept []
   (let [media-range-parameter
         (p/first
@@ -287,7 +307,7 @@
         ;; each parameter. Since `accept-params` matches on a leading
         ;; `weight`, a weight parameter will be detected and cause the
         ;; loop to end.
-        parameters
+        parameters-weight-accept-params
         (fn this [matcher]
           (loop [matcher matcher
                  result {:parameters []
@@ -298,23 +318,37 @@
                 (recur matcher (update result :parameters conj match))
                 result))))]
 
-    (p/comp
-     #(apply merge %)
-     (p/sequence-group
-      (p/as-map
-       (p/list
-        (p/as-entry
-         :media-type
-         (p/alternatives
-          (p/pattern-parser #"\*/\*")
-          (p/pattern-parser
-           (re-pattern (re/re-compose "(%s)/\\*" type)))
-          (p/pattern-parser
-           (re-pattern (re/re-compose "(%s)/(%s)" type subtype)))))))
-      parameters))))
+    (p/cons
+     (p/alternatives
+      (p/ignore
+       (p/pattern-parser #","))
+      (p/comp
+       #(apply merge %)
+       (p/sequence-group
+        (media-range-without-parameters)
+        parameters-weight-accept-params)))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern
+           (re/re-concat OWS ","))))
+        (p/optionally
+         (p/first
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser
+             (re-pattern
+              (re/re-concat OWS))))
+           (p/comp
+            #(apply merge %)
+            (p/sequence-group
+             (media-range-without-parameters)
+             parameters-weight-accept-params)))))))))))
 
 (comment
-  ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a")))
+  ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
 
 ;; year = 4DIGIT
 
