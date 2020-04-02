@@ -145,3 +145,12 @@
         {:charset "shift_JIS", :weight 0.4})
       ((rfc7231/accept-charset)
        (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")))))
+
+(deftest accept-language-test
+  (is
+   (= '({:language-range "en-GB"}
+        {:language-range "en-US" :weight 0.8}
+        {:language-range "en" :weight 0.5}
+        {:language-range "it" :weight 0.3})
+      ((rfc7231/accept-language)
+       (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3")))))

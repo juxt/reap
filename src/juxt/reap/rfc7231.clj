@@ -5,6 +5,7 @@
   (:require
    [juxt.reap.regex :as re]
    [juxt.reap.parse :as p]
+   [juxt.reap.rfc4647 :as rfc4647]
    [juxt.reap.rfc7230 :as rfc7230 :refer [OWS token]]
    [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]
    [clojure.string :as str]))
@@ -62,8 +63,7 @@
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
-;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
-;;  "," [ OWS ( language-range [ weight ] ) ] )
+
 ;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
@@ -195,6 +195,7 @@
 ;; hour = 2DIGIT
 
 ;; language-range = <language-range, see [RFC4647], Section 2.1>
+
 ;; language-tag = <Language-Tag, see [RFC5646], Section 2.1>
 
 ;; mailbox = <mailbox, see [RFC5322], Section 3.4>
@@ -388,3 +389,44 @@
             (p/pattern-parser
              (re-pattern OWS)))
            charset-with-weight)))))))))
+
+;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
+;;  "," [ OWS ( language-range [ weight ] ) ] )
+(defn accept-language []
+  (p/first
+   (p/sequence-group
+    (p/ignore
+     (p/zero-or-more
+      (p/pattern-parser
+       (re-pattern
+        (re/re-concat "," OWS)))))
+    (p/cons
+     (p/as-map
+      (p/sequence-group
+       (p/as-entry
+        :language-range
+        (rfc4647/language-range))
+       (p/optionally
+        (p/as-entry
+         :weight
+         (weight)))))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern
+           (re/re-concat OWS ","))))
+        (p/optionally
+         (p/as-map
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser
+             (re-pattern OWS)))
+           (p/as-entry
+            :language-range
+            (rfc4647/language-range))
+           (p/optionally
+            (p/as-entry
+             :weight
+             (weight)))))))))))))
