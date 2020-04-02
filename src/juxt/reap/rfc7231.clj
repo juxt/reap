@@ -280,10 +280,12 @@
 ;; time-of-day = hour ":" minute ":" second
 
 
+;; TODO: with re-pattern-parser, return the result of re-groups for post-processing
+;; (re-matches #"([a-b]*)/([c-d]*)" "a/c")
+
+
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
-
-;; TODO: zero or more
 
 (defn accept []
   (let [media-range-parameter
@@ -308,43 +310,42 @@
         ;; `weight`, a weight parameter will be detected and cause the
         ;; loop to end.
         parameters-weight-accept-params
-        (fn this [matcher]
+        (fn [matcher]
           (loop [matcher matcher
-                 result {:parameters []
-                         }]
+                 result {:parameters []}]
             (if-let [accept-params (accept-params matcher)]
               (merge result accept-params)
               (if-let [match (media-range-parameter matcher)]
                 (recur matcher (update result :parameters conj match))
                 result))))]
-
-    (p/cons
-     (p/alternatives
-      (p/ignore
-       (p/pattern-parser #","))
-      (p/comp
-       #(apply merge %)
-       (p/sequence-group
-        (media-range-without-parameters)
-        parameters-weight-accept-params)))
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern
-           (re/re-concat OWS ","))))
-        (p/optionally
-         (p/first
-          (p/sequence-group
-           (p/ignore
-            (p/pattern-parser
-             (re-pattern OWS)))
-           (p/comp
-            #(apply merge %)
-            (p/sequence-group
-             (media-range-without-parameters)
-             parameters-weight-accept-params)))))))))))
+    (p/optionally
+     (p/cons
+      (p/alternatives
+       (p/ignore
+        (p/pattern-parser #","))
+       (p/comp
+        #(apply merge %)
+        (p/sequence-group
+         (media-range-without-parameters)
+         parameters-weight-accept-params)))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser
+           (re-pattern
+            (re/re-concat OWS ","))))
+         (p/optionally
+          (p/first
+           (p/sequence-group
+            (p/ignore
+             (p/pattern-parser
+              (re-pattern OWS)))
+            (p/comp
+             #(apply merge %)
+             (p/sequence-group
+              (media-range-without-parameters)
+              parameters-weight-accept-params))))))))))))
 
 (comment
   ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
