@@ -93,6 +93,14 @@
 
 ;; TODO: weight tests
 
+(deftest media-type-test
+  (is (= {:type "text" :subtype "html" :parameters []}
+         ((rfc7231/media-type)
+          (re/input "text/html"))))
+  (is (= {:type "text" :subtype "html" :parameters [{:name "foo" :value "bar"} {:name "zip" :value "qux"}]}
+         ((rfc7231/media-type)
+          (re/input "text/html;foo=bar;ZIP=qux")))))
+
 ;; TODO: Create a very cryptic Accept test designed to catch out all but the most compliant of parsers
 
 (deftest accept-test

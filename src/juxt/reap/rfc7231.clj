@@ -71,7 +71,9 @@
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
 ;; Content-Location = absolute-URI / partial-URI
-;; Content-Type = media-type
+
+
+
 
 ;; Date = HTTP-date
 
@@ -258,8 +260,32 @@
    (re/input "text/html ;  foo=bar ;  baz=\"qux;quuz\" ; q=0.9; a=b ; c")))
 
 ;; media-type = type "/" subtype *( OWS ";" OWS parameter )
+(defn media-type []
+  (p/as-map
+   (p/sequence-group
+    (p/as-entry
+     :type
+     (p/pattern-parser (re-pattern type)))
+    (p/ignore (p/pattern-parser (re-pattern "/")))
+    (p/as-entry
+     :subtype
+     (p/pattern-parser (re-pattern subtype)))
+    (p/as-entry
+     :parameters
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore (p/pattern-parser (re-pattern OWS)))
+        (p/ignore (p/pattern-parser (re-pattern ";")))
+        (p/ignore (p/pattern-parser (re-pattern OWS)))
+        (parameter))))))))
+
+;; Content-Type = media-type
+(def content-type media-type)
 
 ;; method = token
+(def method token)
+
 ;; minute = 2DIGIT
 ;; month = %x4A.61.6E ; Jan
 ;;  / %x46.65.62 ; Feb
