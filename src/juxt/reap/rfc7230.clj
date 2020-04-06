@@ -4,6 +4,7 @@
   (:require
    [clojure.string :as string]
    [juxt.reap.regex :as re]
+   [juxt.reap.parse :as p]
    [juxt.reap.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]))
 
 (set! *warn-on-reflection* true)
@@ -29,8 +30,8 @@
 
 (def ^String OWS (rfc5234/zero-or-more (rfc5234/alternatives SP HTAB)))
 
-
 ;; RWS = 1*( SP / HTAB )
+(def ^String RWS (rfc5234/one-or-more (rfc5234/alternatives SP HTAB)))
 
 ;; TE = [ ( "," / t-codings ) *( OWS "," [ OWS t-codings ] ) ]
 ;; Trailer = *( "," OWS ) field-name *( OWS "," [ OWS field-name ] )
@@ -58,12 +59,9 @@
 ;; chunk-ext-val = token / quoted-string
 ;; chunk-size = 1*HEXDIG
 ;; chunked-body = *chunk last-chunk trailer-part CRLF
-;; comment = "(" *( ctext / quoted-pair / comment ) ")"
+
 ;; connection-option = token
-;; ctext = HTAB / SP / %x21-27 ; '!'-'''
-;;  / %x2A-5B ; '*'-'['
-;;  / %x5D-7E ; ']'-'~'
-;;  / obs-text
+
 
 ;; field-content = field-vchar [ 1*( SP / HTAB ) field-vchar ]
 ;; field-name = token
@@ -85,6 +83,8 @@
 ;; obs-fold = CRLF 1*( SP / HTAB )
 ;; obs-text = %x80-FF
 (def obs-text #juxt.reap/interval [0x80 0xFF])
+
+
 
 ;; origin-form = absolute-path [ "?" query ]
 
@@ -121,6 +121,38 @@
   "Take a quoted-string and replace escaped characters."
   [s]
   (string/replace s (re-pattern quoted-pair) #(subs % 1)))
+
+;; ctext = HTAB / SP / %x21-27 ; '!'-'''
+;;  / %x2A-5B ; '*'-'['
+;;  / %x5D-7E ; ']'-'~'
+;;  / obs-text
+
+(def ^{:type ::rfc5234/alternatives}
+  ctext
+  (rfc5234/merge-alternatives
+   #{rfc5234/HTAB rfc5234/SP}
+   #juxt.reap/interval [0x21 0x27]
+   #juxt.reap/interval [0x2A 0x5B]
+   #juxt.reap/interval [0x5D 0x7E]
+   obs-text))
+
+;; comment = "(" *( ctext / quoted-pair / comment ) ")"
+
+(defn rfc-comment []
+  (p/sequence-group
+   (p/pattern-parser (re-pattern "\\("))
+   (p/zero-or-more
+    (p/alternatives
+     (p/pattern-parser (re-pattern (re/re-compose "[%s]" ctext)))
+     #_(p/pattern-parser (re-pattern quoted-pair))
+     #_(fn [matcher]
+       ((rfc-comment) matcher))))
+   (p/pattern-parser (re-pattern "\\)"))))
+
+;; TODO: Why doesn't this take more than 2 chars?
+(comment
+  ((rfc-comment) (re/input "(Version)")))
+
 
 ;; rank = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 ;; reason-phrase = *( HTAB / SP / VCHAR / obs-text )

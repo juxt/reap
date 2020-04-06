@@ -6,7 +6,7 @@
    [juxt.reap.regex :as re]
    [juxt.reap.parse :as p]
    [juxt.reap.rfc4647 :as rfc4647]
-   [juxt.reap.rfc7230 :as rfc7230 :refer [OWS token]]
+   [juxt.reap.rfc7230 :as rfc7230 :refer [OWS RWS token]]
    [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]
    [clojure.string :as str]))
 
@@ -96,8 +96,6 @@
 ;; RWS = <RWS, see [RFC7230], Section 3.2.3>
 ;; Referer = absolute-URI / partial-URI
 ;; Retry-After = HTTP-date / delay-seconds
-
-;; Server = product *( RWS ( product / comment ) )
 
 ;; URI-reference = <URI-reference, see [RFC7230], Section 2.7>
 ;; User-Agent = product *( RWS ( product / comment ) )
@@ -303,8 +301,44 @@
 ;; obs-date = rfc850-date / asctime-date
 
 ;; partial-URI = <partial-URI, see [RFC7230], Section 2.7>
-;; product = token [ "/" product-version ]
+
 ;; product-version = token
+
+(def product-version token)
+
+;; product = token [ "/" product-version ]
+
+(defn product []
+  (p/as-map
+   (p/sequence-group
+    (p/as-entry
+     :product
+     (p/pattern-parser (re-pattern token)))
+    (p/optionally
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/pattern-parser (re-pattern "/")))
+       (p/as-entry
+        :version
+        (p/pattern-parser (re-pattern product-version)))))))))
+
+;; Server = product *( RWS ( product / comment ) )
+
+(defn server []
+  (p/cons
+   (product)
+   (p/zero-or-more
+    (p/first
+     (p/sequence-group
+      (p/ignore (p/pattern-parser (re-pattern RWS)))
+      (p/alternatives
+       (product)
+       #_(rfc7230/rfc-comment)))))))
+
+(comment
+  ((server)
+   (re/input "foo/1.2 ale1/1.0")))
 
 ;; rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
 
