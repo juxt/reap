@@ -48,7 +48,10 @@
     (int->regex (int n)))
   java.util.regex.Pattern
   (re-str [re]
-    (str re)))
+    (str re))
+  clojure.lang.Sequential
+  (re-str [coll]
+    (apply str (map re-str coll))))
 
 (defn re-concat
   "Compose a regular expression string representing a sequence of the
