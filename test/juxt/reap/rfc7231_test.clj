@@ -14,11 +14,11 @@
     (is
      (=
       {:name "foo", :value "bar"}
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo=bar"))))
     (is
      (nil?
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo")))))
 
   ;; "The type, subtype, and parameter name tokens are
@@ -30,17 +30,17 @@
      (=
       ;; :name should be lower-case, but value unchanged.
       {:name "foo", :value "Bar"}
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "FOO=Bar"))))
     (is
      (nil?
-      ((rfc7231/parameter {})
+      ((rfc7231/parameter)
        (re/input "foo")))))
 
   (testing "quoted-string"
     (is
      (=
-      {:name "foo", :value "ba'r" :raw-value "\"ba\\'r\""}
+      {:name "foo", :value "ba'r"}
       ((rfc7231/parameter)
        (re/input "foo=\"ba\\'r\"")))))
 
@@ -57,17 +57,17 @@
        (re/input "foo=bar"))))
     (is
      (=
-      {:name "foo", :value "ba'r" :raw-value "\"ba\\'r\""}
+      {:name "foo", :value "ba'r"}
       ((rfc7231/optional-parameter)
        (re/input "foo=\"ba\\'r\""))))))
 
 (deftest media-range-test
   (is
    (=
-    [:media-range
-     {:type "text",
-      :subtype "html",
-      :params [{:name "foo", :value "bar"} {:name "baz", :value "qu'x" :raw-value "\"qu\\'x\""}]}]
+    {:media-type "text/html"
+     :type "text",
+     :subtype "html",
+     :parameters [{:name "foo", :value "bar"} {:name "baz", :value "qu'x"}]}
     ((rfc7231/media-range)
      (re/input "text/html;foo=bar;baz=\"qu\\'x\""))))
 
@@ -76,13 +76,12 @@
   (testing "case insensitivity"
     (is
      (=
-      [:media-range
-       {:type "text"
-        :subtype "html"
-        :params []}]
+      {:media-type "text/html"
+       :type "text"
+       :subtype "html"
+       :parameters []}
       ((rfc7231/media-range)
        (re/input "TEXT/Html"))))))
-
 
 (deftest qvalue-test
   (is (re-matches (re-pattern rfc7231/qvalue) "1"))
@@ -94,13 +93,16 @@
 
 ;; TODO: weight tests
 
+;; TODO: Create a very cryptic Accept test designed to catch out all but the most compliant of parsers
+
 (deftest accept-test
   (is
    (=
-    [{:type "text",
+    [{:media-type "text/html"
+      :type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
-      :weight (float 0.3)
+      :weight 0.3
       :accept-ext [{:name "zip"} {:name "qux", :value "quik"}]}]
     ((rfc7231/accept)
      (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))))
@@ -125,3 +127,27 @@
     (is
      ((rfc7231/accept)
       (re/input "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")))))
+
+(deftest accept-charset-test
+  (is
+   (= '({:charset "UTF-8", :weight 0.8}
+        {:charset "shift_JIS", :weight 0.4})
+      ((rfc7231/accept-charset)
+       (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")))))
+
+(deftest accept-language-test
+  (is
+   (= '({:language-range "en-GB"}
+        {:language-range "en-US" :weight 0.8}
+        {:language-range "en" :weight 0.5}
+        {:language-range "it" :weight 0.3})
+      ((rfc7231/accept-language)
+       (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3")))))
+
+(deftest accept-encoding-test
+  (is
+   (= '({:codings "gzip" :weight 0.3}
+        {:codings "deflate"}
+        {:codings "br"})
+      ((rfc7231/accept-encoding)
+       (re/input "gzip;q=0.3, deflate, br")))))
