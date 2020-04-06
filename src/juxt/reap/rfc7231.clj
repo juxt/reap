@@ -66,8 +66,6 @@
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
 
-;; Content-Encoding = *( "," OWS ) content-coding *( OWS "," [ OWS
-;;  content-coding ] )
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
 ;; Content-Location = absolute-URI / partial-URI
@@ -167,12 +165,46 @@
 ;; content-coding = token
 (def ^String content-coding token)
 
+;; Content-Encoding = *( "," OWS ) content-coding *( OWS "," [ OWS
+;;  content-coding ] )
+
+(defn content-encoding []
+  (p/first
+   (p/sequence-group
+    (p/ignore
+     (p/zero-or-more
+      (p/sequence-group
+       (p/pattern-parser (re-pattern ","))
+       (p/pattern-parser (re-pattern OWS)))))
+    (p/cons
+     (p/pattern-parser (re-pattern content-coding))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser (re-pattern OWS)))
+        (p/ignore
+         (p/pattern-parser (re-pattern ",")))
+        (p/first
+         (p/optionally
+          (p/sequence-group
+           (p/ignore (p/pattern-parser (re-pattern OWS)))
+           (p/pattern-parser (re-pattern content-coding))))))))))))
+
+(comment
+  ((content-encoding)
+   (re/input "foo,bar,zip,qux")
+   ))
+
 ;; codings = content-coding / "identity" / "*"
 (defn codings []
   (p/alternatives
    (p/pattern-parser (re-pattern content-coding))
    (p/pattern-parser (re-pattern "identity"))
    (p/pattern-parser (re-pattern "\\*"))))
+
+
+
 
 ;; comment = <comment, see [RFC7230], Section 3.2.6>
 
