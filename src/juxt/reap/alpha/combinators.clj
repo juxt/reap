@@ -1,6 +1,6 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.alpha.parse
+(ns juxt.reap.alpha.combinators
   (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map seq apply merge])
   (:import [java.util.regex Pattern Matcher]))
 

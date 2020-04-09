@@ -4,7 +4,7 @@
   (:require
    [clojure.string :as string]
    [juxt.reap.alpha.regex :as re]
-   [juxt.reap.alpha.parse :as p]
+   [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]))
 
 (set! *warn-on-reflection* true)

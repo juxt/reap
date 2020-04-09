@@ -4,7 +4,7 @@
   (:refer-clojure :exclude [type])
   (:require
    [juxt.reap.alpha.regex :as re]
-   [juxt.reap.alpha.parse :as p]
+   [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.rfc4647 :as rfc4647]
    [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT]]
