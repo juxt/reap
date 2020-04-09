@@ -113,7 +113,8 @@ parsing code might skip a few details!
 
 There are a number of excellent tools for generating text parsers,
 from venerable ones such as flex/bison to more modern ones including
-https://www.antlr.org/[Antlr] and Instaparse.
+https://www.antlr.org/[Antlr] and
+https://github.com/Engelberg/instaparse[Instaparse].
 
 Unfortunately, these tools tend to be designed more for parsing
 languages than strings of characters. I haven't found one which has
