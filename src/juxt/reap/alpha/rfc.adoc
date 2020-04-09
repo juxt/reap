@@ -1,0 +1,9 @@
+= RFC Namespaces
+
+== Rationale
+
+Ensure that rules are:
+
+* unambiguous
+
+* traceable back to their original normative definitions in RFCs.

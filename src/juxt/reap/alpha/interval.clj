@@ -1,10 +1,10 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.interval
+(ns juxt.reap.alpha.interval
   (:refer-clojure :exclude [contains?])
   (:require
    [clojure.pprint :as pprint]
-   [juxt.reap.regex :as re]))
+   [juxt.reap.alpha.regex :as re]))
 
 (set! *warn-on-reflection* true)
 
@@ -27,7 +27,7 @@
 
 (defmethod print-method Interval [obj writer]
   (if *print-readably*
-    (.write ^java.io.Writer writer (format "#juxt.reap/interval [%s %s]" (beginning obj) (end obj)))
+    (.write ^java.io.Writer writer (format "#juxt.reap.alpha/interval [%s %s]" (beginning obj) (end obj)))
     (.write ^java.io.Writer writer (format "%%x%02X-%%x%02X" (beginning obj) (end obj)))))
 
 (defmethod pprint/simple-dispatch Interval [obj]

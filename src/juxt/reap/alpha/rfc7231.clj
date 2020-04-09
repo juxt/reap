@@ -1,13 +1,13 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.rfc7231
+(ns juxt.reap.alpha.rfc7231
   (:refer-clojure :exclude [type])
   (:require
-   [juxt.reap.regex :as re]
-   [juxt.reap.parse :as p]
-   [juxt.reap.rfc4647 :as rfc4647]
-   [juxt.reap.rfc7230 :as rfc7230 :refer [OWS RWS token]]
-   [juxt.reap.rfc5234 :as rfc5234 :refer [DIGIT]]
+   [juxt.reap.alpha.regex :as re]
+   [juxt.reap.alpha.parse :as p]
+   [juxt.reap.alpha.rfc4647 :as rfc4647]
+   [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
+   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)

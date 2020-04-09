@@ -1,10 +1,10 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.rfc7231-test
+(ns juxt.reap.alpha.rfc7231-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [juxt.reap.rfc7231 :as rfc7231]
-   [juxt.reap.regex :as re]))
+   [juxt.reap.alpha.rfc7231 :as rfc7231]
+   [juxt.reap.alpha.regex :as re]))
 
 (deftest subtype-test
   (is (= "html" (re-matches (re-pattern rfc7231/subtype) "html"))))

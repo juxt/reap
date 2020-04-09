@@ -1,10 +1,10 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.rfc4647
+(ns juxt.reap.alpha.rfc4647
   (:require
-   [juxt.reap.regex :as re]
-   [juxt.reap.parse :as p]
-   [juxt.reap.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]))
+   [juxt.reap.alpha.regex :as re]
+   [juxt.reap.alpha.parse :as p]
+   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]))
 
 ;; alphanum = ALPHA / DIGIT
 (def alphanum (rfc5234/merge-alternatives ALPHA DIGIT))

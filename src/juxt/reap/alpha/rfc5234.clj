@@ -1,9 +1,9 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.rfc5234
+(ns juxt.reap.alpha.rfc5234
   (:require
-   [juxt.reap.regex :as re]
-   [juxt.reap.interval :as i]))
+   [juxt.reap.alpha.regex :as re]
+   [juxt.reap.alpha.interval :as i]))
 
 (set! *warn-on-reflection* true)
 
@@ -78,7 +78,7 @@
 (extend-protocol AlternativesCoercion
   clojure.lang.ISeq
   (as-alternatives [coll] coll)
-  juxt.reap.interval.Interval
+  juxt.reap.alpha.interval.Interval
   (as-alternatives [ival] [ival])
   clojure.lang.PersistentHashSet
   (as-alternatives [s] (apply alternatives s)))
@@ -100,18 +100,18 @@
 ;; Section B.1
 
 (def ALPHA (alternatives
-            #juxt.reap/interval [\A \Z]
-            #juxt.reap/interval [\a \z]))
+            #juxt.reap.alpha/interval [\A \Z]
+            #juxt.reap.alpha/interval [\a \z]))
 
 (def BIT (alternatives \0 \1))
 
-(def CHAR #juxt.reap/interval [0x01 0x7F])
+(def CHAR #juxt.reap.alpha/interval [0x01 0x7F])
 
 (def CR \return)
 
 (def CRLF (str \return \newline))
 
-(def DIGIT #juxt.reap/interval [\0 \9])
+(def DIGIT #juxt.reap.alpha/interval [\0 \9])
 
 (def DQUOTE \")
 
@@ -123,10 +123,10 @@
 
 ;;(def LWSP)
 
-(def OCTET #juxt.reap/interval [0x00 0xFF])
+(def OCTET #juxt.reap.alpha/interval [0x00 0xFF])
 
 (def SP \space)
 
-(def VCHAR #juxt.reap/interval [0x21 0x7E])
+(def VCHAR #juxt.reap.alpha/interval [0x21 0x7E])
 
 (def WSP (alternatives SP HTAB))

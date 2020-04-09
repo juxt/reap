@@ -1,8 +1,8 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.regex-test
+(ns juxt.reap.alpha.regex-test
   (:require
-   [juxt.reap.regex :as re]
+   [juxt.reap.alpha.regex :as re]
    [clojure.test :refer [deftest is]]))
 
 (deftest int->regex-test

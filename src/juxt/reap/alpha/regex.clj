@@ -1,6 +1,6 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.regex)
+(ns juxt.reap.alpha.regex)
 
 (set! *warn-on-reflection* true)
 

@@ -1,9 +1,9 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.rfc7230-test
+(ns juxt.reap.alpha.rfc7230-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [juxt.reap.rfc7230 :as rfc7230]))
+   [juxt.reap.alpha.rfc7230 :as rfc7230]))
 
 (deftest ows-test
   (let [OWS (re-pattern rfc7230/OWS)]
