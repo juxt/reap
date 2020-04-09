@@ -122,13 +122,6 @@ built-in support for even some Internet RFCs. They also tend to be
 less efficient than Regular Expressions, which have been around for
 decades and have been heavily optimised in that time.
 
-////
-Another solution is a library of reusable code that can provide efficient
-parsing implementations and which can be shared (and debugged) by
-multiple programmers.
-////
-
-
 == Ingredients
 
 *reap* is built from some old ideas.
