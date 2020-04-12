@@ -228,7 +228,8 @@
 ;;  / %x53.75.6E.64.61.79 ; Sunday
 ;; delay-seconds = 1*DIGIT
 
-;; field-name = <comment, see [RFC7230], Section 3.2>
+;; field-name    = <field-name, see [RFC7230], Section 3.2>
+;; As per verified errata (https://www.rfc-editor.org/errata_search.php?rfc=7231)
 
 ;; hour = 2DIGIT
 
