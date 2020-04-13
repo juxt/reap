@@ -262,14 +262,14 @@
        :type (str/lower-case type)
        :subtype "*"})
     (p/pattern-parser
-     (re-pattern (re/re-compose "(%s)/\\*" type)) :all))
+     (re-pattern (re/re-compose "(%s)/\\*" type))))
    (p/comp
     (fn [[media-type type subtype]]
       {:media-type (str/lower-case media-type)
        :type (str/lower-case type)
        :subtype (str/lower-case subtype)})
     (p/pattern-parser
-     (re-pattern (re/re-compose "(%s)/(%s)" type subtype)) :all))))
+     (re-pattern (re/re-compose "(%s)/(%s)" type subtype))))))
 
 ;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
 ;;  ";" OWS parameter )
