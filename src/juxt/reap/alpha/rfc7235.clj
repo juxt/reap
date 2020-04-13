@@ -24,14 +24,16 @@
    (p/sequence-group
     (p/as-entry
      :name
-     (p/pattern-parser (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS)) 1))
+     (p/pattern-parser
+      (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS))
+      {:group 1}))
     (p/as-entry
      :value
      (p/alternatives
       (p/pattern-parser (re-pattern token))
       (p/comp
        rfc7230/unescape-quoted-string
-       (p/pattern-parser (re-pattern rfc7230/quoted-string) 1)))))))
+       (p/pattern-parser (re-pattern rfc7230/quoted-string) {:group 1})))))))
 
 ;; auth-scheme = token
 (def auth-scheme token)

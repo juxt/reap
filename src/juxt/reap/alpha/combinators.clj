@@ -108,14 +108,13 @@
     ([] (parser))))
 
 (defn pattern-parser
-  ([^Pattern pat] (pattern-parser pat nil))
-  ([^Pattern pat grp] (pattern-parser pat grp {}))
-  ([^Pattern pat grp opts]
+  ([^Pattern pat] (pattern-parser pat {}))
+  ([^Pattern pat opts]
    (fn
      ([matcher]
       (.usePattern ^Matcher matcher pat)
       (when (.lookingAt ^Matcher matcher)
-        (let [res (if grp
+        (let [res (if-let [grp (:group opts)]
                     (.group ^Matcher matcher ^long grp)
                     (re-groups matcher))]
           (.region ^Matcher matcher

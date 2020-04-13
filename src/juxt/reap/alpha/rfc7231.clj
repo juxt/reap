@@ -35,7 +35,7 @@
             (p/comp
              rfc7230/unescape-quoted-string
              (p/pattern-parser
-              (re-pattern rfc7230/quoted-string) 1))))))
+              (re-pattern rfc7230/quoted-string) {:group 1}))))))
       optional? (p/optionally)))))
 
 (defn parameter
@@ -124,8 +124,8 @@
     (re-pattern
      (re/re-concat
       OWS \; OWS "q=" (re/group qvalue)))
-    1
-    {:generator (fn []
+    {:group 1
+     :generator (fn []
                   (rand-nth
                    [";q=1.0"
                     ";q=0.9"
@@ -206,9 +206,9 @@
 ;; codings = content-coding / "identity" / "*"
 (defn codings []
   (p/alternatives
-   (p/pattern-parser (re-pattern content-coding) 0 {:generator (fn [] (rand-nth ["utf-8" "UTF8" "Shift_JIS" "US-ASCII"]))})
-   (p/pattern-parser (re-pattern "identity") 0 {:generator (constantly "identity")})
-   (p/pattern-parser (re-pattern "\\*") 0 {:generator (constantly "*")})))
+   (p/pattern-parser (re-pattern content-coding) {:generator (fn [] (rand-nth ["utf-8" "UTF8" "Shift_JIS" "US-ASCII"]))})
+   (p/pattern-parser (re-pattern "identity") {:generator (constantly "identity")})
+   (p/pattern-parser (re-pattern "\\*") {:generator (constantly "*")})))
 
 ;; comment = <comment, see [RFC7230], Section 3.2.6>
 
@@ -502,7 +502,6 @@
       (p/pattern-parser
        (re-pattern
         (re/re-concat "," OWS))
-       0
        {:name :pp1
         :generator (constantly ", ")})))
     (p/cons
@@ -520,7 +519,6 @@
          (p/pattern-parser
           (re-pattern
            (re/re-concat OWS ","))
-          0
           {:name :pp2
            :generator (constantly " ,")}))
         (p/optionally
@@ -529,7 +527,6 @@
            (p/ignore
             (p/pattern-parser
              (re-pattern OWS)
-             0
              {:generator (fn [] (rand-nth ["" " "]))
               :name :ppu3}))
            (p/as-entry :language-range (rfc4647/language-range))
