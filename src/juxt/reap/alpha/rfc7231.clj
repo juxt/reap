@@ -3,6 +3,7 @@
 (ns juxt.reap.alpha.rfc7231
   (:refer-clojure :exclude [type])
   (:require
+   [juxt.reap.alpha.generators :refer [histogram-generator]]
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.rfc4647 :as rfc4647]
@@ -248,6 +249,9 @@
 
 ;;(identity rfc7230/quoted-string)
 
+;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
+;;  ";" OWS parameter )
+
 (defn media-range-without-parameters []
   (p/alternatives
    (p/comp
@@ -255,24 +259,42 @@
       {:media-type "*/*"
        :type "*"
        :subtype "*"})
-    (p/pattern-parser #"\*/\*"))
+    (p/pattern-parser
+     #"\*/\*"
+     {:generator (constantly "*/*")}))
    (p/comp
     (fn [[media-type type]]
       {:media-type (str/lower-case media-type)
        :type (str/lower-case type)
        :subtype "*"})
     (p/pattern-parser
-     (re-pattern (re/re-compose "(%s)/\\*" type))))
+     (re-pattern (re/re-compose "(%s)/\\*" type))
+     {:generator (histogram-generator
+                  [["application/*" 1]
+                   ["audio/*" 1]
+                   ["font/*" 1]
+                   ["example/*" 1]
+                   ["image/*" 2]
+                   ["message/*" 1]
+                   ["model/*" 1]
+                   ["multipart/*" 2]
+                   ["text/*" 10]
+                   ["video/*" 1]])}))
    (p/comp
     (fn [[media-type type subtype]]
       {:media-type (str/lower-case media-type)
        :type (str/lower-case type)
        :subtype (str/lower-case subtype)})
     (p/pattern-parser
-     (re-pattern (re/re-compose "(%s)/(%s)" type subtype))))))
+     (re-pattern (re/re-compose "(%s)/(%s)" type subtype))
+     {:generator (histogram-generator
+                  [["text/html" 10]
+                   ["text/csv" 1]
+                   ["image/jpeg" 1]
+                   ["image/png" 1]
+                   ["application/json" 5]
+                   ["application/xhtml+xml" 1]])}))))
 
-;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
-;;  ";" OWS parameter )
 (defn media-range []
   (p/comp
    #(apply merge %)
