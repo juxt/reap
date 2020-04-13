@@ -321,8 +321,8 @@
   (p/as-map
    (p/sequence-group
     [(p/as-entry
-       :type
-       (p/pattern-parser (re-pattern type)))
+      :type
+      (p/pattern-parser (re-pattern type)))
      (p/ignore (p/pattern-parser (re-pattern "/")))
      (p/as-entry
       :subtype
@@ -335,7 +335,14 @@
          [(p/ignore (p/pattern-parser (re-pattern OWS)))
           (p/ignore (p/pattern-parser (re-pattern ";")))
           (p/ignore (p/pattern-parser (re-pattern OWS)))
-          (parameter)]))))])))
+          (parameter)]))))]
+    {:generator (histogram-generator
+                 [["text/html" 3]
+                  ["image/png" 2]
+                  ["text/csv" 1]
+                  ["image/jpeg" 1]
+                  ["application/json" 3]
+                  ["application/xml" 1]])})))
 
 ;; Content-Type = media-type
 (def content-type media-type)

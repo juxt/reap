@@ -21,18 +21,23 @@
 
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
-  [parsers]
-  #_(when (= 1 (count parsers))
-    (throw (ex-info "Is a sequence group required here?" {})))
-  (fn this
-    ([matcher]
-     (reduce
-      (fn [acc p]
-        (if-let [res (p matcher)]
-          (cond-> acc (not= res :ignore) (conj res))
-          (reduced nil)))
-      [] parsers))
-    ([] (clojure.core/apply str (clojure.core/map #(%) parsers)))))
+  ([parsers]
+   (sequence-group parsers {}))
+  ([parsers options]
+   #_(when (= 1 (count parsers))
+       (throw (ex-info "Is a sequence group required here?" {})))
+   (fn this
+     ([matcher]
+      (reduce
+       (fn [acc p]
+         (if-let [res (p matcher)]
+           (cond-> acc (not= res :ignore) (conj res))
+           (reduced nil)))
+       [] parsers))
+     ([]
+      (if-let [generator (:generator options)]
+        (generator)
+        (clojure.core/apply str (clojure.core/map #(%) parsers)))))))
 
 
 ;; RFC 5234 Section 3.6: Variable Repetition
