@@ -6,6 +6,8 @@
 
 (set! *warn-on-reflection* true)
 
+(def ^:dynamic *options*)
+
 ;; RFC 5234 Section 3.2. Alternatives: Rule1 / Rule2
 (def alternatives some-fn)
 
@@ -18,17 +20,20 @@
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
   [& parsers]
-  (fn this [matcher]
-    (loop [results []
-           [p & parsers] parsers]
-      (if p
-        (if-let [res (p matcher)]
-          (recur
-           (cond-> results (not= res :ignore) (conj res))
-           parsers)
-          nil ; short circuit
-          )
-        results))))
+  (fn this
+    ([matcher]
+     (loop [results []
+            [p & parsers] parsers]
+       (if p
+         (if-let [res (p matcher)]
+           (recur
+            (cond-> results (not= res :ignore) (conj res))
+            parsers)
+           nil                          ; short circuit
+           )
+         results)))
+    ([] (clojure.core/map #(%) parsers))))
+
 
 ;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
@@ -37,8 +42,10 @@
           (when-let [match (parser matcher)]
             (lazy-seq
              (clojure.core/cons match (this matcher)))))]
-    (fn [matcher]
-      (or (super matcher) '()))))
+    (fn
+      ([matcher]
+       (or (super matcher) '()))
+      ([] (reduce str (repeatedly (rand-int 3) parser))))))
 
 (defn seq [parser]
   (fn [matcher]
@@ -87,27 +94,37 @@
   (fn [_] constant))
 
 (defn ignore [parser]
-  (fn [matcher]
-    (when (some? (parser matcher)) :ignore)))
+  (fn
+    ([matcher]
+     (when (some? (parser matcher)) :ignore))
+    ([] (parser))))
 
 (defn pattern-parser
-  ([pat] (pattern-parser pat 0))
-  ([^Pattern pat grp]
-   (fn [matcher]
-     (.usePattern ^Matcher matcher pat)
-     (when (.lookingAt ^Matcher matcher)
-       (let [res (if (= grp :all)
-                   (re-groups matcher)
-                   (.group ^Matcher matcher ^long grp))]
-         (.region ^Matcher matcher
-                  (.end ^Matcher matcher)
-                  (.regionEnd ^Matcher matcher))
-         res)))))
+  ([^Pattern pat] (pattern-parser pat 0))
+  ([^Pattern pat grp #_{grp :group :or {grp 0}}]
+   ;;(when (not= grp 0) (throw (ex-info "Fix caller" {})))
+   (fn
+     ([matcher]
+      (.usePattern ^Matcher matcher pat)
+      (when (.lookingAt ^Matcher matcher)
+        (let [res (if (= grp :all)
+                    (re-groups matcher)
+                    (.group ^Matcher matcher ^long grp))]
+          (.region ^Matcher matcher
+                   (.end ^Matcher matcher)
+                   (.regionEnd ^Matcher matcher))
+          res)))
+     ([]
+      (if-let [generator (get *options* :juxt.reap.alpha.combinators.pattern-parser/generator)]
+        (generator pat)
+        (throw (ex-info "Pattern generator function not provided" {:pat pat})))))))
 
 (defn first [parser]
-  (fn [matcher]
-    (clojure.core/first
-     (parser matcher))))
+  (fn
+    ([matcher]
+     (clojure.core/first
+      (parser matcher)))
+    ([] (clojure.core/first (parser)))))
 
 (defn second [parser]
   (fn [matcher]
