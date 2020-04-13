@@ -140,13 +140,13 @@
 
 (defn rfc-comment []
   (p/sequence-group
-   (p/pattern-parser (re-pattern "\\("))
-   (p/zero-or-more
-    (p/alternatives
-     (p/pattern-parser (re-pattern (re/re-compose "[%s]" ctext)))
-     #_(p/pattern-parser (re-pattern quoted-pair))
-     #_(fn [matcher]
-       ((rfc-comment) matcher))))
+   [(p/pattern-parser (re-pattern "\\("))
+    (p/zero-or-more
+     (p/alternatives
+      (p/pattern-parser (re-pattern (re/re-compose "[%s]" ctext)))
+      #_(p/pattern-parser (re-pattern quoted-pair))
+      #_(fn [matcher]
+          ((rfc-comment) matcher))))]
    (p/pattern-parser (re-pattern "\\)"))))
 
 ;; TODO: Why doesn't this take more than 2 chars?

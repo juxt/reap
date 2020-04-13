@@ -19,25 +19,25 @@
   [optional?]
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :name
-     (p/comp
-      str/lower-case
-      (p/pattern-parser
-       (re-pattern token))))
-    (cond->
-        (p/first
-         (p/sequence-group
-          (p/ignore (p/pattern-parser #"="))
-          (p/as-entry
-           :value
-           (p/alternatives
-            (p/pattern-parser (re-pattern token))
-            (p/comp
-             rfc7230/unescape-quoted-string
-             (p/pattern-parser
-              (re-pattern rfc7230/quoted-string) {:group 1}))))))
-      optional? (p/optionally)))))
+    [(p/as-entry
+       :name
+       (p/comp
+        str/lower-case
+        (p/pattern-parser
+         (re-pattern token))))
+     (cond->
+         (p/first
+          (p/sequence-group
+           [(p/ignore (p/pattern-parser #"="))
+            (p/as-entry
+             :value
+             (p/alternatives
+              (p/pattern-parser (re-pattern token))
+              (p/comp
+               rfc7230/unescape-quoted-string
+               (p/pattern-parser
+                (re-pattern rfc7230/quoted-string) {:group 1}))))]))
+       optional? (p/optionally))])))
 
 (defn parameter
   "Return a parameter parser that parses into map containing :name
@@ -108,11 +108,11 @@
 (defn accept-ext []
   (p/first
    (p/sequence-group
-    (p/ignore
-     (p/pattern-parser
-      (re-pattern
-       (re/re-concat OWS \; OWS))))
-    (optional-parameter))))
+    [(p/ignore
+      (p/pattern-parser
+       (re-pattern
+        (re/re-concat OWS \; OWS))))
+     (optional-parameter)])))
 
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 (def qvalue (re/re-compose "0(?:\\.[%s]{0,3})?|1(?:\\.[0]{0,3})?" DIGIT))
@@ -141,16 +141,16 @@
 (defn accept-params []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :weight
-     (weight))
-    (p/as-entry
-     :accept-ext
-     (p/comp
-      vec
-      (p/seq ; ignore if empty list
-       (p/zero-or-more
-        (accept-ext))))))))
+    [(p/as-entry
+       :weight
+       (weight))
+     (p/as-entry
+      :accept-ext
+      (p/comp
+       vec
+       (p/seq ; ignore if empty list
+        (p/zero-or-more
+         (accept-ext)))))])))
 
 (comment
   ((accept-params) (re/input ";foo=bar")))
@@ -179,25 +179,25 @@
 (defn content-encoding []
   (p/first
    (p/sequence-group
-    (p/ignore
-     (p/zero-or-more
-      (p/sequence-group
-       (p/pattern-parser (re-pattern ","))
-       (p/pattern-parser (re-pattern OWS)))))
-    (p/cons
-     (p/pattern-parser (re-pattern content-coding))
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore
-         (p/pattern-parser (re-pattern OWS)))
-        (p/ignore
-         (p/pattern-parser (re-pattern ",")))
-        (p/first
-         (p/optionally
-          (p/sequence-group
-           (p/ignore (p/pattern-parser (re-pattern OWS)))
-           (p/pattern-parser (re-pattern content-coding))))))))))))
+    [(p/ignore
+       (p/zero-or-more
+        (p/sequence-group
+         [(p/pattern-parser (re-pattern ","))
+          (p/pattern-parser (re-pattern OWS))])))
+     (p/cons
+      (p/pattern-parser (re-pattern content-coding))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         [(p/ignore
+           (p/pattern-parser (re-pattern OWS)))
+          (p/ignore
+           (p/pattern-parser (re-pattern ",")))
+          (p/first
+           (p/optionally
+            (p/sequence-group
+             [(p/ignore (p/pattern-parser (re-pattern OWS)))
+              (p/pattern-parser (re-pattern content-coding))])))]))))])))
 
 (comment
   ((content-encoding)
@@ -299,18 +299,18 @@
   (p/comp
    #(apply merge %)
    (p/sequence-group
-    (media-range-without-parameters)
-    (p/as-map
-     (p/list
-      (p/as-entry
-       :parameters
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern (re/re-concat OWS \; OWS))))
-          (parameter))))))))))
+    [(media-range-without-parameters)
+     (p/as-map
+      (p/list
+       (p/as-entry
+        :parameters
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           [(p/ignore
+              (p/pattern-parser
+               (re-pattern (re/re-concat OWS \; OWS))))
+            (parameter)]))))))])))
 
 (comment
   ((media-range)
@@ -320,22 +320,22 @@
 (defn media-type []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :type
-     (p/pattern-parser (re-pattern type)))
-    (p/ignore (p/pattern-parser (re-pattern "/")))
-    (p/as-entry
-     :subtype
-     (p/pattern-parser (re-pattern subtype)))
-    (p/as-entry
-     :parameters
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore (p/pattern-parser (re-pattern OWS)))
-        (p/ignore (p/pattern-parser (re-pattern ";")))
-        (p/ignore (p/pattern-parser (re-pattern OWS)))
-        (parameter))))))))
+    [(p/as-entry
+       :type
+       (p/pattern-parser (re-pattern type)))
+     (p/ignore (p/pattern-parser (re-pattern "/")))
+     (p/as-entry
+      :subtype
+      (p/pattern-parser (re-pattern subtype)))
+     (p/as-entry
+      :parameters
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         [(p/ignore (p/pattern-parser (re-pattern OWS)))
+          (p/ignore (p/pattern-parser (re-pattern ";")))
+          (p/ignore (p/pattern-parser (re-pattern OWS)))
+          (parameter)]))))])))
 
 ;; Content-Type = media-type
 (def content-type media-type)
@@ -370,17 +370,17 @@
 (defn product []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :product
-     (p/pattern-parser (re-pattern token)))
-    (p/optionally
-     (p/first
-      (p/sequence-group
-       (p/ignore
-        (p/pattern-parser (re-pattern "/")))
-       (p/as-entry
-        :version
-        (p/pattern-parser (re-pattern product-version)))))))))
+    [(p/as-entry
+       :product
+       (p/pattern-parser (re-pattern token)))
+     (p/optionally
+      (p/first
+       (p/sequence-group
+        [(p/ignore
+          (p/pattern-parser (re-pattern "/")))
+         (p/as-entry
+          :version
+          (p/pattern-parser (re-pattern product-version)))])))])))
 
 ;; Server = product *( RWS ( product / comment ) )
 
@@ -390,10 +390,10 @@
    (p/zero-or-more
     (p/first
      (p/sequence-group
-      (p/ignore (p/pattern-parser (re-pattern RWS)))
-      (p/alternatives
-       (product)
-       #_(rfc7230/rfc-comment)))))))
+      [(p/ignore (p/pattern-parser (re-pattern RWS)))
+       (p/alternatives
+        (product)
+        #_(rfc7230/rfc-comment))])))))
 
 (comment
   ((server)
@@ -416,10 +416,10 @@
   (let [media-range-parameter
         (p/first
          (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern (re/re-concat OWS \; OWS))))
-          (parameter)))
+          [(p/ignore
+             (p/pattern-parser
+              (re-pattern (re/re-concat OWS \; OWS))))
+           (parameter)]))
 
         accept-params (accept-params)
 
@@ -451,26 +451,26 @@
        (p/comp
         #(apply merge %)
         (p/sequence-group
-         (media-range-without-parameters)
-         parameters-weight-accept-params)))
+         [(media-range-without-parameters)
+          parameters-weight-accept-params])))
       (p/zero-or-more
        (p/first
         (p/sequence-group
-         (p/ignore
-          (p/pattern-parser
-           (re-pattern
-            (re/re-concat OWS ","))))
-         (p/optionally
-          (p/first
-           (p/sequence-group
-            (p/ignore
-             (p/pattern-parser
-              (re-pattern OWS)))
-            (p/comp
-             #(apply merge %)
-             (p/sequence-group
-              (media-range-without-parameters)
-              parameters-weight-accept-params))))))))))))
+         [(p/ignore
+            (p/pattern-parser
+             (re-pattern
+              (re/re-concat OWS ","))))
+          (p/optionally
+           (p/first
+            (p/sequence-group
+             [(p/ignore
+                (p/pattern-parser
+                 (re-pattern OWS)))
+              (p/comp
+               #(apply merge %)
+               (p/sequence-group
+                [(media-range-without-parameters)
+                 parameters-weight-accept-params]))])))])))))))
 
 (comment
   ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
@@ -484,108 +484,106 @@
   (let [charset-with-weight
         (p/as-map
          (p/sequence-group
-          (p/alternatives
-           (p/as-entry
-            :charset
-            (p/pattern-parser
-             (re-pattern charset)))
-           (p/pattern-parser
-            (re-pattern (re/re-str \*))))
-          (p/optionally
-           (p/as-entry :weight (weight)))))]
+          [(p/alternatives
+             (p/as-entry
+              :charset
+              (p/pattern-parser
+               (re-pattern charset)))
+             (p/pattern-parser
+              (re-pattern (re/re-str \*))))
+           (p/optionally
+            (p/as-entry :weight (weight)))]))]
     (p/cons
      (p/first
       (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
-       charset-with-weight))
+       [(p/ignore
+          (p/pattern-parser
+           (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
+        charset-with-weight]))
      (p/zero-or-more
       (p/first
        (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern (re/re-compose "%s%s" OWS ","))))
-        (p/optionally
-         (p/first
-          (p/sequence-group
-           (p/ignore
-            (p/pattern-parser
-             (re-pattern OWS)))
-           charset-with-weight)))))))))
+        [(p/ignore
+           (p/pattern-parser
+            (re-pattern (re/re-compose "%s%s" OWS ","))))
+         (p/optionally
+          (p/first
+           (p/sequence-group
+            [(p/ignore
+               (p/pattern-parser
+                (re-pattern OWS)))
+             charset-with-weight])))]))))))
 
 ;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
 ;;  "," [ OWS ( language-range [ weight ] ) ] )
 (defn accept-language []
   (p/first
    (p/sequence-group
-    (p/ignore
-     (p/zero-or-more
-      (p/pattern-parser
-       (re-pattern
-        (re/re-concat "," OWS))
-       {:name :pp1
-        :generator (constantly ", ")})))
-    (p/cons
-     (p/as-map
-      (p/sequence-group
-       (p/as-entry :language-range (rfc4647/language-range))
-       (p/optionally
-        (p/as-entry
-         :weight
-         (weight)))))
-     (p/zero-or-more
-      (p/first
+    [(p/ignore
+       (p/zero-or-more
+        (p/pattern-parser
+         (re-pattern
+          (re/re-concat "," OWS))
+         {:name :pp1
+          :generator (constantly ", ")})))
+     (p/cons
+      (p/as-map
        (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern
-           (re/re-concat OWS ","))
-          {:name :pp2
-           :generator (constantly " ,")}))
-        (p/optionally
-         (p/as-map
-          (p/sequence-group
-           (p/ignore
+        [(p/as-entry :language-range (rfc4647/language-range))
+         (p/optionally
+          (p/as-entry
+           :weight
+           (weight)))]))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         [(p/ignore
             (p/pattern-parser
-             (re-pattern OWS)
-             {:generator (fn [] (rand-nth ["" " "]))
-              :name :ppu3}))
-           (p/as-entry :language-range (rfc4647/language-range))
-           (p/optionally
-            (p/as-entry :weight (weight)))))))))))))
+             (re-pattern
+              (re/re-concat OWS ","))
+             {:name :pp2
+              :generator (constantly " ,")}))
+          (p/optionally
+           (p/as-map
+            (p/sequence-group
+             [(p/ignore
+                (p/pattern-parser
+                 (re-pattern OWS)
+                 {:generator (fn [] (rand-nth ["" " "]))
+                  :name :ppu3}))
+              (p/as-entry :language-range (rfc4647/language-range))
+              (p/optionally
+               (p/as-entry :weight (weight)))])))]))))])))
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
 (defn accept-encoding []
   (p/optionally
    (p/cons
-    (p/first
-     (p/sequence-group
-      (p/alternatives
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern ",")))
-       (p/as-map
-        (p/sequence-group
-         (p/as-entry :codings (codings))
-         (p/optionally
-          (p/as-entry :weight (weight))))))))
+    (p/alternatives
+     (p/ignore
+      (p/pattern-parser
+       (re-pattern ",")))
+     (p/as-map
+      (p/sequence-group
+       [(p/as-entry :codings (codings))
+        (p/optionally
+         (p/as-entry :weight (weight)))])))
     (p/zero-or-more
      (p/first
       (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern
-          (re/re-concat OWS ","))))
-       (p/optionally
-        (p/first
-         (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern OWS)))
-          (p/as-map
-           (p/sequence-group
-            (p/as-entry :codings (codings))
-            (p/optionally
-             (p/as-entry :weight (weight))))))))))))))
+       [(p/ignore
+          (p/pattern-parser
+           (re-pattern
+            (re/re-concat OWS ","))))
+        (p/optionally
+         (p/first
+          (p/sequence-group
+           [(p/ignore
+              (p/pattern-parser
+               (re-pattern OWS)))
+            (p/as-map
+             (p/sequence-group
+              [(p/as-entry :codings (codings))
+               (p/optionally
+                (p/as-entry :weight (weight)))]))])))]))))))

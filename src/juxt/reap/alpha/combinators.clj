@@ -21,7 +21,9 @@
 
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
-  [& parsers]
+  [parsers]
+  #_(when (= 1 (count parsers))
+    (throw (ex-info "Is a sequence group required here?" {})))
   (fn this
     ([matcher]
      (reduce
@@ -166,7 +168,7 @@
      (parser))))
 
 (defn merge [& parsers]
-  (let [p (clojure.core/apply sequence-group parsers)]
+  (let [p (sequence-group parsers)]
     (fn [matcher]
       (clojure.core/apply clojure.core/merge (p matcher)))))
 

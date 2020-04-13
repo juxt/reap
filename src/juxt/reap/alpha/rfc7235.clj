@@ -22,18 +22,18 @@
 (defn auth-param []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :name
-     (p/pattern-parser
-      (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS))
-      {:group 1}))
-    (p/as-entry
-     :value
-     (p/alternatives
-      (p/pattern-parser (re-pattern token))
-      (p/comp
-       rfc7230/unescape-quoted-string
-       (p/pattern-parser (re-pattern rfc7230/quoted-string) {:group 1})))))))
+    [(p/as-entry
+       :name
+       (p/pattern-parser
+        (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS))
+        {:group 1}))
+     (p/as-entry
+      :value
+      (p/alternatives
+       (p/pattern-parser (re-pattern token))
+       (p/comp
+        rfc7230/unescape-quoted-string
+        (p/pattern-parser (re-pattern rfc7230/quoted-string) {:group 1}))))])))
 
 ;; auth-scheme = token
 (def auth-scheme token)
@@ -51,47 +51,47 @@
 (defn credentials []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :auth-scheme
-     (p/pattern-parser
-      (re-pattern auth-param)))
-    (p/optionally
-     (p/first
-      (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern
-          (re/re-compose "%s" SP))))
-       (p/alternatives
-        (p/as-entry
-         :token68
-         (p/pattern-parser
-          (re-pattern token68-with-lookahead)))
-        (p/as-entry
-         :auth-params
-         (p/comp
-          vec
-          (p/optionally
-           (p/first
-            (p/sequence-group
-             (p/cons
-              (p/alternatives
-               (p/ignore
-                (p/pattern-parser
-                 (re-pattern #",")))
-               (auth-param))
-              (p/zero-or-more
-               (p/first
-                (p/sequence-group
-                 (p/ignore
-                  (p/pattern-parser
-                   (re-pattern
-                    (re/re-compose "%s%s" OWS ","))))
-                 (p/optionally
-                  (p/first
-                   (p/sequence-group
-                    (p/ignore (p/pattern-parser (re-pattern OWS)))
-                    (auth-param))))))))))))))))))))
+    [(p/as-entry
+       :auth-scheme
+       (p/pattern-parser
+        (re-pattern auth-param)))
+     (p/optionally
+      (p/first
+       (p/sequence-group
+        [(p/ignore
+           (p/pattern-parser
+            (re-pattern
+             (re/re-compose "%s" SP))))
+         (p/alternatives
+          (p/as-entry
+           :token68
+           (p/pattern-parser
+            (re-pattern token68-with-lookahead)))
+          (p/as-entry
+           :auth-params
+           (p/comp
+            vec
+            (p/optionally
+             (p/first
+              (p/sequence-group
+               [(p/cons
+                  (p/alternatives
+                   (p/ignore
+                    (p/pattern-parser
+                     (re-pattern #",")))
+                   (auth-param))
+                  (p/zero-or-more
+                   (p/first
+                    (p/sequence-group
+                     [(p/ignore
+                        (p/pattern-parser
+                         (re-pattern
+                          (re/re-compose "%s%s" OWS ","))))
+                      (p/optionally
+                       (p/first
+                        (p/sequence-group
+                         [(p/ignore (p/pattern-parser (re-pattern OWS)))
+                          (auth-param)])))]))))]))))))])))])))
 
 ;; Authorization = credentials
 (def authorization credentials)
@@ -104,79 +104,79 @@
 (defn challenge []
   (p/as-map
    (p/sequence-group
-    (p/as-entry
-     :auth-scheme
-     (p/pattern-parser
-      (re-pattern token)))
-    (p/optionally
-     (p/first
-      (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern
-          (re/re-compose "%s" SP))))
-       (p/alternatives
-        (p/as-entry
-         :token68
-         (p/pattern-parser
-          (re-pattern token68-with-lookahead)))
-        (p/as-entry
-         :auth-params
-         (p/comp
-          vec
-          (p/optionally
-           (p/first
-            (p/sequence-group
-             (p/cons
-              (p/alternatives
-               (p/ignore
-                (p/pattern-parser
-                 (re-pattern #",")))
-               (auth-param))
-              (p/zero-or-more
-               (p/first
-                (p/sequence-group
-                 (p/ignore
-                  (p/pattern-parser
-                   (re-pattern
-                    ;; We add a bit of negative lookahead to ensure we
-                    ;; don't eagerly consume the comma that is
-                    ;; separating challenges in
-                    ;; www-authenticate. Doing so will prevent parsing
-                    ;; of www-authenticate to continue passed the
-                    ;; first challenge.
-                    (re/re-compose "%s%s(?!%s%s%s%s)" OWS "," OWS token SP token))))
-                 (p/optionally
-                  (p/first
-                   (p/sequence-group
-                    (p/ignore (p/pattern-parser (re-pattern OWS)))
-                    (auth-param))))))))))))))))))))
+    [(p/as-entry
+       :auth-scheme
+       (p/pattern-parser
+        (re-pattern token)))
+     (p/optionally
+      (p/first
+       (p/sequence-group
+        [(p/ignore
+           (p/pattern-parser
+            (re-pattern
+             (re/re-compose "%s" SP))))
+         (p/alternatives
+          (p/as-entry
+           :token68
+           (p/pattern-parser
+            (re-pattern token68-with-lookahead)))
+          (p/as-entry
+           :auth-params
+           (p/comp
+            vec
+            (p/optionally
+             (p/first
+              (p/sequence-group
+               [(p/cons
+                  (p/alternatives
+                   (p/ignore
+                    (p/pattern-parser
+                     (re-pattern #",")))
+                   (auth-param))
+                  (p/zero-or-more
+                   (p/first
+                    (p/sequence-group
+                     [(p/ignore
+                        (p/pattern-parser
+                         (re-pattern
+                          ;; We add a bit of negative lookahead to ensure we
+                          ;; don't eagerly consume the comma that is
+                          ;; separating challenges in
+                          ;; www-authenticate. Doing so will prevent parsing
+                          ;; of www-authenticate to continue passed the
+                          ;; first challenge.
+                          (re/re-compose "%s%s(?!%s%s%s%s)" OWS "," OWS token SP token))))
+                      (p/optionally
+                       (p/first
+                        (p/sequence-group
+                         [(p/ignore (p/pattern-parser (re-pattern OWS)))
+                          (auth-param)])))]))))]))))))])))])))
 
 ;; WWW-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge ] )
 (defn www-authenticate []
   (p/first
    (p/sequence-group
-    (p/ignore
-     (p/zero-or-more
-      (p/pattern-parser
-       (re-pattern
-        (re/re-compose ",%s" OWS)))))
-    (p/cons
-     (challenge)
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern
-           (re/re-compose ",%s" OWS))))
-        (p/optionally
-         (p/first
-          (p/sequence-group
-           (p/ignore
+    [(p/ignore
+       (p/zero-or-more
+        (p/pattern-parser
+         (re-pattern
+          (re/re-compose ",%s" OWS)))))
+     (p/cons
+      (challenge)
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         [(p/ignore
             (p/pattern-parser
-             (re-pattern OWS)))
-           (challenge)))))))))))
+             (re-pattern
+              (re/re-compose ",%s" OWS))))
+          (p/optionally
+           (p/first
+            (p/sequence-group
+             [(p/ignore
+                (p/pattern-parser
+                 (re-pattern OWS)))
+              (challenge)])))]))))])))
 
 (comment
   (let [p (www-authenticate)
