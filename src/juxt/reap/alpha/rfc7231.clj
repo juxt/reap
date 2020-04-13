@@ -124,7 +124,14 @@
     (re-pattern
      (re/re-concat
       OWS \; OWS "q=" (re/group qvalue)))
-    1)))
+    1
+    {:generator (fn []
+                  (rand-nth
+                   [";q=1.0"
+                    ";q=0.9"
+                    " ; q=1.0"
+                    "; q=0.8"
+                    " ;q=0.7"]))})))
 
 (comment
   ((weight) (re/input ";q=0.8")))
@@ -199,12 +206,9 @@
 ;; codings = content-coding / "identity" / "*"
 (defn codings []
   (p/alternatives
-   (p/pattern-parser (re-pattern content-coding))
-   (p/pattern-parser (re-pattern "identity"))
-   (p/pattern-parser (re-pattern "\\*"))))
-
-
-
+   (p/pattern-parser (re-pattern content-coding) 0 {:generator (fn [] (rand-nth ["utf-8" "UTF8" "Shift_JIS" "US-ASCII"]))})
+   (p/pattern-parser (re-pattern "identity") 0 {:generator (constantly "identity")})
+   (p/pattern-parser (re-pattern "\\*") 0 {:generator (constantly "*")})))
 
 ;; comment = <comment, see [RFC7230], Section 3.2.6>
 
@@ -453,6 +457,7 @@
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
 ;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
+
 (defn accept-charset []
   (let [charset-with-weight
         (p/as-map
@@ -496,7 +501,10 @@
      (p/zero-or-more
       (p/pattern-parser
        (re-pattern
-        (re/re-concat "," OWS)))))
+        (re/re-concat "," OWS))
+       0
+       {:name :pp1
+        :generator (constantly ", ")})))
     (p/cons
      (p/as-map
       (p/sequence-group
@@ -511,13 +519,19 @@
         (p/ignore
          (p/pattern-parser
           (re-pattern
-           (re/re-concat OWS ","))))
+           (re/re-concat OWS ","))
+          0
+          {:name :pp2
+           :generator (constantly " ,")}))
         (p/optionally
          (p/as-map
           (p/sequence-group
            (p/ignore
             (p/pattern-parser
-             (re-pattern OWS)))
+             (re-pattern OWS)
+             0
+             {:generator (fn [] (rand-nth ["" " "]))
+              :name :ppu3}))
            (p/as-entry :language-range (rfc4647/language-range))
            (p/optionally
             (p/as-entry :weight (weight)))))))))))))
