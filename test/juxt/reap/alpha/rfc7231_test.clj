@@ -61,6 +61,14 @@
       ((rfc7231/optional-parameter)
        (re/input "foo=\"ba\\'r\""))))))
 
+(deftest media-range-without-parameters-test
+  (is
+   (= {:media-type "text/*"
+       :type "text"
+       :subtype "*"}
+      ((rfc7231/media-range-without-parameters)
+       (re/input "text/*")))))
+
 (deftest media-range-test
   (is
    (=
