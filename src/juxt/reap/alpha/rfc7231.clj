@@ -527,16 +527,17 @@
   (p/first
    (p/sequence-group
     [(p/ignore
-       (p/zero-or-more
-        (p/pattern-parser
-         (re-pattern
-          (re/re-concat "," OWS))
-         {:name :pp1
-          :generator (constantly ", ")})))
+      (p/zero-or-more
+       (p/pattern-parser
+        (re-pattern
+         (re/re-concat "," OWS))
+        {:generator (constantly ", ")})))
      (p/cons
       (p/as-map
        (p/sequence-group
-        [(p/as-entry :language-range (rfc4647/language-range))
+        [(p/as-entry
+          :language-range
+          (rfc4647/language-range))
          (p/optionally
           (p/as-entry
            :weight
@@ -545,20 +546,20 @@
        (p/first
         (p/sequence-group
          [(p/ignore
-            (p/pattern-parser
-             (re-pattern
-              (re/re-concat OWS ","))
-             {:name :pp2
-              :generator (constantly " ,")}))
+           (p/pattern-parser
+            (re-pattern
+             (re/re-concat OWS ","))
+            {:generator (constantly " ,")}))
           (p/optionally
            (p/as-map
             (p/sequence-group
              [(p/ignore
-                (p/pattern-parser
-                 (re-pattern OWS)
-                 {:generator (fn [] (rand-nth ["" " "]))
-                  :name :ppu3}))
-              (p/as-entry :language-range (rfc4647/language-range))
+               (p/pattern-parser
+                (re-pattern OWS)
+                {:generator (fn [] (rand-nth ["" " "]))}))
+              (p/as-entry
+               :language-range
+               (rfc4647/language-range))
               (p/optionally
                (p/as-entry :weight (weight)))])))]))))])))
 
