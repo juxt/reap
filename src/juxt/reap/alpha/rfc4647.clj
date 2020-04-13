@@ -14,5 +14,7 @@
   (p/alternatives
    (p/pattern-parser
     (re-pattern
-     (re/re-compose "[%s]{1,8}(?:\\-[%s]{1,8})*" ALPHA alphanum)))
-   (p/pattern-parser #"\*")))
+     (re/re-compose "[%s]{1,8}(?:\\-[%s]{1,8})*" ALPHA alphanum))
+    0
+    {:generator (fn [] (rand-nth ["en-US" "en-GB" "de" "fr"]))})
+   (p/pattern-parser #"\*" 0 {:generator (constantly "*")})))
