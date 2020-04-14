@@ -492,33 +492,33 @@
         (p/as-map
          (p/sequence-group
           [(p/alternatives
-             (p/as-entry
-              :charset
-              (p/pattern-parser
-               (re-pattern charset)))
+            (p/as-entry
+             :charset
              (p/pattern-parser
-              (re-pattern (re/re-str \*))))
+              (re-pattern charset)))
+            (p/pattern-parser
+             (re-pattern (re/re-str \*))))
            (p/optionally
             (p/as-entry :weight (weight)))]))]
     (p/cons
      (p/first
       (p/sequence-group
        [(p/ignore
-          (p/pattern-parser
-           (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
+         (p/pattern-parser
+          (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
         charset-with-weight]))
      (p/zero-or-more
       (p/first
        (p/sequence-group
         [(p/ignore
-           (p/pattern-parser
-            (re-pattern (re/re-compose "%s%s" OWS ","))))
+          (p/pattern-parser
+           (re-pattern (re/re-compose "%s%s" OWS ","))))
          (p/optionally
           (p/first
            (p/sequence-group
             [(p/ignore
-               (p/pattern-parser
-                (re-pattern OWS)))
+              (p/pattern-parser
+               (re-pattern OWS)))
              charset-with-weight])))]))))))
 
 ;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
