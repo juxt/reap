@@ -571,7 +571,8 @@
     (p/alternatives
      (p/ignore
       (p/pattern-parser
-       (re-pattern ",")))
+       (re-pattern ",")
+       {:generator (constantly ",")}))
      (p/as-map
       (p/sequence-group
        [(p/as-entry :codings (codings))
