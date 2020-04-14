@@ -109,6 +109,10 @@
          ((rfc7231/media-type)
           (re/input "text/html;foo=bar;ZIP=qux")))))
 
+(deftest year-test
+  (is (= "2020" ((rfc7231/year) (re/input "2020"))))
+  (is (nil? ((rfc7231/year) (re/input "123")))))
+
 ;; TODO: Create a very cryptic Accept test designed to catch out all but the most compliant of parsers
 
 (deftest accept-test

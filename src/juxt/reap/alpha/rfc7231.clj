@@ -482,6 +482,11 @@
 (comment
   ((accept) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
 
+(defn year []
+  (p/pattern-parser
+   (re-pattern (re/re-compose "%s{4}" DIGIT))
+   {:generator (fn [] (apply str (rand-nth ["19" "20"]) (repeatedly 2 #(rand-int 10))))}))
+
 ;; year = 4DIGIT
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
