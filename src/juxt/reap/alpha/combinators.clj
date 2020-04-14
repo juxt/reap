@@ -63,8 +63,9 @@
     ([matcher]
      (or (parser matcher) :ignore))
     ([]
-     (when (= 1 (rand-int 2))
-       (parser)))))
+     (if (= 1 (rand-int 2))
+       (parser)
+       ""))))
 
 (defn comp
   "Wrap a parser in parser middleware."
