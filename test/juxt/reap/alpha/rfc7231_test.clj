@@ -127,6 +127,16 @@
     ((rfc7231/accept)
      (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))))
 
+  (testing "Bad accept headers"
+    (is
+     (= '()
+        ((rfc7231/accept)
+         (re/input "text"))))
+    (is
+     (= '()
+        ((rfc7231/accept)
+         (re/input "text;text/html")))))
+
   ;; https://www.newmediacampaigns.com/blog/browser-rest-http-accept-headers
   (testing "Firefox"
     (is

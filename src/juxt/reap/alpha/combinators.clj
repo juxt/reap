@@ -86,11 +86,12 @@
   [parser parsers]
   (fn
     ([matcher]
-     (when-let [fst (parser matcher)]
+     (if-let [fst (parser matcher)]
        (let [rst (parsers matcher)]
          (if (not= fst :ignore)
            (clojure.core/cons fst rst)
-           rst))))
+           rst))
+       '()))
     ([]
      (clojure.core/apply str (parser) (parsers)))))
 
