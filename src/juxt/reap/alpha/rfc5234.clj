@@ -100,18 +100,18 @@
 ;; Section B.1
 
 (def ALPHA (alternatives
-            #juxt.reap.alpha/interval [\A \Z]
-            #juxt.reap.alpha/interval [\a \z]))
+            (i/->interval [\A \Z])
+            (i/->interval [\a \z])))
 
 (def BIT (alternatives \0 \1))
 
-(def CHAR #juxt.reap.alpha/interval [0x01 0x7F])
+(def CHAR (i/->interval [0x01 0x7F]))
 
 (def CR \return)
 
 (def CRLF (str \return \newline))
 
-(def DIGIT #juxt.reap.alpha/interval [\0 \9])
+(def DIGIT (i/->interval [\0 \9]))
 
 (def DQUOTE \")
 
@@ -123,10 +123,10 @@
 
 ;;(def LWSP)
 
-(def OCTET #juxt.reap.alpha/interval [0x00 0xFF])
+(def OCTET (i/->interval [0x00 0xFF]))
 
 (def SP \space)
 
-(def VCHAR #juxt.reap.alpha/interval [0x21 0x7E])
+(def VCHAR (i/->interval [0x21 0x7E]))
 
 (def WSP (alternatives SP HTAB))

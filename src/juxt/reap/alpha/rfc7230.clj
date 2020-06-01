@@ -3,8 +3,9 @@
 (ns juxt.reap.alpha.rfc7230
   (:require
    [clojure.string :as string]
-   [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.combinators :as p]
+   [juxt.reap.alpha.interval :as i]
+   [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]))
 
 (set! *warn-on-reflection* true)
@@ -82,9 +83,7 @@
 
 ;; obs-fold = CRLF 1*( SP / HTAB )
 ;; obs-text = %x80-FF
-(def obs-text #juxt.reap.alpha/interval [0x80 0xFF])
-
-
+(def obs-text (i/->interval [0x80 0xFF]))
 
 ;; origin-form = absolute-path [ "?" query ]
 
@@ -101,8 +100,8 @@
 ;;  / obs-text
 (def qdtext
   (rfc5234/alternatives
-   HTAB SP \! #juxt.reap.alpha/interval [0x23 0x5B] ; '#'-'['
-   #juxt.reap.alpha/interval [0x5D 0x7E]            ; ']'-'~'
+   HTAB SP \! (i/->interval [0x23 0x5B]) ; '#'-'['
+   (i/->interval [0x5D 0x7E])            ; ']'-'~'
    obs-text))
 
 ;; query = <query, see [RFC3986], Section 3.4>
@@ -111,7 +110,7 @@
 (def quoted-pair
   (re/re-compose
    "\\\\[%s]"
-   (apply re/re-concat (rfc5234/alternatives HTAB SP VCHAR #juxt.reap.alpha/interval [0x80 0xFF]))))
+   (apply re/re-concat (rfc5234/alternatives HTAB SP VCHAR (i/->interval [0x80 0xFF])))))
 
 ;; quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
 (def quoted-string ; exposes group
@@ -131,9 +130,9 @@
   ctext
   (rfc5234/merge-alternatives
    #{rfc5234/HTAB rfc5234/SP}
-   #juxt.reap.alpha/interval [0x21 0x27]
-   #juxt.reap.alpha/interval [0x2A 0x5B]
-   #juxt.reap.alpha/interval [0x5D 0x7E]
+   (i/->interval [0x21 0x27])
+   (i/->interval [0x2A 0x5B])
+   (i/->interval [0x5D 0x7E])
    obs-text))
 
 ;; comment = "(" *( ctext / quoted-pair / comment ) ")"
