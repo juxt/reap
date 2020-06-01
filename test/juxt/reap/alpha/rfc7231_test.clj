@@ -63,7 +63,7 @@
 
 (deftest media-range-without-parameters-test
   (is
-   (= {:media-type "text/*"
+   (= {:media-range "text/*"
        :type "text"
        :subtype "*"}
       ((rfc7231/media-range-without-parameters)
@@ -72,7 +72,7 @@
 (deftest media-range-test
   (is
    (=
-    {:media-type "text/html"
+    {:media-range "text/html"
      :type "text",
      :subtype "html",
      :parameters [{:name "foo", :value "bar"} {:name "baz", :value "qu'x"}]}
@@ -84,7 +84,7 @@
   (testing "case insensitivity"
     (is
      (=
-      {:media-type "text/html"
+      {:media-range "text/html"
        :type "text"
        :subtype "html"
        :parameters []}
@@ -118,7 +118,7 @@
 (deftest accept-test
   (is
    (=
-    [{:media-type "text/html"
+    [{:media-range "text/html"
       :type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],

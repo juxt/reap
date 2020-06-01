@@ -256,7 +256,7 @@
   (p/alternatives
    (p/comp
     (fn [_]
-      {:media-type "*/*"
+      {:media-range "*/*"
        :type "*"
        :subtype "*"})
     (p/pattern-parser
@@ -264,7 +264,7 @@
      {:generator (constantly "*/*")}))
    (p/comp
     (fn [[media-type type]]
-      {:media-type (str/lower-case media-type)
+      {:media-range (str/lower-case media-type)
        :type (str/lower-case type)
        :subtype "*"})
     (p/pattern-parser
@@ -282,7 +282,7 @@
                    ["video/*" 1]])}))
    (p/comp
     (fn [[media-type type subtype]]
-      {:media-type (str/lower-case media-type)
+      {:media-range (str/lower-case media-type)
        :type (str/lower-case type)
        :subtype (str/lower-case subtype)})
     (p/pattern-parser
