@@ -5,8 +5,8 @@
 (ns juxt.reap.experimental.abnf
   (:require
    [clojure.string :as string]
-   [juxt.reap.parse :as p]
-   [juxt.reap.regex :as re]))
+   [juxt.reap.alpha.combinators :as p]
+   [juxt.reap.alpha.regex :as re]))
 
 ;; (identity ALPHA)
 ;; (contains? (ns-refers *ns*) 'ALPHA)
