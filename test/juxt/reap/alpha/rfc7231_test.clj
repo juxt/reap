@@ -122,7 +122,7 @@
       :type "text",
       :subtype "html",
       :parameters [{:name "foo", :value "bar"}],
-      :weight 0.3
+      :qvalue 0.3
       :accept-ext [{:name "zip"} {:name "qux", :value "quik"}]}]
     ((rfc7231/accept)
      (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))))
@@ -160,48 +160,48 @@
 
 (deftest accept-charset-test
   (is
-   (= '({:charset "UTF-8", :weight 0.8}
-        {:charset "shift_JIS", :weight 0.4})
+   (= '({:charset "UTF-8", :qvalue 0.8}
+        {:charset "shift_JIS", :qvalue 0.4})
       ((rfc7231/accept-charset)
        (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")))))
 
 (deftest accept-language-test
   (is
    (= [{:language-range "en-GB"}
-       {:language-range "en-US" :weight 0.8}
-       {:language-range "en" :weight 0.5}
-       {:language-range "it" :weight 0.3}]
+       {:language-range "en-US" :qvalue 0.8}
+       {:language-range "en" :qvalue 0.5}
+       {:language-range "it" :qvalue 0.3}]
       ((rfc7231/accept-language)
        (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3"))))
 
   (are [input expected] (= expected ((rfc7231/accept-language) (re/input input)))
-    ", , de ;q=0.7" [{:language-range "de" :weight 0.7}]
+    ", , de ;q=0.7" [{:language-range "de" :qvalue 0.7}]
 
-    "en-US ; q=1.0 ," [{:language-range "en-US", :weight 1.0}]
+    "en-US ; q=1.0 ," [{:language-range "en-US", :qvalue 1.0}]
 
-    "*;q=0.9 , fr;q=0.9" [{:language-range "*", :weight 0.9}
-                          {:language-range "fr", :weight 0.9}]
+    "*;q=0.9 , fr;q=0.9" [{:language-range "*", :qvalue 0.9}
+                          {:language-range "fr", :qvalue 0.9}]
 
     ", *" [{:language-range "*"}]
 
-    ", , fr ;q=0.7" [{:language-range "fr", :weight 0.7}]
+    ", , fr ;q=0.7" [{:language-range "fr", :qvalue 0.7}]
 
-    "de;q=1.0" [{:language-range "de", :weight 1.0}]
+    "de;q=1.0" [{:language-range "de", :qvalue 1.0}]
 
-    ", de;q=1.0" [{:language-range "de", :weight 1.0}]
+    ", de;q=1.0" [{:language-range "de", :qvalue 1.0}]
 
-    "en-US ;q=0.7 ," [{:language-range "en-US", :weight 0.7}]
+    "en-US ;q=0.7 ," [{:language-range "en-US", :qvalue 0.7}]
 
     ", * ," [{:language-range "*"}]
 
     ", * ,en-US ;q=0.7 , *"
     [{:language-range "*"}
-     {:language-range "en-US", :weight 0.7}
+     {:language-range "en-US", :qvalue 0.7}
      {:language-range "*"}]))
 
 (deftest accept-encoding-test
   (is
-   (= '({:codings "gzip" :weight 0.3}
+   (= '({:codings "gzip" :qvalue 0.3}
         {:codings "deflate"}
         {:codings "br"})
       ((rfc7231/accept-encoding)

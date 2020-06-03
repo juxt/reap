@@ -142,7 +142,7 @@
   (p/as-map
    (p/sequence-group
     [(p/as-entry
-       :weight
+       :qvalue
        (weight))
      (p/as-entry
       :accept-ext
@@ -504,7 +504,7 @@
             (p/pattern-parser
              (re-pattern (re/re-str \*))))
            (p/optionally
-            (p/as-entry :weight (weight)))]))]
+            (p/as-entry :qvalue (weight)))]))]
     (p/cons
      (p/first
       (p/sequence-group
@@ -545,7 +545,7 @@
           (rfc4647/language-range))
          (p/optionally
           (p/as-entry
-           :weight
+           :qvalue
            (weight)))]))
       (p/zero-or-more
        (p/first
@@ -566,7 +566,7 @@
                :language-range
                (rfc4647/language-range))
               (p/optionally
-               (p/as-entry :weight (weight)))])))]))))])))
+               (p/as-entry :qvalue (weight)))])))]))))])))
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
@@ -582,7 +582,7 @@
       (p/sequence-group
        [(p/as-entry :codings (codings))
         (p/optionally
-         (p/as-entry :weight (weight)))])))
+         (p/as-entry :qvalue (weight)))])))
     (p/zero-or-more
      (p/first
       (p/sequence-group
@@ -600,4 +600,4 @@
              (p/sequence-group
               [(p/as-entry :codings (codings))
                (p/optionally
-                (p/as-entry :weight (weight)))]))])))]))))))
+                (p/as-entry :qvalue (weight)))]))])))]))))))
