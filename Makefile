@@ -1,4 +1,4 @@
-.PHONY: all test lint lint2
+.PHONY: all test lint lint2 watch
 
 all: 	lint2 test
 
@@ -10,3 +10,6 @@ lint:
 
 lint2:
 	clj-kondo --lint src/juxt --lint test/juxt
+
+watch:
+	find . -name "*.clj" | entr make test
