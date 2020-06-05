@@ -448,11 +448,11 @@
         parameters-weight-accept-params
         (fn [matcher]
           (loop [matcher matcher
-                 result {:parameters []}]
+                 result {:parameters {}}]
             (if-let [accept-params (accept-params matcher)]
               (merge result accept-params)
               (if-let [match (media-range-parameter matcher)]
-                (recur matcher (update result :parameters conj match))
+                (recur matcher (update result :parameters conj [(:name match) (:value match)]))
                 result))))]
     (p/optionally
      (p/cons

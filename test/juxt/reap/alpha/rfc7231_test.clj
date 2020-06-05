@@ -121,7 +121,7 @@
     [{:media-range "text/html"
       :type "text",
       :subtype "html",
-      :parameters [{:name "foo", :value "bar"}],
+      :parameters {"foo" "bar"}
       :qvalue 0.3
       :accept-ext [{:name "zip"} {:name "qux", :value "quik"}]}]
     ((rfc7231/accept)
