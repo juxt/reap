@@ -75,7 +75,7 @@
     {:media-range "text/html"
      :type "text",
      :subtype "html",
-     :parameters [{:name "foo", :value "bar"} {:name "baz", :value "qu'x"}]}
+     :parameters {"foo" "bar" "baz" "qu'x"}}
     ((rfc7231/media-range)
      (re/input "text/html;foo=bar;baz=\"qu\\'x\""))))
 
@@ -87,7 +87,7 @@
       {:media-range "text/html"
        :type "text"
        :subtype "html"
-       :parameters []}
+       :parameters {}}
       ((rfc7231/media-range)
        (re/input "TEXT/Html"))))))
 
@@ -102,10 +102,10 @@
 ;; TODO: weight tests
 
 (deftest media-type-test
-  (is (= {:type "text" :subtype "html" :parameters []}
+  (is (= {:type "text" :subtype "html" :parameters {}}
          ((rfc7231/media-type)
           (re/input "text/html"))))
-  (is (= {:type "text" :subtype "html" :parameters [{:name "foo" :value "bar"} {:name "zip" :value "qux"}]}
+  (is (= {:type "text" :subtype "html" :parameters {"foo" "bar" "zip" "qux"}}
          ((rfc7231/media-type)
           (re/input "text/html;foo=bar;ZIP=qux")))))
 

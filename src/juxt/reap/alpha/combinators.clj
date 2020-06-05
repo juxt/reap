@@ -169,7 +169,7 @@
   (fn
     ([matcher]
      (let [res (parser matcher)]
-       (when (clojure.core/seq res)
+       (when res
          (into {} res))))
     ([]
      (parser))))

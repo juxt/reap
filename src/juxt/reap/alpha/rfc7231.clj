@@ -304,13 +304,16 @@
       (p/list
        (p/as-entry
         :parameters
-        (p/zero-or-more
-         (p/first
-          (p/sequence-group
-           [(p/ignore
-              (p/pattern-parser
-               (re-pattern (re/re-concat OWS \; OWS))))
-            (parameter)]))))))])))
+        (p/as-map
+         (p/map
+          (juxt :name :value)
+          (p/zero-or-more
+           (p/first
+            (p/sequence-group
+             [(p/ignore
+               (p/pattern-parser
+                (re-pattern (re/re-concat OWS \; OWS))))
+              (parameter)]))))))))])))
 
 (comment
   ((media-range)
@@ -329,13 +332,16 @@
       (p/pattern-parser (re-pattern subtype)))
      (p/as-entry
       :parameters
-      (p/zero-or-more
-       (p/first
-        (p/sequence-group
-         [(p/ignore (p/pattern-parser (re-pattern OWS)))
-          (p/ignore (p/pattern-parser (re-pattern ";")))
-          (p/ignore (p/pattern-parser (re-pattern OWS)))
-          (parameter)]))))]
+      (p/as-map
+       (p/map
+        (juxt :name :value)
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           [(p/ignore (p/pattern-parser (re-pattern OWS)))
+            (p/ignore (p/pattern-parser (re-pattern ";")))
+            (p/ignore (p/pattern-parser (re-pattern OWS)))
+            (parameter)]))))))]
     {:generator (histogram-generator
                  [["text/html" 3]
                   ["image/png" 2]
