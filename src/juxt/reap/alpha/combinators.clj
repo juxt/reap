@@ -8,10 +8,8 @@
 
 ;; RFC 5234 Section 3.2. Alternatives: Rule1 / Rule2
 (defn alternatives [& parsers]
-  (fn
-    ([matcher]
-     (some (fn [p] (p matcher)) parsers))
-    ([] ((rand-nth parsers)))))
+  (fn [matcher]
+    (some (fn [p] (p matcher)) parsers)))
 
 ;; RFC 5234 Section 3.3. Incremental Alternatives: Rule1 =/ Rule2
 
@@ -21,24 +19,14 @@
 
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
-  ([parsers]
-   (sequence-group parsers {}))
-  ([parsers options]
-   #_(when (= 1 (count parsers))
-       (throw (ex-info "Is a sequence group required here?" {})))
-   (fn this
-     ([matcher]
-      (reduce
-       (fn [acc p]
-         (if-let [res (p matcher)]
-           (cond-> acc (not= res :ignore) (conj res))
-           (reduced nil)))
-       [] parsers))
-     ([]
-      (if-let [generator (:generator options)]
-        (generator)
-        (clojure.core/apply str (clojure.core/map #(%) parsers)))))))
-
+  [& parsers]
+  (fn [matcher]
+    (reduce
+     (fn [acc p]
+       (if-let [res (p matcher)]
+         (cond-> acc (not= res :ignore) (conj res))
+         (reduced nil)))
+     [] parsers)))
 
 ;; RFC 5234 Section 3.6: Variable Repetition
 (defn zero-or-more [parser]
@@ -48,10 +36,8 @@
             (if (= match :ignore)
               (this matcher)
               (clojure.core/cons match (this matcher)))))]
-    (fn
-      ([matcher]
-       (or (super matcher) '()))
-      ([] (clojure.core/reduce str (repeatedly (rand-int 3) parser))))))
+    (fn [matcher]
+      (or (super matcher) '()))))
 
 (defn seq [parser]
   (fn [matcher]
@@ -59,22 +45,15 @@
       (if (= res :ignore) res (or (clojure.core/seq res) :ignore)))))
 
 (defn optionally [parser]
-  (fn
-    ([matcher]
-     (or (parser matcher) :ignore))
-    ([]
-     (if (= 1 (rand-int 2))
-       (parser)
-       ""))))
+  (fn [matcher]
+    (or (parser matcher) :ignore)))
 
 (defn comp
   "Wrap a parser in parser middleware."
   [f parser]
-  (fn
-    ([matcher]
-     (when-let [res (parser matcher)]
-       (if (= res :ignore) res (f res))))
-    ([] (parser))))
+  (fn [matcher]
+    (when-let [res (parser matcher)]
+      (if (= res :ignore) res (f res)))))
 
 (defn sequence
   "Wrap a parser in parser middleware."
@@ -84,16 +63,13 @@
 
 (defn cons
   [parser parsers]
-  (fn
-    ([matcher]
-     (if-let [fst (parser matcher)]
-       (let [rst (parsers matcher)]
-         (if (not= fst :ignore)
-           (clojure.core/cons fst rst)
-           rst))
-       '()))
-    ([]
-     (clojure.core/apply str (parser) (parsers)))))
+  (fn [matcher]
+    (if-let [fst (parser matcher)]
+      (let [rst (parsers matcher)]
+        (if (not= fst :ignore)
+          (clojure.core/cons fst rst)
+          rst))
+      '())))
 
 (defn list
   [& parsers]
@@ -111,37 +87,27 @@
   (fn [_] constant))
 
 (defn ignore [parser]
-  (fn
-    ([matcher]
-     (when (some? (parser matcher)) :ignore))
-    ([] (parser))))
+  (fn [matcher]
+    (when (some? (parser matcher)) :ignore)))
 
 (defn pattern-parser
   ([^Pattern pat] (pattern-parser pat {}))
   ([^Pattern pat opts]
-   (fn
-     ([matcher]
-      (.usePattern ^Matcher matcher pat)
-      (when (.lookingAt ^Matcher matcher)
-        (let [res (if-let [grp (:group opts)]
-                    (.group ^Matcher matcher ^long grp)
-                    (re-groups matcher))]
-          (.region ^Matcher matcher
-                   (.end ^Matcher matcher)
-                   (.regionEnd ^Matcher matcher))
-          res)))
-     ([]
-      (if-let [generator (get opts :generator)]
-        (generator)
-        (throw (ex-info "Pattern generator function not provided" {:pat pat
-                                                                   :options opts})))))))
+   (fn [matcher]
+     (.usePattern ^Matcher matcher pat)
+     (when (.lookingAt ^Matcher matcher)
+       (let [res (if-let [grp (:group opts)]
+                   (.group ^Matcher matcher ^long grp)
+                   (re-groups matcher))]
+         (.region ^Matcher matcher
+                  (.end ^Matcher matcher)
+                  (.regionEnd ^Matcher matcher))
+         res)))))
 
 (defn first [parser]
-  (fn
-    ([matcher]
-     (clojure.core/first
-      (parser matcher)))
-    ([] (parser))))
+  (fn [matcher]
+    (clojure.core/first
+     (parser matcher))))
 
 (defn second [parser]
   (fn [matcher]
@@ -157,13 +123,11 @@
 
 ;; Data construction
 (defn as-entry [k parser]
-  (fn
-    ([matcher]
-     (when-let [v (parser matcher)]
-       (if (= v :ignore)
-         :ignore
-         [k v])))
-    ([] (parser))))
+  (fn [matcher]
+    (when-let [v (parser matcher)]
+      (if (= v :ignore)
+        :ignore
+        [k v]))))
 
 (defn array-map [& keyvals]
   (fn [matcher]
@@ -173,13 +137,10 @@
       (fn [[k v]] [k (v matcher)]) (clojure.core/partition 2 keyvals)))))
 
 (defn as-map [parser]
-  (fn
-    ([matcher]
-     (let [res (parser matcher)]
-       (when res
-         (into {} res))))
-    ([]
-     (parser))))
+  (fn [matcher]
+    (let [res (parser matcher)]
+      (when res
+        (into {} res)))))
 
 (defn merge [& parsers]
   (let [p (sequence-group parsers)]
