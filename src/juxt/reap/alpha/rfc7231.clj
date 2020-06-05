@@ -300,20 +300,18 @@
    #(apply merge %)
    (p/sequence-group
     [(media-range-without-parameters)
-     (p/as-map
-      (p/list
-       (p/as-entry
-        :parameters
-        (p/as-map
-         (p/map
-          (juxt :name :value)
-          (p/zero-or-more
-           (p/first
-            (p/sequence-group
-             [(p/ignore
-               (p/pattern-parser
-                (re-pattern (re/re-concat OWS \; OWS))))
-              (parameter)]))))))))])))
+     (p/array-map
+      :parameters
+      (p/as-map
+       (p/map
+        (juxt :name :value)
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           [(p/ignore
+             (p/pattern-parser
+              (re-pattern (re/re-concat OWS \; OWS))))
+            (parameter)]))))))])))
 
 (comment
   ((media-range)

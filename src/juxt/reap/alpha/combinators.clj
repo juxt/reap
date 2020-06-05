@@ -1,7 +1,7 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.alpha.combinators
-  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map seq apply merge])
+  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map seq apply merge array-map])
   (:import [java.util.regex Pattern Matcher]))
 
 (set! *warn-on-reflection* true)
@@ -164,6 +164,13 @@
          :ignore
          [k v])))
     ([] (parser))))
+
+(defn array-map [& keyvals]
+  (fn [matcher]
+    (clojure.core/apply
+     clojure.core/array-map
+     (clojure.core/mapcat
+      (fn [[k v]] [k (v matcher)]) (clojure.core/partition 2 keyvals)))))
 
 (defn as-map [parser]
   (fn
