@@ -123,7 +123,7 @@
    (p/pattern-parser
     (re-pattern
      (re/re-concat
-      OWS \; OWS "q=" (re/group qvalue)))
+      OWS \; OWS "(?i:q=" (re/group qvalue) ")"))
     {:group 1})))
 
 (comment
