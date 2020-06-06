@@ -91,13 +91,34 @@
     (when (some? (parser matcher)) :ignore)))
 
 (defn pattern-parser
-  ([^Pattern pat] (pattern-parser pat {}))
+  ([^Pattern pat]
+   (pattern-parser pat {}))
   ([^Pattern pat opts]
    (fn [matcher]
      (.usePattern ^Matcher matcher pat)
      (when (.lookingAt ^Matcher matcher)
        (let [res (if-let [grp (:group opts)]
-                   (.group ^Matcher matcher ^long grp)
+                   (cond
+                     (int? grp)
+                     (.group ^Matcher matcher ^long grp)
+                     (string? grp)
+                     (.group ^Matcher matcher ^String grp)
+                     (map? grp)
+                     (reduce
+                      (fn [acc [k v]]
+                        (let [vl (cond
+                                   (int? v)
+                                   (.group ^Matcher matcher ^long v)
+                                   (string? v)
+                                   (.group ^Matcher matcher ^String v)
+                                   :else
+                                   (throw (ex-info "Bad map value group type")))]
+                          (cond-> acc vl (conj [k vl]))))
+                      {} grp)
+
+
+                     :else
+                     (throw (ex-info "Bad group type")))
                    (re-groups matcher))]
          (.region ^Matcher matcher
                   (.end ^Matcher matcher)
