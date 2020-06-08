@@ -51,7 +51,7 @@
               :langtag "zh-Hans"
               :language "zh"
               :code "zh"
-              :script "Hans" }
+              :script "Hans"}
              (p (re/input "zh-Hans"))))
 
       ;; Serbian written using the Cyrillic script
