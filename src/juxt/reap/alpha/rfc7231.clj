@@ -16,7 +16,8 @@
 
 (defn- common-parameter
   [optional?]
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :name
@@ -131,7 +132,8 @@
 
 ;; accept-params = weight *accept-ext
 (defn accept-params []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :qvalue
@@ -275,7 +277,8 @@
     (media-range-without-parameters)
     (p/array-map
      :parameters
-     (p/as-map
+     (p/into
+      {}
       (p/map
        (juxt :name :value)
        (p/zero-or-more
@@ -292,7 +295,8 @@
 
 ;; media-type = type "/" subtype *( OWS ";" OWS parameter )
 (defn media-type []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :type
@@ -303,7 +307,8 @@
      (p/pattern-parser (re-pattern subtype)))
     (p/as-entry
      :parameters
-     (p/as-map
+     (p/into
+      {}
       (p/map
        (juxt :name :value)
        (p/zero-or-more
@@ -345,7 +350,8 @@
 ;; product = token [ "/" product-version ]
 
 (defn product []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :product
@@ -463,7 +469,8 @@
 
 (defn accept-charset []
   (let [charset-with-weight
-        (p/as-map
+        (p/into
+         {}
          (p/sequence-group
           (p/alternatives
            (p/as-entry
@@ -506,7 +513,8 @@
        (re-pattern
         (re/re-concat "," OWS)))))
     (p/cons
-     (p/as-map
+     (p/into
+      {}
       (p/sequence-group
        (p/as-entry
         :language-range
@@ -523,7 +531,8 @@
           (re-pattern
            (re/re-concat OWS ","))))
         (p/optionally
-         (p/as-map
+         (p/into
+          {}
           (p/sequence-group
            (p/ignore
             (p/pattern-parser
@@ -543,7 +552,8 @@
      (p/ignore
       (p/pattern-parser
        (re-pattern ",")))
-     (p/as-map
+     (p/into
+      {}
       (p/sequence-group
        (p/as-entry :codings (codings))
        (p/optionally
@@ -561,7 +571,8 @@
           (p/ignore
            (p/pattern-parser
             (re-pattern OWS)))
-          (p/as-map
+          (p/into
+           {}
            (p/sequence-group
             (p/as-entry :codings (codings))
             (p/optionally

@@ -20,7 +20,8 @@
 
 ;; auth-param = token BWS "=" BWS ( token / quoted-string )
 (defn auth-param []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :name
@@ -49,7 +50,8 @@
 ;; credentials = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
 ;;  *( OWS "," [ OWS auth-param ] ) ] ) ]
 (defn credentials []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :auth-scheme
@@ -102,7 +104,8 @@
 ;; challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *(
 ;;  OWS "," [ OWS auth-param ] ) ] ) ]
 (defn challenge []
-  (p/as-map
+  (p/into
+   {}
    (p/sequence-group
     (p/as-entry
      :auth-scheme
