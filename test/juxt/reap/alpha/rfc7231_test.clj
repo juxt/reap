@@ -61,6 +61,14 @@
       ((rfc7231/optional-parameter)
        (re/input "foo=\"ba\\'r\""))))))
 
+(deftest content-language-test
+  (is
+   (= ["en" "de"]
+      (map :language ((rfc7231/content-language) (re/input "en,de"))))
+   (= [["en" "US"] ["de" nil]]
+      (map (juxt :language :region)
+           ((rfc7231/content-language) (re/input "en-US,de"))))))
+
 (deftest media-range-without-parameters-test
   (is
    (= {:media-range "text/*"

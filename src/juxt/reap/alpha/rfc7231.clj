@@ -6,8 +6,10 @@
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.rfc4647 :as rfc4647]
-   [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT]]
+   [juxt.reap.alpha.rfc5646 :as rfc5646]
+   [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
+
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -67,12 +69,38 @@
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
 
+;; language-tag = <Language-Tag, see [RFC5646], Section 2.1>
+(def language-tag rfc5646/language-tag)
+
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
+
+(defn content-language []
+  (p/first
+   (p/sequence-group
+    (p/ignore
+     (p/zero-or-more
+      (p/sequence-group
+       (p/pattern-parser (re-pattern ","))
+       (p/pattern-parser (re-pattern OWS)))))
+    (p/cons
+     (language-tag)
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser (re-pattern OWS)))
+        (p/ignore
+         (p/pattern-parser (re-pattern ",")))
+        (p/optionally
+         (p/first
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser (re-pattern OWS)))
+           (language-tag)))))))))))
+
+
 ;; Content-Location = absolute-URI / partial-URI
-
-
-
 
 ;; Date = HTTP-date
 
@@ -233,8 +261,6 @@
 ;; hour = 2DIGIT
 
 ;; language-range = <language-range, see [RFC4647], Section 2.1>
-
-;; language-tag = <Language-Tag, see [RFC5646], Section 2.1>
 
 ;; mailbox = <mailbox, see [RFC5322], Section 3.4>
 

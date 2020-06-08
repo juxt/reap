@@ -12,22 +12,32 @@
     (re-pattern
      (str
       "(?<Language>"
-      "(?<LangCode>\\p{Alpha}{2,3})(?=$|-)(?:-(?<ExtLang>\\p{Alpha}{3}(?:-\\p{Alpha}{3}){0,2}))?(?=$|-)"
+      "(?<LangCode>\\p{Alpha}{2,3})"
+      "(?!\\p{Alpha})"
+      "(?:-(?<ExtLang>\\p{Alpha}{3}(?:-\\p{Alpha}{3}){0,2}))?"
+      "(?!\\p{Alpha})"
       "|"
-      "(?<Reserved>\\p{Alpha}{4})(?=$|-)"
+      "(?<Reserved>\\p{Alpha}{4})(?!\\p{Alpha})"
       "|"
-      "(?<RegLangSubtag>\\p{Alpha}{5,8})(?=$|-)"
+      "(?<RegLangSubtag>\\p{Alpha}{5,8})(?!\\p{Alpha})"
       ")"
-      ;; TODO: Try replacing positive lookahead with negative lookahead
-      "(?:\\-(?<Script>\\p{Alpha}{4}))?(?=$|-)"
-      "(?:\\-(?<Region>(\\p{Alpha}{2}|\\p{Digit}{3})))?(?=$|-)"
 
-      "(?:\\-(?<Variant>\\p{Alnum}{5,8}|\\p{Digit}\\p{Alnum}{3}))""*(?=$|-)"
-      "(?:\\-(?<Extension>[0-9A-WY-Za-wy-z](?:-\\p{Alnum}{2,8})+))*(?=$|-)"
+      "(?:\\-(?<Script>\\p{Alpha}{4}))?"
+      "(?!\\p{Alpha})"
+
+      "(?:\\-(?<Region>(\\p{Alpha}{2}|\\p{Digit}{3})))?"
+      "(?!\\p{Alnum})"
+
+      "(?:\\-(?<Variant>\\p{Alnum}{5,8}|\\p{Digit}\\p{Alnum}{3}))*"
+      "(?!\\p{Alnum})"
+
+      "(?:\\-(?<Extension>[0-9A-WY-Za-wy-z](?:-\\p{Alnum}{2,8})+))*"
+      "(?!\\p{Alnum})"
+
       "(?:\\-(?<PrivateUse>x-(?<PrivateTag>\\p{Alnum}{1,8}(?:-\\p{Alnum}{1,8})*)))?"
-      ;; Some negative lookahead to prevent premature matching
-      "(?!\\p{Alnum}|-)"
-      ))
+      ;; Negative lookahead on subsequent hyphen
+      "(?!\\p{Alnum}|-)"))
+
     {:group
      {:langtag 0
       :language "Language"

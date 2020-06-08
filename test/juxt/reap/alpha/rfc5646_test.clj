@@ -313,4 +313,12 @@
         ;; Two extensions with same single-letter prefix
         ;; TODO: Fix failing test
         (comment
-          (is (nil? (p (re/input "ar-a-aaa-b-bbb-a-ccc")))))))))
+          (is (nil? (p (re/input "ar-a-aaa-b-bbb-a-ccc")))))))
+
+    (testing "comma at end of input"
+      (is (= {:type :langtag
+              :langtag "en-US"
+              :language "en"
+              :code "en"
+              :region "US"}
+             (p (re/input "en-US,")))))))
