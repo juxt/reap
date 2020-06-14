@@ -209,8 +209,22 @@
 
 (deftest accept-encoding-test
   (is
-   (= '({:codings "gzip" :qvalue 0.3}
-        {:codings "deflate"}
-        {:codings "br"})
+   (= [{:codings "gzip" :qvalue 0.3}
+       {:codings "deflate"}
+       {:codings "br"}]
       ((rfc7231/accept-encoding)
-       (re/input "gzip;q=0.3, deflate, br")))))
+       (re/input "gzip;q=0.3, deflate, br"))))
+  (is (= '()
+         ((rfc7231/accept-encoding)
+          (re/input "")))))
+
+(deftest content-encoding-test
+  (is
+   (= [{:content-coding "gzip"}
+       {:content-coding "deflate"}]
+      ((rfc7231/content-encoding)
+       (re/input "gzip,deflate"))))
+  (is
+   (= []
+      ((rfc7231/content-encoding)
+       (re/input "")))))
