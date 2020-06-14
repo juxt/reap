@@ -24,3 +24,8 @@
 
 (defn content-language [s]
   (precompiled-content-language (re/input s)))
+
+(def ^:private precompiled-content-encoding (rfc7231/content-encoding))
+
+(defn content-encoding [s]
+  (precompiled-content-encoding (re/input s)))

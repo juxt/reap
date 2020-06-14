@@ -99,7 +99,6 @@
             (p/pattern-parser (re-pattern OWS)))
            (language-tag)))))))))))
 
-
 ;; Content-Location = absolute-URI / partial-URI
 
 ;; Date = HTTP-date
@@ -207,7 +206,7 @@
        (p/pattern-parser (re-pattern ","))
        (p/pattern-parser (re-pattern OWS)))))
     (p/cons
-     (p/pattern-parser (re-pattern content-coding))
+     (p/array-map :content-coding (p/pattern-parser (re-pattern content-coding)))
      (p/zero-or-more
       (p/first
        (p/sequence-group
@@ -219,7 +218,7 @@
          (p/optionally
           (p/sequence-group
            (p/ignore (p/pattern-parser (re-pattern OWS)))
-           (p/pattern-parser (re-pattern content-coding))))))))))))
+           (p/array-map :content-coding (p/pattern-parser (re-pattern content-coding)))))))))))))
 
 (comment
   ((content-encoding)
