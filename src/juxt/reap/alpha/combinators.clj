@@ -151,10 +151,13 @@
 
 (defn array-map [& keyvals]
   (fn [matcher]
-    (cc/apply
-     cc/array-map
-     (cc/mapcat
-      (fn [[k v]] [k (v matcher)]) (cc/partition 2 keyvals)))))
+    (cc/reduce
+     (fn [acc [k v]]
+       (if-let [val (v matcher)]
+         (conj acc [k val])
+         (reduced nil)))
+     (cc/array-map)
+     (cc/partition 2 keyvals))))
 
 (defn into [to parser]
   (fn [matcher]
