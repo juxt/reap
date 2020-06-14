@@ -74,18 +74,6 @@
           rst))
       '())))
 
-(defn list
-  [& parsers]
-  (fn [matcher]
-    (doall (cc/map #(% matcher) parsers))))
-
-(defn concat [& parsers]
-  (fn [matcher]
-    (doall
-     (cc/apply
-      cc/concat
-      (cc/map #(% matcher) parsers)))))
-
 (defn constantly [constant]
   (fn [_] constant))
 
