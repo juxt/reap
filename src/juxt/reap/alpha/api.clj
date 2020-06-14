@@ -19,3 +19,8 @@
 
 (defn content-type [s]
   (precompiled-content-type (re/input s)))
+
+(def ^:private precompiled-content-language (rfc7231/content-language))
+
+(defn content-language [s]
+  (precompiled-content-language (re/input s)))
