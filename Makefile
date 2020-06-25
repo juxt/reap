@@ -1,9 +1,9 @@
-.PHONY: all test lint lint2 watch
+.PHONY: all test lint lint2 watch clean
 
 all: 	lint2 test
 
 test:
-	clojure -Atest
+	clojure -Atest && echo "PASS" > /tmp/reap-test-status || echo "<span foreground='red'>FAIL</span>" > /tmp/reap-test-status
 
 lint:
 	clojure -Alint
@@ -13,3 +13,6 @@ lint2:
 
 watch:
 	find . -name "*.clj" | entr make test
+
+clean:
+	rm /tmp/reap-test-status
