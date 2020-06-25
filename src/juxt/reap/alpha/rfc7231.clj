@@ -417,10 +417,6 @@
 ;; time-of-day = hour ":" minute ":" second
 
 
-;; TODO: with re-pattern-parser, return the result of re-groups for post-processing
-;; (re-matches #"([a-b]*)/([c-d]*)" "a/c")
-
-
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
 (defn accept []
