@@ -1,0 +1,259 @@
+Ordered ABNF
+
+* RF 4647
+
+extended-language-range = (1*8ALPHA / "*") *("-" (1*8alphanum / "*"))
+
+* RFC 5646
+
+Language-Tag  = langtag / privateuse / grandfathered
+alphanum = (ALPHA / DIGIT)
+extension = singleton 1*("-" (2*8alphanum))
+extlang = 3ALPHA *2("-" 3ALPHA)
+grandfathered = irregular / regular
+irregular = "en-GB-oed" / "i-ami" / "i-bnn" / "i-default" / "i-enochian" / "i-hak" / "i-klingon" / "i-lux" / "i-mingo" / "i-navajo" / "i-pwn" / "i-tao" / "i-tay" / "i-tsu" / "sgn-BE-FR" / "sgn-BE-NL" / "sgn-CH-DE"
+langtag = language ["-" script] ["-" region] *("-" variant) *("-" extension) ["-" privateuse]
+language = 2*3ALPHA ["-" extlang] / 4ALPHA / 5*8ALPHA
+privateuse = "x" 1*("-" (1*8alphanum))
+region = 2ALPHA / 3DIGIT
+regular = "art-lojban" / "cel-gaulish" / "no-bok" / "no-nyn" / "zh-guoyu" / "zh-hakka" / "zh-min" / "zh-min-nan" / "zh-xiang"
+script = 4ALPHA
+singleton = DIGIT / %x41-57 / %x59-5A / %x61-77 / %x79-7A
+variant = 5*8alphanum / (DIGIT 3alphanum)
+
+* RFC 7230
+
+BWS = OWS
+Connection = *( "," OWS ) connection-option *( OWS "," [ OWS connection-option ] )
+Content-Length = 1*DIGIT
+HTTP-message = start-line *( header-field CRLF ) CRLF [ message-body ]
+HTTP-name = %x48.54.54.50 ; HTTP
+HTTP-version = HTTP-name "/" DIGIT "." DIGIT
+Host = uri-host [ ":" port ]
+OWS = *( SP / HTAB )
+RWS = 1*( SP / HTAB )
+TE = [ ( "," / t-codings ) *( OWS "," [ OWS t-codings ] ) ]
+Trailer = *( "," OWS ) field-name *( OWS "," [ OWS field-name ] )
+Transfer-Encoding = *( "," OWS ) transfer-coding *( OWS "," [ OWS transfer-coding ] )
+URI-reference = <URI-reference, see [RFC3986], Section 4.1>
+Upgrade = *( "," OWS ) protocol *( OWS "," [ OWS protocol ] )
+Via = *( "," OWS ) ( received-protocol RWS received-by [ RWS comment ] ) *( OWS "," [ OWS ( received-protocol RWS received-by [ RWS comment ] ) ] )
+absolute-URI = <absolute-URI, see [RFC3986], Section 4.3>
+absolute-form = absolute-URI
+absolute-path = 1*( "/" segment )
+asterisk-form = "*"
+authority = <authority, see [RFC3986], Section 3.2>
+authority-form = authority
+chunk = chunk-size [ chunk-ext ] CRLF chunk-data CRLF
+chunk-data = 1*OCTET
+chunk-ext = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
+chunk-ext-name = token
+chunk-ext-val = token / quoted-string
+chunk-size = 1*HEXDIG
+chunked-body = *chunk last-chunk trailer-part CRLF
+comment = "(" *( ctext / quoted-pair / comment ) ")"
+connection-option = token
+ctext = HTAB / SP / %x21-27 ; '!'-''' / %x2A-5B ; '*'-'[' / %x5D-7E ; ']'-'~ / obs-text
+field-content = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+field-name = token
+field-value = *( field-content / obs-fold )
+field-vchar = VCHAR / obs-text
+fragment = <fragment, see [RFC3986], Section 3.5>
+header-field = field-name ":" OWS field-value OWS
+http-URI = "http://" authority path-abempty [ "?" query ] [ "#" fragment ]
+https-URI = "https://" authority path-abempty [ "?" query ] [ "#" fragment ]
+last-chunk = 1*"0" [ chunk-ext ] CRLF
+message-body = *OCTET
+method = token
+obs-fold = CRLF 1*( SP / HTAB )
+obs-text = %x80-FF
+origin-form = absolute-path [ "?" query ]
+partial-URI = relative-part [ "?" query ]
+path-abempty = <path-abempty, see [RFC3986], Section 3.3>
+port = <port, see [RFC3986], Section 3.2.3>
+protocol = protocol-name [ "/" protocol-version ]
+protocol-name = token
+protocol-version = token
+pseudonym = token
+qdtext = HTAB / SP / "!" / %x23-5B ; '#'-'[' / %x5D-7E ; ']'-'~' / obs-text
+query = <query, see [RFC3986], Section 3.4>
+quoted-pair = "\" ( HTAB / SP / VCHAR / obs-text )
+quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+rank = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
+reason-phrase = *( HTAB / SP / VCHAR / obs-text )
+received-by = ( uri-host [ ":" port ] ) / pseudonym
+received-protocol = [ protocol-name "/" ] protocol-version
+relative-part = <relative-part, see [RFC3986], Section 4.2>
+request-line = method SP request-target SP HTTP-version CRLF
+request-target = origin-form / absolute-form / authority-form / asterisk-form
+scheme = <scheme, see [RFC3986], Section 3.1>
+segment = <segment, see [RFC3986], Section 3.3>
+start-line = request-line / status-line
+status-code = 3DIGIT
+status-line = HTTP-version SP status-code SP reason-phrase CRLF
+t-codings = "trailers" / ( transfer-coding [ t-ranking ] )
+t-ranking = OWS ";" OWS "q=" rank
+tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+token = 1*tchar
+trailer-part = *( header-field CRLF )
+transfer-coding = "chunked" / "compress" / "deflate" / "gzip" / transfer-extension
+transfer-extension = token *( OWS ";" OWS transfer-parameter )
+transfer-parameter = token BWS "=" BWS ( token / quoted-string )
+uri-host = <host, see [RFC3986], Section 3.2.2>
+
+** RFC 7231
+
+Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [ OWS ( media-range [ accept-params ] ) ] ) ]
+Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
+Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS ( codings [ weight ] ) ] ) ]
+Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS "," [ OWS ( language-range [ weight ] ) ] )
+Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
+BWS = <BWS, see [RFC7230], Section 3.2.3>
+Content-Encoding = *( "," OWS ) content-coding *( OWS "," [ OWS content-coding ] )
+Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS language-tag ] )
+Content-Location = absolute-URI / partial-URI
+Content-Type = media-type
+Date = HTTP-date
+Expect = "100-continue"
+From = mailbox
+GMT = %x47.4D.54 ; GMT
+HTTP-date = IMF-fixdate / obs-date
+IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
+Location = URI-reference
+Max-Forwards = 1*DIGIT
+OWS = <OWS, see [RFC7230], Section 3.2.3>
+RWS = <RWS, see [RFC7230], Section 3.2.3>
+Referer = absolute-URI / partial-URI
+Retry-After = HTTP-date / delay-seconds
+Server = product *( RWS ( product / comment ) )
+URI-reference = <URI-reference, see [RFC7230], Section 2.7>
+User-Agent = product *( RWS ( product / comment ) )
+Vary = "*" / ( *( "," OWS ) field-name *( OWS "," [ OWS field-name ] ) )
+absolute-URI = <absolute-URI, see [RFC7230], Section 2.7>
+accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
+accept-params = weight *accept-ext
+asctime-date = day-name SP date3 SP time-of-day SP year
+charset = token
+codings = content-coding / "identity" / "*"
+comment = <comment, see [RFC7230], Section 3.2.6>
+content-coding = token
+date1 = day SP month SP year
+date2 = day "-" month "-" 2DIGIT
+date3 = month SP ( 2DIGIT / ( SP DIGIT ) )
+day = 2DIGIT
+day-name = %x4D.6F.6E ; Mon / %x54.75.65 ; Tue / %x57.65.64 ; Wed / %x54.68.75 ; Thu / %x46.72.69 ; Fri / %x53.61.74 ; Sat / %x53.75.6E ; Sun
+day-name-l = %x4D.6F.6E.64.61.79 ; Monday / %x54.75.65.73.64.61.79 ; Tuesday / %x57.65.64.6E.65.73.64.61.79 ; Wednesday / %x54.68.75.72.73.64.61.79 ; Thursday / %x46.72.69.64.61.79 ; Friday / %x53.61.74.75.72.64.61.79 ;Saturday / %x53.75.6E.64.61.79 ; Sunday
+delay-seconds = 1*DIGIT
+field-name = <comment, see [RFC7230], Section 3.2>
+hour = 2DIGIT
+language-range = <language-range, see [RFC4647], Section 2.1>
+language-tag = <Language-Tag, see [RFC5646], Section 2.1>
+mailbox = <mailbox, see [RFC5322], Section 3.4>
+media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS ";" OWS parameter )
+media-type = type "/" subtype *( OWS ";" OWS parameter )
+method = token
+minute = 2DIGIT
+month = %x4A.61.6E ; Jan / %x46.65.62 ; Feb / %x4D.61.72 ; Mar / %x41.70.72 ; Apr / %x4D.61.79 ; May / %x4A.75.6E ; Jun / %x4A.75.6C ; Jul / %x41.75.67 ; Aug / %x53.65.70 ; Sep / %x4F.63.74 ; Oct / %x4E.6F.76 ; Nov / %x44.65.63 ; Dec
+obs-date = rfc850-date / asctime-date
+parameter = token "=" ( token / quoted-string )
+partial-URI = <partial-URI, see [RFC7230], Section 2.7>
+product = token [ "/" product-version ]
+product-version = token
+quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
+qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
+rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
+second = 2DIGIT
+subtype = token
+time-of-day = hour ":" minute ":" second
+token = <token, see [RFC7230], Section 3.2.6>
+type = token
+weight = OWS ";" OWS "q=" qvalue
+year = 4DIGIT
+
+** RFC 7232
+
+ETag = entity-tag
+HTTP-date = <HTTP-date, see [RFC7231], Section 7.1.1.1>
+If-Match = "*" / ( *( "," OWS ) entity-tag *( OWS "," [ OWS entity-tag ] ) )
+If-Modified-Since = HTTP-date
+If-None-Match = "*" / ( *( "," OWS ) entity-tag *( OWS "," [ OWS entity-tag ] ) )
+If-Unmodified-Since = HTTP-date
+Last-Modified = HTTP-date
+OWS = <OWS, see [RFC7230], Section 3.2.3>
+entity-tag = [ weak ] opaque-tag
+etagc = "!" / %x23-7E ; '#'-'~' / obs-text
+obs-text = <obs-text, see [RFC7230], Section 3.2.6>
+opaque-tag = DQUOTE *etagc DQUOTE
+weak = %x57.2F ; W/
+
+** RFC 7233
+
+Accept-Ranges = acceptable-ranges
+Content-Range = byte-content-range / other-content-range
+HTTP-date = <HTTP-date, see [RFC7231], Section 7.1.1.1>
+If-Range = entity-tag / HTTP-date
+OWS = <OWS, see [RFC7230], Section 3.2.3>
+Range = byte-ranges-specifier / other-ranges-specifier
+acceptable-ranges = ( *( "," OWS ) range-unit *( OWS "," [ OWS range-unit ] ) ) / "none"
+byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
+byte-range = first-byte-pos "-" last-byte-pos
+byte-range-resp = byte-range "/" ( complete-length / "*" )
+byte-range-set = *( "," OWS ) ( byte-range-spec / suffix-byte-range-spec ) *( OWS "," [ OWS ( byte-range-spec / suffix-byte-range-spec ] )
+byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
+byte-ranges-specifier = bytes-unit "=" byte-range-set
+bytes-unit = "bytes"
+complete-length = 1*DIGIT
+entity-tag = <entity-tag, see [RFC7232], Section 2.3>
+first-byte-pos = 1*DIGIT
+last-byte-pos = 1*DIGIT
+other-content-range = other-range-unit SP other-range-resp
+other-range-resp = *CHAR
+other-range-set = 1*VCHAR
+other-range-unit = token
+other-ranges-specifier = other-range-unit "=" other-range-set
+range-unit = bytes-unit / other-range-unit
+suffix-byte-range-spec = "-" suffix-length
+suffix-length = 1*DIGIT
+token = <token, see [RFC7230], Section 3.2.6>
+unsatisfied-range = "*/" complete-length
+
+** RFC 7234
+
+Age = delta-seconds
+Cache-Control = *( "," OWS ) cache-directive *( OWS "," [ OWS cache-directive ] )
+Expires = HTTP-date
+HTTP-date = <HTTP-date, see [RFC7231], Section 7.1.1.1>
+OWS = <OWS, see [RFC7230], Section 3.2.3>
+Pragma = *( "," OWS ) pragma-directive *( OWS "," [ OWS pragma-directive ] )
+Warning = *( "," OWS ) warning-value *( OWS "," [ OWS warning-value ] )
+cache-directive = token [ "=" ( token / quoted-string ) ]
+delta-seconds = 1*DIGIT
+extension-pragma = token [ "=" ( token / quoted-string ) ]
+field-name = <field-name, see [RFC7230], Section 3.2>
+port = <port, see [RFC7230], Section 2.7>
+pragma-directive = "no-cache" / extension-pragma
+pseudonym = <pseudonym, see [RFC7230], Section 5.7.1>
+quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
+token = <token, see [RFC7230], Section 3.2.6>
+uri-host = <uri-host, see [RFC7230], Section 2.7>
+warn-agent = ( uri-host [ ":" port ] ) / pseudonym
+warn-code = 3DIGIT
+warn-date = DQUOTE HTTP-date DQUOTE
+warn-text = quoted-string
+warning-value = warn-code SP warn-agent SP warn-text [ SP warn-date ]
+
+** RFC 7235
+
+Authorization = credentials
+BWS = <BWS, see [RFC7230], Section 3.2.3>
+OWS = <OWS, see [RFC7230], Section 3.2.3>
+Proxy-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge ] )
+Proxy-Authorization = credentials
+WWW-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge] )
+auth-param = token BWS "=" BWS ( token / quoted-string )
+auth-scheme = token
+challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
+credentials = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
+quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
+token = <token, see [RFC7230], Section 3.2.6>
+token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
