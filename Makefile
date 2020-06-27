@@ -3,7 +3,7 @@
 all: 	lint2 test
 
 test:
-	clojure -Atest && echo "PASS" > /tmp/reap-test-status || echo "<span foreground='red'>FAIL</span>" > /tmp/reap-test-status
+	clojure -Atest && echo "reap:PASS" > /tmp/reap-test-status || echo "<span foreground='red'>reap:FAIL</span>" > /tmp/reap-test-status
 
 lint:
 	clojure -Alint
