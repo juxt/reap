@@ -7,7 +7,7 @@
 
 (defn langtag []
   (p/into
-   {:type :langtag}
+   {:juxt.reap.alpha/lang-type :langtag}
    (p/pattern-parser
     (re-pattern
      (str
@@ -39,6 +39,7 @@
       "(?!\\p{Alnum}|-)"))
 
     {:group
+     #:juxt.reap.alpha
      {:langtag 0
       :language "Language"
       :code "LangCode"
@@ -54,12 +55,12 @@
 
 (defn privateuse []
   (p/into
-   {:type :privateuse}
+   {:juxt.reap.alpha/lang-type :privateuse}
    (p/pattern-parser
     #"x-(\p{Alnum}{1,8}(?:-\p{Alnum}{1,8})*)(?!\p{Alnum})"
     {:group
-     {:langtag 0
-      :privatetag 1}})))
+     {:juxt.reap.alpha/langtag 0
+      :juxt.reap.alpha/privatetag 1}})))
 
 (defn match-literal
   ([set]
@@ -81,7 +82,7 @@
 
 (defn irregular []
   (p/into
-   {:subtype :irregular}
+   {:juxt.reap.alpha/lang-subtype :irregular}
    (match-literal
     #{"en-GB-oed"
       "i-ami"
@@ -100,11 +101,11 @@
       "sgn-BE-FR"
       "sgn-BE-NL"
       "sgn-CH-DE"}
-    {:group {:langtag 0}})))
+    {:group {:juxt.reap.alpha/langtag 0}})))
 
 (defn regular []
   (p/into
-   {:subtype :regular}
+   {:juxt.reap.alpha/lang-subtype :regular}
    (match-literal
     #{"art-lojban"
       "cel-gaulish"
@@ -115,11 +116,11 @@
       "zh-min"
       "zh-min-nan"
       "zh-xiang"}
-    {:group {:langtag 0}})))
+    {:group {:juxt.reap.alpha/langtag 0}})))
 
 (defn grandfathered []
   (p/into
-   {:type :grandfathered}
+   {:juxt.reap.alpha/lang-type :grandfathered}
    (p/alternatives
     (irregular)
     (regular))))

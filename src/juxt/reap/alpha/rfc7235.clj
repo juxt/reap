@@ -24,12 +24,12 @@
    {}
    (p/sequence-group
     (p/as-entry
-     :name
+     :juxt.reap.alpha/parameter-name
      (p/pattern-parser
       (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS))
       {:group 1}))
     (p/as-entry
-     :value
+     :juxt.reap.alpha/parameter-value
      (p/alternatives
       (p/pattern-parser (re-pattern token))
       (p/comp
@@ -54,7 +54,7 @@
    {}
    (p/sequence-group
     (p/as-entry
-     :auth-scheme
+     :juxt.reap.alpha/auth-scheme
      (p/pattern-parser
       (re-pattern auth-param)))
     (p/optionally
@@ -66,11 +66,11 @@
           (re/re-compose "%s" SP))))
        (p/alternatives
         (p/as-entry
-         :token68
+         :juxt.reap.alpha/token68
          (p/pattern-parser
           (re-pattern token68-with-lookahead)))
         (p/as-entry
-         :auth-params
+         :juxt.reap.alpha/auth-params
          (p/comp
           vec
           (p/optionally
@@ -108,7 +108,7 @@
    {}
    (p/sequence-group
     (p/as-entry
-     :auth-scheme
+     :juxt.reap.alpha/auth-scheme
      (p/pattern-parser
       (re-pattern token)))
     (p/optionally
@@ -120,11 +120,11 @@
           (re/re-compose "%s" SP))))
        (p/alternatives
         (p/as-entry
-         :token68
+         :juxt.reap.alpha/token68
          (p/pattern-parser
           (re-pattern token68-with-lookahead)))
         (p/as-entry
-         :auth-params
+         :juxt.reap.alpha/auth-params
          (p/comp
           vec
           (p/optionally
