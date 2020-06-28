@@ -16,6 +16,17 @@
 (defn accept-when-string [s]
   (cond-> s (string? s) accept))
 
+;; Accept-Charset
+
+(def ^:private precompiled-accept-charset (rfc7231/accept-charset))
+
+(defn accept-charset [s]
+  (when s
+    (precompiled-accept-charset (re/input s))))
+
+(defn accept-charset-when-string [s]
+  (cond-> s (string? s) accept-charset))
+
 ;; Accept-Language
 
 (def ^:private precompiled-accept-language (rfc7231/accept-language))
