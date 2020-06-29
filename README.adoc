@@ -30,6 +30,7 @@ You can use *reap* to parse that header's value into data you can more easily wo
 
 This will return the following data:
 
+[source,clojure]
 ----
 [#:juxt.http{:media-range "text/html",
              :type "text",
