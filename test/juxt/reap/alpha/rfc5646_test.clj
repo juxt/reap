@@ -10,7 +10,7 @@
 
 (deftest language-tag-test
 
-  (let [p (rfc5646/language-tag)]
+  (let [p (:juxt.reap/decode (rfc5646/language-tag {}))]
 
     (is (= #:juxt.reap.alpha
            {:lang-type :langtag

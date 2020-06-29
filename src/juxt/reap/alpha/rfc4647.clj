@@ -10,7 +10,7 @@
 (def alphanum (rfc5234/merge-alternatives ALPHA DIGIT))
 
 ;; language-range   = (1*8ALPHA *("-" 1*8alphanum)) / "*"
-(defn language-range []
+(defn language-range [_]
   (p/alternatives
    (p/pattern-parser
     (re-pattern

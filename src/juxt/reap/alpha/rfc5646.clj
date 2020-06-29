@@ -5,7 +5,7 @@
    [clojure.string :as str]
    [juxt.reap.alpha.combinators :as p]))
 
-(defn langtag []
+(defn- langtag [_]
   (p/into
    {:juxt.reap.alpha/lang-type :langtag}
    (p/pattern-parser
@@ -53,7 +53,7 @@
       :privateuse "PrivateUse"
       :privatetag "PrivateTag"}})))
 
-(defn privateuse []
+(defn- privateuse [_]
   (p/into
    {:juxt.reap.alpha/lang-type :privateuse}
    (p/pattern-parser
@@ -62,7 +62,7 @@
      {:juxt.reap.alpha/langtag 0
       :juxt.reap.alpha/privatetag 1}})))
 
-(defn match-literal
+(defn- match-literal
   ([set]
    (match-literal set {}))
   ([set opts]
@@ -80,7 +80,7 @@
        set)))
     opts)))
 
-(defn irregular []
+(defn- irregular [opts]
   (p/into
    {:juxt.reap.alpha/lang-subtype :irregular}
    (match-literal
@@ -101,9 +101,9 @@
       "sgn-BE-FR"
       "sgn-BE-NL"
       "sgn-CH-DE"}
-    {:group {:juxt.reap.alpha/langtag 0}})))
+    (conj opts [:group {:juxt.reap.alpha/langtag 0}]))))
 
-(defn regular []
+(defn- regular [opts]
   (p/into
    {:juxt.reap.alpha/lang-subtype :regular}
    (match-literal
@@ -116,17 +116,18 @@
       "zh-min"
       "zh-min-nan"
       "zh-xiang"}
-    {:group {:juxt.reap.alpha/langtag 0}})))
+    (conj opts [:group {:juxt.reap.alpha/langtag 0}]))))
 
-(defn grandfathered []
+(defn- grandfathered [opts]
   (p/into
    {:juxt.reap.alpha/lang-type :grandfathered}
    (p/alternatives
-    (irregular)
-    (regular))))
+    (irregular opts)
+    (regular opts))))
 
-(defn language-tag []
-  (p/alternatives
-   (langtag)
-   (privateuse)
-   (grandfathered)))
+(defn ^:juxt.reap/codec language-tag [opts]
+  {:juxt.reap/decode
+   (p/alternatives
+    (langtag opts)
+    (privateuse opts)
+    (grandfathered opts))})

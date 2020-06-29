@@ -7,7 +7,7 @@
    [juxt.reap.alpha.rfc7235 :as rfc7235]))
 
 (deftest auth-param-test
-  (let [p (rfc7235/auth-param)]
+  (let [p (:juxt.reap/decode (rfc7235/auth-param {}))]
     (are [input expected] (= expected (p (re/input input)))
       "a=b" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
       "a=\"b\"" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
@@ -30,5 +30,5 @@
        {:auth-scheme "Basic",
         :auth-params [#:juxt.reap.alpha{:parameter-name "realm", :parameter-value "simple"}]}]
 
-      (let [p (rfc7235/www-authenticate)]
+      (let [p (:juxt.reap/decode (rfc7235/www-authenticate {}))]
         (p (re/input "Newauth realm=\"apps\", type=1, \t title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")))))))
