@@ -52,6 +52,11 @@ This will return the following data:
              :qvalue 0.8}]
 ----
 
+*reap* contains parsers for most things you'd want to parse when writing web
+applications, so you can focus on writing your app without worrying about
+writing parsers. It's fast too, so you don't have to worry about a performance
+impact.
+
 == Introduction
 
 The Internet is a system of interoperable computer software written to
