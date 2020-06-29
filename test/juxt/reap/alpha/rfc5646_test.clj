@@ -12,21 +12,21 @@
 
   (let [p (:juxt.reap/decode (rfc5646/language-tag {}))]
 
-    (is (= #:juxt.reap.alpha
+    (is (= #:juxt.http
            {:lang-type :langtag
             :langtag "de"
             :language "de"
             :code "de"}
            (p (re/input "de"))))
 
-    (is (= #:juxt.reap.alpha
+    (is (= #:juxt.http
            {:lang-type :langtag
             :langtag "fr"
             :language "fr"
             :code "fr"}
            (p (re/input "fr"))))
 
-    (is (= #:juxt.reap.alpha
+    (is (= #:juxt.http
            {:lang-type :langtag
             :langtag "ja"
             :language "ja"
@@ -34,7 +34,7 @@
            (p (re/input "ja"))))
 
     (testing "Simple language subtag"
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:langtag "i-enochian"
               :lang-type :grandfathered
               :lang-subtype :irregular}
@@ -43,7 +43,7 @@
     (testing "Language subtag plus script subtag"
 
       ;; Chinese written using the Traditional Chinese script
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "zh-Hant"
               :language "zh"
@@ -52,7 +52,7 @@
              (p (re/input "zh-Hant"))))
 
       ;; Chinese written using the Simplified Chinese script
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "zh-Hans"
               :language "zh"
@@ -61,7 +61,7 @@
              (p (re/input "zh-Hans"))))
 
       ;; Serbian written using the Cyrillic script
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "sr-Cyrl"
               :language "sr"
@@ -70,7 +70,7 @@
              (p (re/input "sr-Cyrl"))))
 
       ;; Serbian written using the Latin script
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "sr-Latn"
               :language "sr"
@@ -81,7 +81,7 @@
     (testing "Extended language subtags and their primary language subtag counterparts"
 
       ;; Chinese, Mandarin, Simplified script, as used in China
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "zh-cmn-Hans-CN"
               :language "zh-cmn"
@@ -92,7 +92,7 @@
              (p (re/input "zh-cmn-Hans-CN"))))
 
       ;; Mandarin Chinese, Simplified script, as used in China
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "cmn-Hans-CN"
               :language "cmn"
@@ -102,7 +102,7 @@
              (p (re/input "cmn-Hans-CN"))))
 
       ;; Chinese, Cantonese, as used in Hong Kong SAR
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "zh-yue-HK"
               :language "zh-yue"
@@ -112,7 +112,7 @@
              (p (re/input "zh-yue-HK"))))
 
       ;; Cantonese Chinese, as used in Hong Kong SAR
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "yue-HK"
               :language "yue"
@@ -123,7 +123,7 @@
       (testing "Language-Script-Region"
 
         ;; Chinese written using the Simplified script as used in mainland China
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "zh-Hans-CN"
                 :language "zh"
@@ -133,7 +133,7 @@
                (p (re/input "zh-Hans-CN"))))
 
         ;; Serbian written using the Latin script as used in Serbia
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "sr-Latn-RS"
                 :language "sr"
@@ -144,7 +144,7 @@
 
       (testing "Language-Variant"
         ;; Resian dialect of Slovenian
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "sl-rozaj"
                 :language "sl"
@@ -153,7 +153,7 @@
                (p (re/input "sl-rozaj"))))
 
         ;; San Giorgio dialect of Resian dialect of Slovenian
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "sl-rozaj-biske"
                 :language "sl"
@@ -162,7 +162,7 @@
                (p (re/input "sl-rozaj-biske"))))
 
         ;; Nadiza dialect of Slovenian
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "sl-nedis"
                 :language "sl"
@@ -173,7 +173,7 @@
       (testing "Language-Region-Variant"
 
         ;; German as used in Switzerland using the 1901 variant [orthography]
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "de-CH-1901"
                 :language "de"
@@ -183,7 +183,7 @@
                (p (re/input "de-CH-1901"))))
 
         ;; Slovenian as used in Italy, Nadiza dialect
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "sl-IT-nedis"
                 :language "sl"
@@ -194,7 +194,7 @@
 
       (testing "Language-Script-Region-Variant"
         ;; Eastern Armenian written in Latin script, as used in Italy
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "hy-Latn-IT-arevela"
                 :language "hy"
@@ -206,7 +206,7 @@
 
       (testing "Language-Region"
         ;; German for Germany
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "de-DE"
                 :language "de"
@@ -215,7 +215,7 @@
                (p (re/input "de-DE"))))
 
         ;; English as used in the United States
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "en-US"
                 :language "en"
@@ -225,7 +225,7 @@
 
         ;; Spanish appropriate for the Latin America and Caribbean region using
         ;; the UN region code
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "es-419"
                 :language "es"
@@ -235,7 +235,7 @@
 
       (testing "Private use subtags"
 
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "de-CH-x-phonebk"
                 :language "de"
@@ -245,7 +245,7 @@
                 :privatetag "phonebk"}
                (p (re/input "de-CH-x-phonebk"))))
 
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "az-Arab-x-AZE-derbend"
                 :language "az"
@@ -258,14 +258,14 @@
       (testing "Private use registry values"
 
         ;; Private use using the singleton 'x'
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :privateuse
                 :langtag "x-whatever"
                 :privatetag "whatever"}
                (p (re/input "x-whatever"))))
 
         ;; All private tags
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "qaa-Qaaa-QM-x-southern"
                 :language "qaa"
@@ -277,7 +277,7 @@
                (p (re/input "qaa-Qaaa-QM-x-southern"))))
 
         ;; German, with a private script
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "de-Qaaa"
                 :language "de"
@@ -286,7 +286,7 @@
                (p (re/input "de-Qaaa"))))
 
         ;; Serbian, Latin script, private region
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag,
                 :langtag "sr-Latn-QM"
                 :language "sr"
@@ -296,7 +296,7 @@
                (p (re/input "sr-Latn-QM"))))
 
         ;; Serbian, private script, for Serbia
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag,
                 :langtag "sr-Qaaa-RS"
                 :language "sr"
@@ -307,7 +307,7 @@
 
       (testing "Tags that use extensions"
 
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "en-US-u-islamcal"
                 :language "en"
@@ -316,7 +316,7 @@
                 :extension "u-islamcal"}
                (p (re/input "en-US-u-islamcal"))))
 
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "zh-CN-a-myext-x-private"
                 :language "zh"
@@ -327,7 +327,7 @@
                 :privatetag "private"}
                (p (re/input "zh-CN-a-myext-x-private"))))
 
-        (is (= #:juxt.reap.alpha
+        (is (= #:juxt.http
                {:lang-type :langtag
                 :langtag "en-a-myext-b-another"
                 :language "en"
@@ -349,7 +349,7 @@
           (is (nil? (p (re/input "ar-a-aaa-b-bbb-a-ccc")))))))
 
     (testing "comma at end of input"
-      (is (= #:juxt.reap.alpha
+      (is (= #:juxt.http
              {:lang-type :langtag
               :langtag "en-US"
               :language "en"

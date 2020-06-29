@@ -13,7 +13,7 @@
   (testing "value"
     (is
      (=
-      #:juxt.reap.alpha{:parameter-name "foo", :parameter-value "bar"}
+      #:juxt.http{:parameter-name "foo", :parameter-value "bar"}
       ((:juxt.reap/decode (rfc7231/parameter {}))
        (re/input "foo=bar"))))
     (is
@@ -30,7 +30,7 @@
     (is
      (=
       ;; :parameter-name should be lower-case, but value unchanged.
-      #:juxt.reap.alpha{:parameter-name "foo", :parameter-value "Bar"}
+      #:juxt.http{:parameter-name "foo", :parameter-value "Bar"}
       ((rfc7231/parameter)
        (re/input "FOO=Bar"))))
     (is
@@ -41,37 +41,37 @@
   (testing "quoted-string"
     (is
      (=
-      #:juxt.reap.alpha{:parameter-name "foo", :parameter-value "ba'r"}
+      #:juxt.http{:parameter-name "foo", :parameter-value "ba'r"}
       ((:juxt.reap/decode (rfc7231/parameter {}))
        (re/input "foo=\"ba\\'r\"")))))
 
   (testing "optional parameter"
     (is
      (=
-      #:juxt.reap.alpha{:parameter-name "foo"}
+      #:juxt.http{:parameter-name "foo"}
       ((:juxt.reap/decode (rfc7231/optional-parameter {}))
        (re/input "foo"))))
     (is
      (=
-      #:juxt.reap.alpha{:parameter-name "foo" :parameter-value "bar"}
+      #:juxt.http{:parameter-name "foo" :parameter-value "bar"}
       ((:juxt.reap/decode (rfc7231/optional-parameter {}))
        (re/input "foo=bar"))))
     (is
      (=
-      #:juxt.reap.alpha{:parameter-name "foo", :parameter-value "ba'r"}
+      #:juxt.http{:parameter-name "foo", :parameter-value "ba'r"}
       ((:juxt.reap/decode (rfc7231/optional-parameter {}))
        (re/input "foo=\"ba\\'r\""))))))
 
 (deftest content-language-test
   (is
    (= ["en" "de"]
-      (map :juxt.reap.alpha/language ((:juxt.reap/decode (rfc7231/content-language {})) (re/input "en,de"))))
+      (map :juxt.http/language ((:juxt.reap/decode (rfc7231/content-language {})) (re/input "en,de"))))
    (= [["en" "US"] ["de" nil]]
-      (map (juxt :juxt.reap.alpha/language :juxt.reap.alpha/region)))))
+      (map (juxt :juxt.http/language :juxt.http/region)))))
 
 (deftest media-range-without-parameters-test
   (is
-   (= #:juxt.reap.alpha
+   (= #:juxt.http
       {:media-range "text/*"
        :type "text"
        :subtype "*"}
@@ -81,13 +81,13 @@
 (deftest media-range-test
   (is
    (=
-    #:juxt.reap.alpha
+    #:juxt.http
     {:media-range "text/html"
      :type "text",
      :subtype "html",
      :parameter-map {"foo" "bar" "baz" "qu'x"}
-     :parameters [#:juxt.reap.alpha{:parameter-name "FOO" :parameter-value "bar"}
-                  #:juxt.reap.alpha{:parameter-name "Baz" :parameter-value "qu'x"}]}
+     :parameters [#:juxt.http{:parameter-name "FOO" :parameter-value "bar"}
+                  #:juxt.http{:parameter-name "Baz" :parameter-value "qu'x"}]}
     ((:juxt.reap/decode (rfc7231/media-range {}))
      (re/input "text/html;FOO=bar;Baz=\"qu\\'x\""))))
 
@@ -96,7 +96,7 @@
   (testing "case insensitivity"
     (is
      (=
-      #:juxt.reap.alpha
+      #:juxt.http
       {:media-range "TEXT/Html"
        :type "TEXT"
        :subtype "Html"
@@ -116,14 +116,14 @@
 ;; TODO: weight tests
 
 (deftest media-type-test
-  (is (= #:juxt.reap.alpha{:type "text" :subtype "html" :parameters [] :parameter-map {}}
+  (is (= #:juxt.http{:type "text" :subtype "html" :parameters [] :parameter-map {}}
          ((:juxt.reap/decode (rfc7231/media-type {}))
           (re/input "text/html"))))
-  (is (= #:juxt.reap.alpha{:type "text"
+  (is (= #:juxt.http{:type "text"
                            :subtype "html"
                            :parameter-map {"foo" "bar" "zip" "qux"}
-                           :parameters [#:juxt.reap.alpha{:parameter-name "foo" :parameter-value "bar"}
-                                        #:juxt.reap.alpha{:parameter-name "ZIP" :parameter-value "qux"}]}
+                           :parameters [#:juxt.http{:parameter-name "foo" :parameter-value "bar"}
+                                        #:juxt.http{:parameter-name "ZIP" :parameter-value "qux"}]}
          ((:juxt.reap/decode (rfc7231/media-type {}))
           (re/input "text/html;foo=bar;ZIP=qux")))))
 
@@ -142,15 +142,15 @@
 (deftest accept-test
   (is
    (=
-    [#:juxt.reap.alpha
+    [#:juxt.http
      {:media-range "text/html"
       :type "text",
       :subtype "html",
       :parameters {"foo" "bar"}
       :qvalue 0.3
       :accept-ext
-      [#:juxt.reap.alpha{:parameter-name "zip"}
-       #:juxt.reap.alpha{:parameter-name "qux"
+      [#:juxt.http{:parameter-name "zip"}
+       #:juxt.http{:parameter-name "qux"
                          :parameter-value "quik"}]}]
     ((:juxt.reap/decode (rfc7231/accept {}))
      (re/input "text/html ;   foo=bar ;q=0.3;zip;\t qux=quik"))))
@@ -188,17 +188,17 @@
 
 (deftest accept-charset-test
   (is
-   (= [#:juxt.reap.alpha{:charset "UTF-8", :qvalue 0.8}
-       #:juxt.reap.alpha{:charset "shift_JIS", :qvalue 0.4}]
+   (= [#:juxt.http{:charset "UTF-8", :qvalue 0.8}
+       #:juxt.http{:charset "shift_JIS", :qvalue 0.4}]
       ((:juxt.reap/decode (rfc7231/accept-charset {}))
        (re/input ", \t, , , UTF-8;q=0.8,shift_JIS;q=0.4")))))
 
 (deftest accept-language-test
   (is
-   (= [#:juxt.reap.alpha{:language-range "en-GB"}
-       #:juxt.reap.alpha{:language-range "en-US" :qvalue 0.8}
-       #:juxt.reap.alpha{:language-range "en" :qvalue 0.5}
-       #:juxt.reap.alpha{:language-range "it" :qvalue 0.3}]
+   (= [#:juxt.http{:language-range "en-GB"}
+       #:juxt.http{:language-range "en-US" :qvalue 0.8}
+       #:juxt.http{:language-range "en" :qvalue 0.5}
+       #:juxt.http{:language-range "it" :qvalue 0.3}]
       ((:juxt.reap/decode (rfc7231/accept-language {}))
        (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3"))))
 
@@ -206,35 +206,35 @@
       (= expected
          ((:juxt.reap/decode (rfc7231/accept-language {})) (re/input input)))
 
-    ", , de ;q=0.7" [#:juxt.reap.alpha{:language-range "de" :qvalue 0.7}]
+    ", , de ;q=0.7" [#:juxt.http{:language-range "de" :qvalue 0.7}]
 
-    "en-US ; q=1.0 ," [#:juxt.reap.alpha{:language-range "en-US", :qvalue 1.0}]
+    "en-US ; q=1.0 ," [#:juxt.http{:language-range "en-US", :qvalue 1.0}]
 
-    "*;q=0.9 , fr;q=0.9" [#:juxt.reap.alpha{:language-range "*", :qvalue 0.9}
-                          #:juxt.reap.alpha{:language-range "fr", :qvalue 0.9}]
+    "*;q=0.9 , fr;q=0.9" [#:juxt.http{:language-range "*", :qvalue 0.9}
+                          #:juxt.http{:language-range "fr", :qvalue 0.9}]
 
-    ", *" [#:juxt.reap.alpha{:language-range "*"}]
+    ", *" [#:juxt.http{:language-range "*"}]
 
-    ", , fr ;q=0.7" [#:juxt.reap.alpha{:language-range "fr", :qvalue 0.7}]
+    ", , fr ;q=0.7" [#:juxt.http{:language-range "fr", :qvalue 0.7}]
 
-    "de;q=1.0" [#:juxt.reap.alpha{:language-range "de", :qvalue 1.0}]
+    "de;q=1.0" [#:juxt.http{:language-range "de", :qvalue 1.0}]
 
-    ", de;q=1.0" [#:juxt.reap.alpha{:language-range "de", :qvalue 1.0}]
+    ", de;q=1.0" [#:juxt.http{:language-range "de", :qvalue 1.0}]
 
-    "en-US ;q=0.7 ," [#:juxt.reap.alpha{:language-range "en-US", :qvalue 0.7}]
+    "en-US ;q=0.7 ," [#:juxt.http{:language-range "en-US", :qvalue 0.7}]
 
-    ", * ," [#:juxt.reap.alpha{:language-range "*"}]
+    ", * ," [#:juxt.http{:language-range "*"}]
 
     ", * ,en-US ;q=0.7 , *"
-    [#:juxt.reap.alpha{:language-range "*"}
-     #:juxt.reap.alpha{:language-range "en-US", :qvalue 0.7}
-     #:juxt.reap.alpha{:language-range "*"}]))
+    [#:juxt.http{:language-range "*"}
+     #:juxt.http{:language-range "en-US", :qvalue 0.7}
+     #:juxt.http{:language-range "*"}]))
 
 (deftest accept-encoding-test
   (is
-   (= [#:juxt.reap.alpha{:codings "gzip" :qvalue 0.3}
-       #:juxt.reap.alpha{:codings "deflate"}
-       #:juxt.reap.alpha{:codings "br"}]
+   (= [#:juxt.http{:codings "gzip" :qvalue 0.3}
+       #:juxt.http{:codings "deflate"}
+       #:juxt.http{:codings "br"}]
       ((:juxt.reap/decode (rfc7231/accept-encoding {}))
        (re/input "gzip;q=0.3, deflate, br"))))
   (is (= '()
@@ -243,8 +243,8 @@
 
 (deftest content-encoding-test
   (is
-   (= [#:juxt.reap.alpha{:content-coding "gzip"}
-       #:juxt.reap.alpha{:content-coding "deflate"}]
+   (= [#:juxt.http{:content-coding "gzip"}
+       #:juxt.http{:content-coding "deflate"}]
       ((:juxt.reap/decode (rfc7231/content-encoding {}))
        (re/input "gzip,deflate"))))
   (is

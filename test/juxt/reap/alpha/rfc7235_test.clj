@@ -9,26 +9,26 @@
 (deftest auth-param-test
   (let [p (:juxt.reap/decode (rfc7235/auth-param {}))]
     (are [input expected] (= expected (p (re/input input)))
-      "a=b" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
-      "a=\"b\"" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
-      "a = b" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
-      "a= b" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
-      "a =b" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"}
-      "a=\tb" #:juxt.reap.alpha{:parameter-name "a" :parameter-value "b"})))
+      "a=b" #:juxt.http{:parameter-name "a" :parameter-value "b"}
+      "a=\"b\"" #:juxt.http{:parameter-name "a" :parameter-value "b"}
+      "a = b" #:juxt.http{:parameter-name "a" :parameter-value "b"}
+      "a= b" #:juxt.http{:parameter-name "a" :parameter-value "b"}
+      "a =b" #:juxt.http{:parameter-name "a" :parameter-value "b"}
+      "a=\tb" #:juxt.http{:parameter-name "a" :parameter-value "b"})))
 
 (deftest www-authenticate-test
   (testing "Example in RFC 7235"
     (is
      (=
-      [#:juxt.reap.alpha
+      [#:juxt.http
        {:auth-scheme "Newauth",
         :auth-params
-        [#:juxt.reap.alpha{:parameter-name "realm", :parameter-value "apps"}
-         #:juxt.reap.alpha{:parameter-name "type", :parameter-value "1"}
-         #:juxt.reap.alpha{:parameter-name "title", :parameter-value "Login to \"apps\""}]}
-       #:juxt.reap.alpha
+        [#:juxt.http{:parameter-name "realm", :parameter-value "apps"}
+         #:juxt.http{:parameter-name "type", :parameter-value "1"}
+         #:juxt.http{:parameter-name "title", :parameter-value "Login to \"apps\""}]}
+       #:juxt.http
        {:auth-scheme "Basic",
-        :auth-params [#:juxt.reap.alpha{:parameter-name "realm", :parameter-value "simple"}]}]
+        :auth-params [#:juxt.http{:parameter-name "realm", :parameter-value "simple"}]}]
 
       (let [p (:juxt.reap/decode (rfc7235/www-authenticate {}))]
         (p (re/input "Newauth realm=\"apps\", type=1, \t title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")))))))

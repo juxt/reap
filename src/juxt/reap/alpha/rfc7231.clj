@@ -27,14 +27,14 @@
     {}
     (p/sequence-group
      (p/as-entry
-      :juxt.reap.alpha/parameter-name
+      :juxt.http/parameter-name
       (p/pattern-parser
        (re-pattern token)))
      (p/first
       (p/sequence-group
        (p/ignore (p/pattern-parser #"="))
        (p/as-entry
-        :juxt.reap.alpha/parameter-value
+        :juxt.http/parameter-value
         (p/alternatives
          (p/pattern-parser (re-pattern token))
          (p/comp
@@ -51,7 +51,7 @@
     {}
     (p/sequence-group
      (p/as-entry
-      :juxt.reap.alpha/parameter-name
+      :juxt.http/parameter-name
       (p/pattern-parser
        (re-pattern token)))
      (p/optionally
@@ -59,7 +59,7 @@
        (p/sequence-group
         (p/ignore (p/pattern-parser #"="))
         (p/as-entry
-         :juxt.reap.alpha/parameter-value
+         :juxt.http/parameter-value
          (p/alternatives
           (p/pattern-parser (re-pattern token))
           (p/comp
@@ -145,7 +145,7 @@
   {:juxt.reap/decode
    (p/alternatives
     (p/array-map
-     :juxt.reap.alpha/wildcard
+     :juxt.http/wildcard
      (p/pattern-parser #"\*"))
     (p/cons
      (p/first
@@ -156,7 +156,7 @@
           (p/pattern-parser (re-pattern ","))
           (p/pattern-parser (re-pattern OWS)))))
        (p/array-map
-        :juxt.reap.alpha/field-name
+        :juxt.http/field-name
         (p/pattern-parser
          (re-pattern rfc7230/field-name)))))
      (p/zero-or-more
@@ -168,7 +168,7 @@
           (p/sequence-group
            (p/ignore (p/pattern-parser (re-pattern OWS)))
            (p/array-map
-            :juxt.reap.alpha/field-name
+            :juxt.http/field-name
             (p/pattern-parser (re-pattern rfc7230/field-name)))))))))))
    :juxt.reap/encode
    (fn vary-str [coll]
@@ -176,10 +176,10 @@
       ","
       (for [i coll]
         (cond
-          (:juxt.reap.alpha/wildcard i) "*"
-          :else (:juxt.reap.alpha/field-name i)))))})
+          (:juxt.http/wildcard i) "*"
+          :else (:juxt.http/field-name i)))))})
 
-;; TODO: How to build from (#:juxt.reap.alpha{:field-name "accept"} #:juxt.reap.alpha{:field-name "foo"}) to accept,accept-charset
+;; TODO: How to build from (#:juxt.http{:field-name "accept"} #:juxt.http{:field-name "foo"}) to accept,accept-charset
 
 ;; absolute-URI = <absolute-URI, see [RFC7230], Section 2.7>
 
@@ -224,10 +224,10 @@
       {}
       (p/sequence-group
        (p/as-entry
-        :juxt.reap.alpha/qvalue
+        :juxt.http/qvalue
         (:juxt.reap/decode weight))
        (p/as-entry
-        :juxt.reap.alpha/accept-ext
+        :juxt.http/accept-ext
         (p/comp
          vec
          (p/seq ; ignore if empty list
@@ -266,7 +266,7 @@
         (p/pattern-parser (re-pattern ","))
         (p/pattern-parser (re-pattern OWS)))))
      (p/cons
-      (p/array-map :juxt.reap.alpha/content-coding (p/pattern-parser (re-pattern content-coding)))
+      (p/array-map :juxt.http/content-coding (p/pattern-parser (re-pattern content-coding)))
       (p/zero-or-more
        (p/first
         (p/sequence-group
@@ -278,7 +278,7 @@
           (p/optionally
            (p/sequence-group
             (p/ignore (p/pattern-parser (re-pattern OWS)))
-            (p/array-map :juxt.reap.alpha/content-coding (p/pattern-parser (re-pattern content-coding))))))))))))})
+            (p/array-map :juxt.http/content-coding (p/pattern-parser (re-pattern content-coding))))))))))))})
 
 (comment
   ((:juxt.reap/decode (content-encoding {}))
@@ -335,14 +335,14 @@
   (p/alternatives
    (p/comp
     (fn [_]
-      #:juxt.reap.alpha
+      #:juxt.http
       {:media-range "*/*"
        :type "*"
        :subtype "*"})
     (p/pattern-parser #"\*/\*"))
    (p/comp
     (fn [[media-type type]]
-      #:juxt.reap.alpha
+      #:juxt.http
       {:media-range media-type
        :type type
        :subtype "*"})
@@ -350,7 +350,7 @@
      (re-pattern (re/re-compose "(%s)/\\*" type))))
    (p/comp
     (fn [[media-type type subtype]]
-      #:juxt.reap.alpha
+      #:juxt.http
       {:media-range media-type
        :type type
        :subtype subtype})
@@ -360,8 +360,8 @@
 (defn parameters-map [parser]
   (fn [matcher]
     (when-let [parameters (parser matcher)]
-      {:juxt.reap.alpha/parameters parameters
-       :juxt.reap.alpha/parameter-map
+      {:juxt.http/parameters parameters
+       :juxt.http/parameter-map
        (into
         {}
         (map
@@ -369,8 +369,8 @@
           (comp
            ;; We lower-case to support case-insensitive lookups
            str/lower-case
-           :juxt.reap.alpha/parameter-name)
-          :juxt.reap.alpha/parameter-value)
+           :juxt.http/parameter-name)
+          :juxt.http/parameter-value)
          parameters))})))
 
 (defn ^:juxt.reap/codec media-range [opts]
@@ -401,11 +401,11 @@
       {}
       (p/sequence-group
        (p/as-entry
-        :juxt.reap.alpha/type
+        :juxt.http/type
         (p/pattern-parser (re-pattern type)))
        (p/ignore (p/pattern-parser (re-pattern "/")))
        (p/as-entry
-        :juxt.reap.alpha/subtype
+        :juxt.http/subtype
         (p/pattern-parser (re-pattern subtype)))
        (parameters-map
         (p/zero-or-more
@@ -452,7 +452,7 @@
     {}
     (p/sequence-group
      (p/as-entry
-      :juxt.reap.alpha/product
+      :juxt.http/product
       (p/pattern-parser (re-pattern token)))
      (p/optionally
       (p/first
@@ -460,7 +460,7 @@
         (p/ignore
          (p/pattern-parser (re-pattern "/")))
         (p/as-entry
-         :juxt.reap.alpha/version
+         :juxt.http/version
          (p/pattern-parser (re-pattern product-version))))))))})
 
 ;; Server = product *( RWS ( product / comment ) )
@@ -520,16 +520,16 @@
          parameters-weight-accept-params
          (fn [matcher]
            (loop [matcher matcher
-                  result {:juxt.reap.alpha/parameters {}}]
+                  result {:juxt.http/parameters {}}]
              (if-let [accept-params ((:juxt.reap/decode accept-params) matcher)]
                (merge result accept-params)
                (if-let [match (media-range-parameter matcher)]
                  (recur matcher
                         (update
                          result
-                         :juxt.reap.alpha/parameters
-                         conj [(:juxt.reap.alpha/parameter-name match)
-                               (:juxt.reap.alpha/parameter-value match)]))
+                         :juxt.http/parameters
+                         conj [(:juxt.http/parameter-name match)
+                               (:juxt.http/parameter-value match)]))
                  result))))]
      (p/optionally
       (p/cons
@@ -581,13 +581,13 @@
             (p/sequence-group
              (p/alternatives
               (p/as-entry
-               :juxt.reap.alpha/charset
+               :juxt.http/charset
                (p/pattern-parser
                 (re-pattern charset)))
               (p/pattern-parser
                (re-pattern (re/re-str \*))))
              (p/optionally
-              (p/as-entry :juxt.reap.alpha/qvalue (:juxt.reap/decode weight)))))]
+              (p/as-entry :juxt.http/qvalue (:juxt.reap/decode weight)))))]
        (p/cons
         (p/first
          (p/sequence-group
@@ -626,11 +626,11 @@
          {}
          (p/sequence-group
           (p/as-entry
-           :juxt.reap.alpha/language-range
+           :juxt.http/language-range
            (rfc4647/language-range opts))
           (p/optionally
            (p/as-entry
-            :juxt.reap.alpha/qvalue
+            :juxt.http/qvalue
             (:juxt.reap/decode weight)))))
         (p/zero-or-more
          (p/first
@@ -647,10 +647,10 @@
                (p/pattern-parser
                 (re-pattern OWS)))
               (p/as-entry
-               :juxt.reap.alpha/language-range
+               :juxt.http/language-range
                (rfc4647/language-range opts))
               (p/optionally
-               (p/as-entry :juxt.reap.alpha/qvalue (:juxt.reap/decode weight))))))))))))}))
+               (p/as-entry :juxt.http/qvalue (:juxt.reap/decode weight))))))))))))}))
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
@@ -667,9 +667,9 @@
         (p/into
          {}
          (p/sequence-group
-          (p/as-entry :juxt.reap.alpha/codings (:juxt.reap/decode codings))
+          (p/as-entry :juxt.http/codings (:juxt.reap/decode codings))
           (p/optionally
-           (p/as-entry :juxt.reap.alpha/qvalue (:juxt.reap/decode weight))))))
+           (p/as-entry :juxt.http/qvalue (:juxt.reap/decode weight))))))
        (p/zero-or-more
         (p/first
          (p/sequence-group
@@ -686,6 +686,6 @@
              (p/into
               {}
               (p/sequence-group
-               (p/as-entry :juxt.reap.alpha/codings (:juxt.reap/decode codings))
+               (p/as-entry :juxt.http/codings (:juxt.reap/decode codings))
                (p/optionally
-                (p/as-entry :juxt.reap.alpha/qvalue (:juxt.reap/decode weight)))))))))))))}))
+                (p/as-entry :juxt.http/qvalue (:juxt.reap/decode weight)))))))))))))}))
