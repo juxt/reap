@@ -18,10 +18,6 @@
 
 ;; parameter = token "=" ( token / quoted-string )
 
-;; TODO: Possible options are
-;; :preserve-case (decode) - default to false
-;; :canonicalize (encode) - default to true
-
 (defn ^:juxt.reap/codec parameter
   "Return a parameter parser that parses into map containing :name
   and :value keys."
@@ -239,6 +235,7 @@
            (:juxt.reap/decode accept-ext))))))))})
 
 (comment
+  ;; This will return nil, since accept-params must start with a qvalue.
   ((:juxt.reap/decode (accept-params {})) (re/input ";foo=bar")))
 
 (comment
@@ -482,7 +479,7 @@
           #_(rfc7230/rfc-comment)))))))})
 
 (comment
-  ((server {})
+  ((:juxt.reap/decode (server {}))
    (re/input "foo/1.2 ale1/1.0")))
 
 ;; rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
@@ -564,7 +561,7 @@
                parameters-weight-accept-params)))))))))))})
 
 (comment
-  ((accept {}) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
+  ((:juxt.reap/decode (accept {})) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
 
 (defn year [_]
   (p/pattern-parser
