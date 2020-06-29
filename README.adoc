@@ -148,10 +148,10 @@ obs-text = %x80-FF
 quoted-pair = "\" ( HTAB / SP / VCHAR / obs-text )
 ----
 
-A `media-range`, itself containing parameters (which require values)
-can be optionally followed by a special parameter indicating the
-term's `weight`, optionally followed by further parameters (where
-values are optional!).
+A `media-range`, itself containing parameters (where values are required) can be
+optionally followed by a special parameter indicating the term's `weight`,
+optionally followed by further parameters (where values are optional), called
+accept extensions.
 
 These are the rules for just one HTTP request header, and it's by far
 from the most complex!
