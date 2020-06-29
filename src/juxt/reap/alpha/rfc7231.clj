@@ -1,7 +1,5 @@
 ;; Copyright © 2020, JUXT LTD.
 
-;; TODO: Rename juxt.reap.alpha to juxt.http
-
 (ns juxt.reap.alpha.rfc7231
   (:refer-clojure :exclude [type])
   (:require
@@ -11,13 +9,11 @@
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT]]
    [juxt.reap.alpha.rfc5646 :as rfc5646]
    [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
-
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
 ;; parameter = token "=" ( token / quoted-string )
-
 (defn ^:juxt.reap/codec parameter
   "Return a parameter parser that parses into map containing :name
   and :value keys."
@@ -75,8 +71,6 @@
 ;; type = token
 (def ^String type token)
 
-
-
 ;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
@@ -86,7 +80,6 @@
 
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
-
 (defn ^:juxt.reap/codec content-language [opts]
   (let [language-tag (language-tag opts)]
     {:juxt.reap/decode
@@ -179,8 +172,6 @@
           (:juxt.http/wildcard i) "*"
           :else (:juxt.http/field-name i)))))})
 
-;; TODO: How to build from (#:juxt.http{:field-name "accept"} #:juxt.http{:field-name "foo"}) to accept,accept-charset
-
 ;; absolute-URI = <absolute-URI, see [RFC7230], Section 2.7>
 
 ;; accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
@@ -243,7 +234,6 @@
 
 (comment
   ((:juxt.reap/decode (accept-params {})) (re/input ";q=0.8;a;b;c=d")))
-
 
 ;; asctime-date = day-name SP date3 SP time-of-day SP year
 
@@ -324,9 +314,6 @@
 ;; mailbox = <mailbox, see [RFC5322], Section 3.4>
 
 ;; quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
-
-
-;;(identity rfc7230/quoted-string)
 
 ;; media-range = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) *( OWS
 ;;  ";" OWS parameter )
@@ -488,7 +475,6 @@
 
 ;; time-of-day = hour ":" minute ":" second
 
-
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
 (defn ^:juxt.reap/codec accept [opts]
@@ -571,7 +557,6 @@
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
 ;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
-
 (defn ^:juxt.reap/codec accept-charset [opts]
   (let [weight (weight opts)]
     {:juxt.reap/decode
