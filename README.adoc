@@ -6,7 +6,7 @@ A Clojure library for decoding and encoding strings used by web protocols.
 
 [WARNING]
 --
-STATUS: Alpha. Designed for production use but not yet ready for deployment.
+STATUS: Alpha. Ready to use but the API is likely to change in future versions.
 --
 
 == Quickstart
