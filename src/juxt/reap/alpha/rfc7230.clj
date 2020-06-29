@@ -65,7 +65,7 @@
 
 
 ;; field-content = field-vchar [ 1*( SP / HTAB ) field-vchar ]
-;; field-name = token
+
 ;; field-value = *( field-content / obs-fold )
 ;; field-vchar = VCHAR / obs-text
 ;; fragment = <fragment, see [RFC3986], Section 3.5>
@@ -189,3 +189,6 @@
 ;; transfer-parameter = token BWS "=" BWS ( token / quoted-string )
 
 ;; uri-host = <host, see [RFC3986], Section 3.2.2>
+
+;; field-name = token
+(def field-name token)
