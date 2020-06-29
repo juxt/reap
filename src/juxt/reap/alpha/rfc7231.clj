@@ -16,8 +16,11 @@
 
 ;; parameter = token "=" ( token / quoted-string )
 
-(defn- common-parameter
-  [optional?]
+(defn parameter
+  "Return a parameter parser that parses into map containing :name
+  and :value keys. The :name value is case insensitive and therefore
+  converted to lower-case."
+  []
   (p/into
    {}
    (p/sequence-group
@@ -27,33 +30,44 @@
       str/lower-case ; TODO: Reconsider this
       (p/pattern-parser
        (re-pattern token))))
-    (cond->
-        (p/first
-         (p/sequence-group
-          (p/ignore (p/pattern-parser #"="))
-          (p/as-entry
-           :juxt.reap.alpha/parameter-value
-           (p/alternatives
-            (p/pattern-parser (re-pattern token))
-            (p/comp
-             rfc7230/unescape-quoted-string
-             (p/pattern-parser
-              (re-pattern rfc7230/quoted-string) {:group 1}))))))
-      optional? (p/optionally)))))
-
-(defn parameter
-  "Return a parameter parser that parses into map containing :name
-  and :value keys. The :name value is case insensitive and therefore
-  converted to lower-case."
-  []
-  (common-parameter false))
+    (p/first
+     (p/sequence-group
+      (p/ignore (p/pattern-parser #"="))
+      (p/as-entry
+       :juxt.reap.alpha/parameter-value
+       (p/alternatives
+        (p/pattern-parser (re-pattern token))
+        (p/comp
+         rfc7230/unescape-quoted-string
+         (p/pattern-parser
+          (re-pattern rfc7230/quoted-string) {:group 1})))))))))
 
 (defn optional-parameter
   "Return a parameter parser that parses into map containing :name and,
   optionally, a :value key. The :name value is case insensitive and
   therefore converted to lower-case."
   []
-  (common-parameter true))
+  (p/into
+   {}
+   (p/sequence-group
+    (p/as-entry
+     :juxt.reap.alpha/parameter-name
+     (p/comp
+      str/lower-case ; TODO: Reconsider this
+      (p/pattern-parser
+       (re-pattern token))))
+    (p/optionally
+     (p/first
+      (p/sequence-group
+       (p/ignore (p/pattern-parser #"="))
+       (p/as-entry
+        :juxt.reap.alpha/parameter-value
+        (p/alternatives
+         (p/pattern-parser (re-pattern token))
+         (p/comp
+          rfc7230/unescape-quoted-string
+          (p/pattern-parser
+           (re-pattern rfc7230/quoted-string) {:group 1}))))))))))
 
 ;; token = <token, see [RFC7230], Section 3.2.6>
 
