@@ -100,9 +100,8 @@ Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
     OWS ( media-range [ accept-params ] ) ] ) ]
 ----
 
-As well as indicating the ways that various punctuation and other
-characters can combined, the rule makes references to other rules,
-such as `media-range`:
+As well as indicating the ways that various punctuation and other characters can
+be combined, the rule makes reference to other rules, such as `media-range`:
 
 [source]
 ----
