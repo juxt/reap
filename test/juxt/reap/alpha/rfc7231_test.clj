@@ -25,7 +25,8 @@
   ;; case-insensitive. Parameter values might or might not be
   ;; case-sensitive, depending on the semantics of the parameter
   ;; name." -- RFC 7231 Section 3.1.1.1
-  (testing "case-insensitivity"
+  ;; TODO: Restore this test once options can be provided.
+  #_(testing "case-insensitivity"
     (is
      (=
       ;; :parameter-name should be lower-case, but value unchanged.
@@ -84,9 +85,11 @@
     {:media-range "text/html"
      :type "text",
      :subtype "html",
-     :parameters {"foo" "bar" "baz" "qu'x"}}
+     :parameter-map {"foo" "bar" "baz" "qu'x"}
+     :parameters [#:juxt.reap.alpha{:parameter-name "FOO" :parameter-value "bar"}
+                  #:juxt.reap.alpha{:parameter-name "Baz" :parameter-value "qu'x"}]}
     ((rfc7231/media-range)
-     (re/input "text/html;foo=bar;baz=\"qu\\'x\""))))
+     (re/input "text/html;FOO=bar;Baz=\"qu\\'x\""))))
 
   ;; "The type, subtype, and parameter name tokens are
   ;; case-insensitive." -- RFC 7231 Section 3.1.1.1
@@ -94,10 +97,11 @@
     (is
      (=
       #:juxt.reap.alpha
-      {:media-range "text/html"
-       :type "text"
-       :subtype "html"
-       :parameters {}}
+      {:media-range "TEXT/Html"
+       :type "TEXT"
+       :subtype "Html"
+       :parameter-map {}
+       :parameters []}
       ((rfc7231/media-range)
        (re/input "TEXT/Html"))))))
 
@@ -112,10 +116,14 @@
 ;; TODO: weight tests
 
 (deftest media-type-test
-  (is (= #:juxt.reap.alpha{:type "text" :subtype "html" :parameters {}}
+  (is (= #:juxt.reap.alpha{:type "text" :subtype "html" :parameters [] :parameter-map {}}
          ((rfc7231/media-type)
           (re/input "text/html"))))
-  (is (= #:juxt.reap.alpha{:type "text" :subtype "html" :parameters {"foo" "bar" "zip" "qux"}}
+  (is (= #:juxt.reap.alpha{:type "text"
+                           :subtype "html"
+                           :parameter-map {"foo" "bar" "zip" "qux"}
+                           :parameters [#:juxt.reap.alpha{:parameter-name "foo" :parameter-value "bar"}
+                                        #:juxt.reap.alpha{:parameter-name "ZIP" :parameter-value "qux"}]}
          ((rfc7231/media-type)
           (re/input "text/html;foo=bar;ZIP=qux")))))
 

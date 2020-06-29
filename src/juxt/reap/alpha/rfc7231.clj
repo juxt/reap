@@ -18,18 +18,15 @@
 
 (defn parameter
   "Return a parameter parser that parses into map containing :name
-  and :value keys. The :name value is case insensitive and therefore
-  converted to lower-case."
+  and :value keys."
   []
   (p/into
    {}
    (p/sequence-group
     (p/as-entry
      :juxt.reap.alpha/parameter-name
-     (p/comp
-      str/lower-case ; TODO: Reconsider this
-      (p/pattern-parser
-       (re-pattern token))))
+     (p/pattern-parser
+      (re-pattern token)))
     (p/first
      (p/sequence-group
       (p/ignore (p/pattern-parser #"="))
@@ -44,18 +41,15 @@
 
 (defn optional-parameter
   "Return a parameter parser that parses into map containing :name and,
-  optionally, a :value key. The :name value is case insensitive and
-  therefore converted to lower-case."
+  optionally, a :value key."
   []
   (p/into
    {}
    (p/sequence-group
     (p/as-entry
      :juxt.reap.alpha/parameter-name
-     (p/comp
-      str/lower-case ; TODO: Reconsider this
-      (p/pattern-parser
-       (re-pattern token))))
+     (p/pattern-parser
+      (re-pattern token)))
     (p/optionally
      (p/first
       (p/sequence-group
@@ -298,38 +292,49 @@
    (p/comp
     (fn [[media-type type]]
       #:juxt.reap.alpha
-      {:media-range (str/lower-case media-type)
-       :type (str/lower-case type)
+      {:media-range media-type
+       :type type
        :subtype "*"})
     (p/pattern-parser
      (re-pattern (re/re-compose "(%s)/\\*" type))))
    (p/comp
     (fn [[media-type type subtype]]
       #:juxt.reap.alpha
-      {:media-range (str/lower-case media-type)
-       :type (str/lower-case type)
-       :subtype (str/lower-case subtype)})
+      {:media-range media-type
+       :type type
+       :subtype subtype})
     (p/pattern-parser
      (re-pattern (re/re-compose "(%s)/(%s)" type subtype))))))
+
+(defn parameters-map [parser]
+  (fn [matcher]
+    (when-let [parameters (parser matcher)]
+      {:juxt.reap.alpha/parameters parameters
+       :juxt.reap.alpha/parameter-map
+       (into
+        {}
+        (map
+         (juxt
+          (comp
+           ;; We lower-case to support case-insensitive lookups
+           str/lower-case
+           :juxt.reap.alpha/parameter-name)
+          :juxt.reap.alpha/parameter-value)
+         parameters))})))
 
 (defn media-range []
   (p/comp
    #(apply merge %)
    (p/sequence-group
     (media-range-without-parameters)
-    (p/array-map
-     :juxt.reap.alpha/parameters
-     (p/into
-      {}
-      (p/map
-       (juxt :juxt.reap.alpha/parameter-name :juxt.reap.alpha/parameter-value)
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern (re/re-concat OWS \; OWS))))
-          (parameter))))))))))
+    (parameters-map
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern (re/re-concat OWS \; OWS))))
+        (parameter))))))))
 
 (comment
   ((media-range)
@@ -347,19 +352,14 @@
     (p/as-entry
      :juxt.reap.alpha/subtype
      (p/pattern-parser (re-pattern subtype)))
-    (p/as-entry
-     :juxt.reap.alpha/parameters
-     (p/into
-      {}
-      (p/map
-       (juxt :juxt.reap.alpha/parameter-name :juxt.reap.alpha/parameter-value)
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore (p/pattern-parser (re-pattern OWS)))
-          (p/ignore (p/pattern-parser (re-pattern ";")))
-          (p/ignore (p/pattern-parser (re-pattern OWS)))
-          (parameter))))))))))
+    (parameters-map
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore (p/pattern-parser (re-pattern OWS)))
+        (p/ignore (p/pattern-parser (re-pattern ";")))
+        (p/ignore (p/pattern-parser (re-pattern OWS)))
+        (parameter))))))))
 
 ;; Content-Type = media-type
 (def content-type media-type)
