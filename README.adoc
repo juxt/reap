@@ -1,11 +1,55 @@
 = reap
 
-Regular Expressions And Parsing
+Regular Expressions for Accurate Parsing
 
 [WARNING]
 --
 STATUS: Alpha. Designed for production use but not yet ready for deployment.
 --
+
+== Quickstart
+
+Suppose you want to decode an Accept header from an HTTP request. For example, Firefox sends one like this:
+
+`Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`
+
+You can use *reap* to parse that header's value into data you can more easily work with. Here's how:
+
+[source,clojure]
+----
+(require
+  '[juxt.reap.alpha.rfc7231 :refer [accept]]
+  '[juxt.reap.alpha.regex :as re])
+
+(def accept-header-value
+  "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+
+(let [decode (:juxt.reap/decode (accept {}))]
+  (vec (decode (re/input accept-header-value))))
+----
+
+This will return the following data:
+
+----
+[#:juxt.reap.alpha{:media-range "text/html",
+                   :type "text",
+                   :subtype "html",
+                   :parameters {}}
+ #:juxt.reap.alpha{:media-range "application/xhtml+xml",
+                   :type "application",
+                   :subtype "xhtml+xml",
+                   :parameters {}}
+ #:juxt.reap.alpha{:media-range "application/xml",
+                   :type "application",
+                   :subtype "xml",
+                   :parameters {},
+                   :qvalue 0.9}
+ #:juxt.reap.alpha{:media-range "*/*",
+                   :type "*",
+                   :subtype "*",
+                   :parameters {},
+                   :qvalue 0.8}]
+----
 
 == Introduction
 
@@ -14,20 +58,19 @@ a set of exacting specifications
 (https://tools.ietf.org/rfc/index[RFCs]) published by the
 https://www.ietf.org/[Internet Engineering Task Force].
 
-Many Internet protocols are textual in nature. HTTP is a good example.
+Many Internet protocols, notably HTTP, are textual in nature.
 
-Software components of the Internet must be able to efficiently parse
-strings of text in order to understand its meaning.
+Software components of the Internet must be able to efficiently encode and
+decode strings of text accurately in order to process correctly.
 
-== Problem Statement
+=== Problem Statement
 
-There are not many tools of sufficient quality which can help with the
-parsing of strings of text, especially those defined in RFCs.
+There are not many tools of sufficient quality which can help with the decoding
+and encoding of text strings, especially those defined in RFCs.
 
-Therefore, programmers are often left to write their own 'quick and
-dirty' code to parse text. This leads to software that does not
-properly implement (and is not fully conformant with) the rules
-defined in the RFCs.
+Therefore, programmers are often left to write their own 'quick and dirty'
+code. This leads to software that does not properly implement (and is not fully
+conformant with) the rules defined in the RFCs.
 
 Programmers often have to strike a balance between conforming to the
 rules layed down by the RFCs and competing priorities such as meeting
@@ -36,9 +79,9 @@ performance requirements and project deadlines.
 Unfortunately, code that violates any aspect of a specification can
 lead to an unhealthy Internet. Time is wasted debugging
 interoperability problems, buggy implementations cause problems for
-users and, in some cases, lead to security vulnerabilities.
+users and lead to, in some cases, security vulnerabilities.
 
-== Example: the HTTP Accept header
+=== Example: the HTTP Accept header
 
 In RFC 7231 (which defines part of HTTP), the `Accept`
 header is specified by the following rule:
@@ -70,7 +113,7 @@ tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
 ----
 
 Let's leave aside DIGIT and ALPHA and return to the `parameter` rule,
-which itself is hardly trivial:
+which itself is non-trivial:
 
 [source]
 ----
@@ -107,9 +150,9 @@ These are the rules for just one HTTP request header, and it's by far
 from the most complex!
 
 So it's no surprise that programmers who resort to writing custom
-parsing code might skip a few details!
+parsing code might skip a few details.
 
-== Alternatives
+=== Alternatives
 
 There are a number of excellent tools for generating text parsers,
 from venerable ones such as flex/bison to more modern ones including
@@ -122,30 +165,30 @@ built-in support for even some Internet RFCs. They also tend to be
 less efficient than Regular Expressions, which have been around for
 decades and have been heavily optimised in that time.
 
-== Ingredients
+=== Ingredients
 
 *reap* is built from some old ideas.
 
-=== Lisp (1958)
+==== Lisp (1958)
 
 Clojure is used as the implementation language to facilitate faster
 research and prototyping. If this project proves useful/stable it
 might be a good idea to port to Java and provide a Clojure wrapper.
 
-=== Regular Expressions (1950s)
+==== Regular Expressions (1950s)
 
 Everything in *reap* is ultimately compiled into a
 https://en.wikipedia.org/wiki/Regular_expressions[regular
 expression]. Regexes provide the performance.
 
-=== Allen's Interval Algebra (1983)
+==== Allen's Interval Algebra (1983)
 
 https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's
 interval algebra] allows character intervals to be manipulated and
 combined, to form optimal ranges to maximise the performance of the
 regular expression.
 
-=== Parser Combinators (1989)
+==== Parser Combinators (1989)
 
 https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators]
 are used to combine parsers built from regular expressions.
