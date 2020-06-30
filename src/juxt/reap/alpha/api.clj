@@ -13,9 +13,8 @@
 
 (defn accept [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-accept
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-accept)
+     (re/input s))))
 
 (defn accept-when-string [s]
   (cond-> s (string? s) accept))
@@ -26,9 +25,8 @@
 
 (defn accept-charset [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-accept-charset
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-accept-charset)
+     (re/input s))))
 
 (defn accept-charset-when-string [s]
   (cond-> s (string? s) accept-charset))
@@ -39,9 +37,8 @@
 
 (defn accept-language [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-accept-language
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-accept-language)
+     (re/input s))))
 
 (defn accept-language-when-string [s]
   (cond-> s (string? s) accept-language))
@@ -52,9 +49,8 @@
 
 (defn accept-encoding [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-accept-encoding
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-accept-encoding)
+     (re/input s))))
 
 (defn accept-encoding-when-string [s]
   (cond-> s (string? s) accept-encoding))
@@ -65,9 +61,8 @@
 
 (defn content-type [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-content-type
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-content-type)
+     (re/input s))))
 
 (defn content-type-when-string [s]
   (cond-> s (string? s) content-type))
@@ -78,9 +73,8 @@
 
 (defn content-language [s]
   (when s
-    (:juxt.reap/decode
-     (precompiled-content-language
-      (re/input s)))))
+    ((:juxt.reap/decode precompiled-content-language)
+     (re/input s))))
 
 (defn content-language-when-string [s]
   (cond-> s (string? s) content-language))
@@ -91,7 +85,7 @@
 
 (defn content-encoding [s]
   (when s
-    (precompiled-content-encoding
+    ((:juxt.reap/decode precompiled-content-encoding)
      (re/input s))))
 
 (defn content-encoding-when-string [s]
