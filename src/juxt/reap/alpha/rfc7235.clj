@@ -172,7 +172,7 @@
           (re-pattern
            (re/re-compose ",%s" OWS)))))
        (p/cons
-        (:juxt.reap/decode challenge opts)
+        (:juxt.reap/decode challenge)
         (p/zero-or-more
          (p/first
           (p/sequence-group
