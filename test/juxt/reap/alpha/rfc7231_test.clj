@@ -25,7 +25,6 @@
   ;; case-insensitive. Parameter values might or might not be
   ;; case-sensitive, depending on the semantics of the parameter
   ;; name." -- RFC 7231 Section 3.1.1.1
-  ;; TODO: Restore this test once options can be provided.
   (testing "case-insensitivity"
     (is
      (=
