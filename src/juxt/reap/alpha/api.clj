@@ -5,7 +5,11 @@
    [juxt.reap.alpha.rfc7231 :as rfc7231]
    [juxt.reap.alpha.regex :as re]))
 
-;; A set of public pre-compiled decoders for common HTTP request headers
+;; Warning: This ALPHA API is very likely to change. The recommendation for now
+;; is to use the functions in rfc7231 directly.
+
+;; A set of public decoders, pre-compiled with default options, for parsing
+;; common HTTP request headers.
 
 ;; Accept
 
