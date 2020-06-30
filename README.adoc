@@ -9,7 +9,7 @@ A Clojure library for decoding and encoding strings used by web protocols.
 STATUS: Alpha. Ready to use but the API is likely to change in future versions.
 --
 
-== Quickstart
+== Quick Start
 
 Suppose you want to decode an Accept header from an HTTP request. For example, Firefox sends one like this:
 
@@ -199,6 +199,26 @@ regular expression.
 
 https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators]
 are used to combine parsers built from regular expressions.
+
+== User Guide
+
+Functions marked with the metadata tag `:juxt.reap/codec` take an 'options' argument.
+and return a map of entries.
+
+`:juxt.reap/decode`:: A single-arity parser function, taking a
+`java.util.regex.Matcher` as the only argument and returning a Clojure map or
+sequence.
+
+`:juxt.reap/encode`:: A single-arity function, taking a Clojure map or sequence
+and returning a string.
+
+=== Options
+
+The 'options' argument is a map containing the following optional entries:
+
+`:juxt.reap/decode-preserve-case`:: Set to true to prevent the parser from transforming tokens that are treated as case-insensitive to lower-case. This lossy transformation simplifies case-insensitive comparisons. Defaults to nil (false).
+
+`:juxt.reap/encode-case-transform`:: Set to `:lower` to transform generated tokens to lower-case, where applicable (where the token is semantically case-insensitive). Set to `:canonical` to transform tokens and header values to their canonical case. Defaults to nil.
 
 == References
 

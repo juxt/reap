@@ -26,16 +26,16 @@
   ;; case-sensitive, depending on the semantics of the parameter
   ;; name." -- RFC 7231 Section 3.1.1.1
   ;; TODO: Restore this test once options can be provided.
-  #_(testing "case-insensitivity"
+  (testing "case-insensitivity"
     (is
      (=
       ;; :parameter-name should be lower-case, but value unchanged.
       #:juxt.http{:parameter-name "foo", :parameter-value "Bar"}
-      ((rfc7231/parameter)
+      ((:juxt.reap/decode (rfc7231/parameter {}))
        (re/input "FOO=Bar"))))
     (is
      (nil?
-      ((rfc7231/parameter)
+      ((:juxt.reap/decode (rfc7231/parameter {}))
        (re/input "foo")))))
 
   (testing "quoted-string"
@@ -88,7 +88,9 @@
      :parameter-map {"foo" "bar" "baz" "qu'x"}
      :parameters [#:juxt.http{:parameter-name "FOO" :parameter-value "bar"}
                   #:juxt.http{:parameter-name "Baz" :parameter-value "qu'x"}]}
-    ((:juxt.reap/decode (rfc7231/media-range {}))
+    ((:juxt.reap/decode
+      (rfc7231/media-range
+       {:juxt.reap/decode-preserve-case true}))
      (re/input "text/html;FOO=bar;Baz=\"qu\\'x\""))))
 
   ;; "The type, subtype, and parameter name tokens are
@@ -117,14 +119,20 @@
 
 (deftest media-type-test
   (is (= #:juxt.http{:type "text" :subtype "html" :parameters [] :parameter-map {}}
-         ((:juxt.reap/decode (rfc7231/media-type {}))
+         ((:juxt.reap/decode
+           (rfc7231/media-type {}))
           (re/input "text/html"))))
-  (is (= #:juxt.http{:type "text"
-                           :subtype "html"
-                           :parameter-map {"foo" "bar" "zip" "qux"}
-                           :parameters [#:juxt.http{:parameter-name "foo" :parameter-value "bar"}
-                                        #:juxt.http{:parameter-name "ZIP" :parameter-value "qux"}]}
-         ((:juxt.reap/decode (rfc7231/media-type {}))
+  (is (= #:juxt.http
+         {:type "text"
+          :subtype "html"
+          :parameter-map {"foo" "bar" "zip" "qux"}
+          :parameters [#:juxt.http
+                       {:parameter-name "foo" :parameter-value "bar"}
+                       #:juxt.http
+                       {:parameter-name "ZIP" :parameter-value "qux"}]}
+         ((:juxt.reap/decode
+           (rfc7231/media-type
+            {:juxt.reap/decode-preserve-case true}))
           (re/input "text/html;foo=bar;ZIP=qux")))))
 
 (deftest year-test

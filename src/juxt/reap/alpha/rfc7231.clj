@@ -17,15 +17,17 @@
 (defn ^:juxt.reap/codec parameter
   "Return a parameter parser that parses into map containing :name
   and :value keys."
-  [_]
+  [opts]
   {:juxt.reap/decode
    (p/into
     {}
     (p/sequence-group
      (p/as-entry
       :juxt.http/parameter-name
-      (p/pattern-parser
-       (re-pattern token)))
+      (p/lower-case
+       opts
+       (p/pattern-parser
+        (re-pattern token))))
      (p/first
       (p/sequence-group
        (p/ignore (p/pattern-parser #"="))

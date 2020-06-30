@@ -174,3 +174,11 @@
   (let [parser (cc/apply p parsers)]
     (fn [matcher]
       (parser matcher))))
+
+;; Transformers
+
+(defn lower-case [opts parser]
+  (fn [matcher]
+    (let [s (parser matcher)]
+      (cond-> s
+        (not (:juxt.reap/decode-preserve-case opts)) str/lower-case))))
