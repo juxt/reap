@@ -115,7 +115,23 @@
   (is (nil? (re-matches (re-pattern rfc7231/qvalue) "1.0000")))
   (is (nil? (re-matches (re-pattern rfc7231/qvalue) "0.1234"))))
 
-;; TODO: weight tests
+(deftest weight-test
+  (are [input expected]
+      (= expected ((:juxt.reap/decode (rfc7231/weight {})) (re/input input)))
+    ";Q=0.9" 0.9
+    ";q=0.9" 0.9
+    ";q=0.000" 0.0
+    ";q=1" 1.0
+    ";q=1.0" 1.0
+    ";q=1.00" 1.0
+    ";q=1.000" 1.0
+    ;; These are invalid, there are more than 3 decimal places.
+    ";q=0.0000" nil
+    ";q=1.0000" nil
+    ";q=0.1234" nil
+    ;; These are invalid, they are more than 1
+    ";q=1.1" nil
+    ";q=1.0001" nil))
 
 (deftest media-type-test
   (is (= #:juxt.http{:type "text" :subtype "html" :parameters [] :parameter-map {}}

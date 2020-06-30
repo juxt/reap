@@ -192,7 +192,7 @@
   ((p/zero-or-more (:juxt.reap/decode (accept-ext {}))) (re/input ";a;b;c=d")))
 
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
-(def qvalue (re/re-compose "0(?:\\.[%s]{0,3})?|1(?:\\.[0]{0,3})?" DIGIT))
+(def qvalue (re/re-compose "(?:0(?:\\.%s{0,3})?|1(?:\\.[0]{0,3})?)(?![0-9\\.])" DIGIT))
 
 ;; weight = OWS ";" OWS "q=" qvalue
 (defn ^:juxt.reap/codec weight [_]
