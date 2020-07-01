@@ -1,6 +1,6 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.alpha.api
+(ns juxt.reap.alpha.decoders
   (:require
    [juxt.reap.alpha.rfc7231 :as rfc7231]
    [juxt.reap.alpha.regex :as re]))
@@ -20,9 +20,6 @@
     ((:juxt.reap/decode precompiled-accept)
      (re/input s))))
 
-(defn accept-when-string [s]
-  (cond-> s (string? s) accept))
-
 ;; Accept-Charset
 
 (def ^:private precompiled-accept-charset (rfc7231/accept-charset {}))
@@ -31,9 +28,6 @@
   (when s
     ((:juxt.reap/decode precompiled-accept-charset)
      (re/input s))))
-
-(defn accept-charset-when-string [s]
-  (cond-> s (string? s) accept-charset))
 
 ;; Accept-Language
 
@@ -44,9 +38,6 @@
     ((:juxt.reap/decode precompiled-accept-language)
      (re/input s))))
 
-(defn accept-language-when-string [s]
-  (cond-> s (string? s) accept-language))
-
 ;; Accept-Encoding
 
 (def ^:private precompiled-accept-encoding (rfc7231/accept-encoding {}))
@@ -55,9 +46,6 @@
   (when s
     ((:juxt.reap/decode precompiled-accept-encoding)
      (re/input s))))
-
-(defn accept-encoding-when-string [s]
-  (cond-> s (string? s) accept-encoding))
 
 ;; Content-Type
 
@@ -68,9 +56,6 @@
     ((:juxt.reap/decode precompiled-content-type)
      (re/input s))))
 
-(defn content-type-when-string [s]
-  (cond-> s (string? s) content-type))
-
 ;; Content-Language
 
 (def ^:private precompiled-content-language (rfc7231/content-language {}))
@@ -80,9 +65,6 @@
     ((:juxt.reap/decode precompiled-content-language)
      (re/input s))))
 
-(defn content-language-when-string [s]
-  (cond-> s (string? s) content-language))
-
 ;; Content-Encoding
 
 (def ^:private precompiled-content-encoding (rfc7231/content-encoding {}))
@@ -91,6 +73,3 @@
   (when s
     ((:juxt.reap/decode precompiled-content-encoding)
      (re/input s))))
-
-(defn content-encoding-when-string [s]
-  (cond-> s (string? s) content-encoding))
