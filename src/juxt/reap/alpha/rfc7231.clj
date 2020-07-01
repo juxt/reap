@@ -136,7 +136,7 @@
 ;; User-Agent = product *( RWS ( product / comment ) )
 
 ;; Vary = "*" / ( *( "," OWS ) field-name *( OWS "," [ OWS field-name ] ) )
-(defn vary []
+(defn vary [_]
   {:juxt.reap/decode
    (p/alternatives
     (p/array-map
@@ -166,13 +166,16 @@
             :juxt.http/field-name
             (p/pattern-parser (re-pattern rfc7230/field-name)))))))))))
    :juxt.reap/encode
-   (fn vary-str [coll]
-     (str/join
-      ","
-      (for [i coll]
-        (cond
-          (:juxt.http/wildcard i) "*"
-          :else (:juxt.http/field-name i)))))})
+   (fn vary-str [decoded]
+     (cond
+       (and (map? decoded) (contains? decoded :juxt.http/wildcard))
+       "*"
+       (sequential? decoded)
+       (->>
+        (for [i decoded]
+          (:juxt.http/field-name i))
+        (str/join ", "))
+       :else (throw (ex-info "Unrecognised vary data" {:arg decoded}))))})
 
 ;; absolute-URI = <absolute-URI, see [RFC7230], Section 2.7>
 

@@ -274,3 +274,16 @@
    (= []
       ((:juxt.reap/decode (rfc7231/content-encoding {}))
        (re/input "")))))
+
+(deftest vary-test
+  (let [vary (juxt.reap.alpha.rfc7231/vary {})]
+    (are [original expected]
+        (let [decoded ((:juxt.reap/decode vary) (re/input original))
+              encoded ((:juxt.reap/encode vary) decoded)]
+          (= expected encoded))
+      "*" "*"
+      "accept" "accept"
+      ",    accept" "accept"
+      ",    ,, , accept" "accept"
+      "accept,accept-charset" "accept, accept-charset"
+      "accept, \taccept-language" "accept, accept-language")))
