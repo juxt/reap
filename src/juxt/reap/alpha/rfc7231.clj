@@ -363,12 +363,6 @@
 
 ;; HTTP-date = IMF-fixdate / obs-date
 
-;; TODO: We should add a convenience function for decoding dates into
-;; java.util.Date (which can be easily turned into java.time.Instant if
-;; necessary. If we detect a date is an IMF-fixdate, we can parse with
-;; java.time.format.DateTimeFormat or java.text.SimpleDateFormat.
-;; Perhaps add a 'to-date' function via a combinator?
-
 (defn ^:juxt.reap/codec http-date [opts]
   (let [imf-fixdate (imf-fixdate opts)
         obs-date (obs-date opts)]
