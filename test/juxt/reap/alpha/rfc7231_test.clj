@@ -138,24 +138,71 @@
       (map (juxt :juxt.http/language :juxt.http/region)))))
 
 (deftest http-date-test
-  ;; TODO
-  )
+  (are [input expected]
+      (= expected
+         ((:juxt.reap/decode (rfc7231/http-date {}))
+          (re/input input)))
+      "Sun, 06 Nov 1994 08:49:37 GMT"
+      {:imf-fixdate "Sun, 06 Nov 1994 08:49:37 GMT"
+       :day-name "Sun"
+       :day "06"
+       :month "Nov"
+       :year "1994"
+       :hour "08"
+       :minute "49"
+       :second "37"}
+
+      "Sunday, 06-Nov-94 08:49:37 GMT"
+      {:rfc850-date "Sunday, 06-Nov-94 08:49:37 GMT"
+       :day-name "Sunday"
+       :day "06"
+       :month "Nov"
+       :year "94"
+       :hour "08"
+       :minute "49"
+       :second "37"}
+
+      "Sun Nov  6 08:49:37 1994"
+      {:asctime-date "Sun Nov  6 08:49:37 1994"
+       :day-name "Sun"
+       :day " 6"
+       :month "Nov"
+       :year "1994"
+       :hour "08"
+       :minute "49"
+       :second "37"}))
 
 (deftest imf-fixdate-test
   (let [decode (:juxt.reap/decode (rfc7231/imf-fixdate {}))]
     (are [input expected]
         (= expected (decode (re/input input)))
 
-      "Mon, 20 Jul 2020 12:00:00 GMT"
-      {:imf-fixdate "Mon, 20 Jul 2020 12:00:00 GMT"
-       :day-name "Mon"
-       :day "20" :month "Jul" :year "2020"
-       :hour "12" :minute "00" :second "00"}
+        "Mon, 20 Jul 2020 12:00:00 GMT"
+        {:imf-fixdate "Mon, 20 Jul 2020 12:00:00 GMT"
+         :day-name "Mon"
+         :day "20" :month "Jul" :year "2020"
+         :hour "12" :minute "00" :second "00"}
+
+        ;; Test bad input returns nil
+        "Mon,20 Jul 2020 12:00:00 GMT" nil
+        "Mon, 20 Jul 2020 12:00:00 BST" nil
+        "Pie, 20 Jul 2020 12:00:00 GMT" nil)))
+
+(deftest rfc850-date-test
+  (let [decode (:juxt.reap/decode (rfc7231/rfc850-date {}))]
+    (are [input expected]
+        (= expected (decode (re/input input)))
+
+      "Sunday, 06-Nov-94 08:49:37 GMT"
+      {:rfc850-date "Sunday, 06-Nov-94 08:49:37 GMT"
+       :day-name "Sunday"
+       :day "06" :month "Nov" :year "94"
+       :hour "08" :minute "49" :second "37"}
 
       ;; Test bad input returns nil
-      "Mon,20 Jul 2020 12:00:00 GMT" nil
-      "Mon, 20 Jul 2020 12:00:00 BST" nil
-      "Pie, 20 Jul 2020 12:00:00 GMT" nil)))
+      "Sun, 06-Nov-94 08:49:37 GMT" nil
+      "Sunday, 06-Nov-1994 08:49:37 GMT" nil
+      "Sunday, 06-Nov-94 08:49:37 CET" nil)))
 
 (deftest vary-test
   (let [vary (juxt.reap.alpha.rfc7231/vary {})]
@@ -170,9 +217,58 @@
       "accept,accept-charset" "accept, accept-charset"
       "accept, \taccept-language" "accept, accept-language")))
 
+(deftest asctime-date-test
+  (let [decode (:juxt.reap/decode (rfc7231/asctime-date {}))]
+    (are [input expected]
+        (= expected (decode (re/input input)))
+        "Sun Nov  6 08:49:37 1994"
+        {:asctime-date "Sun Nov  6 08:49:37 1994"
+         :day-name "Sun"
+         :day " 6"
+         :month "Nov"
+         :year "1994"
+         :hour "08"
+         :minute "49"
+         :second "37"})))
+
 (deftest codings-test
   ;; TODO
   )
+
+
+#_;; ANSI C's format
+((:juxt.reap/decode (rfc7231/http-date {}))
+ (re/input "Sun Nov  6 08:49:37 1994"))
+
+
+(deftest date1-test
+  (is
+   (=
+    {:day "30" :month "Sep" :year "2002"}
+    ((:juxt.reap/decode (rfc7231/date1 {}))
+     (re/input "30 Sep 2002")))))
+
+(deftest date2-test
+  (is
+   (=
+    {:day "10" :month "Apr" :year "82"}
+    ((:juxt.reap/decode (rfc7231/date2 {}))
+     (re/input "10-Apr-82")))))
+
+(deftest date3-test
+  (is
+   (=
+    {:day " 6" :month "Nov"}
+    ((:juxt.reap/decode (rfc7231/date3 {}))
+     (re/input "Nov  6"))))
+  (is
+   (nil? ((:juxt.reap/decode (rfc7231/date3 {}))
+     (re/input "Nov 6"))))
+  (is
+   (=
+    {:day "12" :month "Jun"}
+    ((:juxt.reap/decode (rfc7231/date3 {}))
+     (re/input "Jun 12")))))
 
 (deftest media-range-test
   (is

@@ -19,19 +19,25 @@
 (declare charset)
 (declare codings)
 (declare content-coding)
+(declare date3)
 (declare day)
+(declare day-name)
 (declare hour)
+(declare http-date)
 (declare imf-fixdate)
 (declare language-tag)
 (declare media-type)
 (declare minute)
 (declare month)
 (declare parameter)
+(declare obs-date)
 (declare optional-parameter)
 (declare product)
 (declare product-version)
+(declare rfc850-date)
 (declare second)
 (declare subtype)
+(declare time-of-day)
 (declare type)
 (declare weight)
 (declare year)
@@ -344,7 +350,7 @@
 (def content-type media-type)
 
 ;; Date = HTTP-date
-;; TODO
+(def date http-date)
 
 ;; Expect = "100-continue"
 ;; TODO
@@ -363,29 +369,21 @@
 ;; java.time.format.DateTimeFormat or java.text.SimpleDateFormat.
 ;; Perhaps add a 'to-date' function via a combinator?
 
-(defn ^:juxt.reap/codec http-date [_]
-  (let [imf-fixdate (imf-fixdate)]
+(defn ^:juxt.reap/codec http-date [opts]
+  (let [imf-fixdate (imf-fixdate opts)
+        obs-date (obs-date opts)]
     {:juxt.reap/decode
      (p/alternatives
-      (:juxt.reap/decode imf-fixdate)
-      ;; TODO
-      )})
-  )
+      (:juxt.reap/decode imf-fixdate) ;; TODO: wrap in function that create a date inst
+      (:juxt.reap/decode obs-date))}))
 
 ;; IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
-
 (defn ^:juxt.reap/codec imf-fixdate [_]
   {:juxt.reap/decode
    (p/pattern-parser
     (re-pattern
      (str
-      (format
-       "(?<dayname>%s)"
-       (str/join
-        "|"
-        (for [day ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"]]
-          (re/re-str
-           (map #(format "\\x%02X" %) (map int day))))))
+      (format "(?<dayname>%s)" day-name)
       (re/re-concat "," SP)
       (format "(?<day>%s)" day)
       SP
@@ -405,6 +403,8 @@
       :hour "hour"
       :minute "minute"
       :second "second"}})})
+
+;; obsolete
 
 ;; Location = URI-reference
 ;; TODO
@@ -521,7 +521,32 @@
            (:juxt.reap/decode accept-ext))))))))})
 
 ;; asctime-date = day-name SP date3 SP time-of-day SP year
-;; TODO
+(defn ^:juxt.reap/codec asctime-date [opts]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format "(?<dayname>%s)" day-name)
+      SP
+      ;; date3
+      (re-pattern
+       (str
+        (format "(?<month>%s)" month)
+        SP
+        (re/re-compose "(?<day>%s{2}|%s%s)" DIGIT SP DIGIT)))
+      SP
+      (re/re-compose "(?<hour>%s):(?<minute>%s):(?<second>%s)" hour minute second)
+      SP
+      (format "(?<year>%s)" year)))
+    {:group
+     {:asctime-date 0
+      :day-name "dayname"
+      :day "day"
+      :month "month"
+      :year "year"
+      :hour "hour"
+      :minute "minute"
+      :second "second"}})})
 
 ;; charset = token
 (def ^String charset token)
@@ -557,10 +582,31 @@
              :year "year"}})})
 
 ;; date2 = day "-" month "-" 2DIGIT
-;; TODO
+(defn ^:juxt.reap/codec date2 [_]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format "(?<day>%s)" day)
+      "-"
+      (format "(?<month>%s)" month)
+      "-"
+      (re/re-compose "(?<year>%s{2})" DIGIT)))
+    {:group {:day "day"
+             :month "month"
+             :year "year"}})})
 
 ;; date3 = month SP ( 2DIGIT / ( SP DIGIT ) )
-;; TODO
+(defn ^:juxt.reap/codec date3 [_]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format "(?<month>%s)" month)
+      SP
+      (re/re-compose "(?<day>%s{2}|%s%s)" DIGIT SP DIGIT)))
+    {:group {:day "day"
+             :month "month"}})})
 
 ;; day = 2DIGIT
 (def ^String day (re/re-compose "%s{2}" DIGIT))
@@ -573,13 +619,14 @@
 ;;  / %x53.61.74 ; Sat
 ;;  / %x53.75.6E ; Sun
 (def ^String day-name
-  (format
-   "(?:%s)"
-   (str/join
-    "|"
-    (for [day ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"]]
-      (re/re-str
-       (map #(format "\\x%02X" %) (map int day)))))))
+  (str/join
+   "|"
+   ;; There's a good reason for converting these strings into hex, as the ABNF
+   ;; does. If this string is used in a compound regex which is configured to
+   ;; ignore-case, we want these patterns to be exact.
+   (for [day ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"]]
+     (re/re-str
+      (map #(format "\\x%02X" %) (map int day))))))
 
 ;; day-name-l = %x4D.6F.6E.64.61.79 ; Monday
 ;;  / %x54.75.65.73.64.61.79 ; Tuesday
@@ -588,7 +635,12 @@
 ;;  / %x46.72.69.64.61.79 ; Friday
 ;;  / %x53.61.74.75.72.64.61.79 ; Saturday
 ;;  / %x53.75.6E.64.61.79 ; Sunday
-;; TODO
+(def ^String day-name-1
+  (str/join
+   "|"
+   (for [day ["Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday"]]
+     (re/re-str
+      (map #(format "\\x%02X" %) (map int day))))))
 
 ;; delay-seconds = 1*DIGIT
 ;; TODO
@@ -651,7 +703,7 @@
            (:juxt.reap/decode parameter))))))))})
 
 ;; method = token
-(def method token)
+(def ^String method token)
 
 ;; minute = 2DIGIT
 (def ^String minute (re/re-compose "%s{2}" DIGIT))
@@ -669,20 +721,21 @@
 ;;  / %x4E.6F.76 ; Nov
 ;;  / %x44.65.63 ; Dec
 (def month
-  (re-pattern
-   (format
-    "(?:%s)"
-    (str/join
-     "|"
-     (for [day ["Jan" "Feb" "Mar"
-                "Apr" "May" "Jun"
-                "Jul" "Aug" "Sep"
-                "Oct" "Nov" "Dec"]]
-       (re/re-str
-        (map #(format "\\x%02X" %) (map int day))))))))
+  (str/join
+   "|"
+   (for [day ["Jan" "Feb" "Mar"
+              "Apr" "May" "Jun"
+              "Jul" "Aug" "Sep"
+              "Oct" "Nov" "Dec"]]
+     (re/re-str
+      (map #(format "\\x%02X" %) (map int day))))))
 
 ;; obs-date = rfc850-date / asctime-date
-;; TODO
+(defn ^:juxt.reap/codec obs-date [opts]
+  {:juxt.reap/decode
+   (p/alternatives
+    (:juxt.reap/decode (rfc850-date opts))
+    (:juxt.reap/decode (asctime-date opts)))})
 
 ;; parameter = token "=" ( token / quoted-string )
 (defn ^:juxt.reap/codec parameter
@@ -766,7 +819,34 @@
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 (def qvalue (re/re-compose "(?:0(?:\\.%s{0,3})?|1(?:\\.[0]{0,3})?)(?![0-9\\.])" DIGIT))
 
+
 ;; rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
+(defn ^:juxt.reap/codec rfc850-date [_]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format "(?<dayname>%s)" day-name-1)
+      (re/re-concat "," SP)
+      (format "(?<day>%s)" day)
+      "-"
+      (format "(?<month>%s)" month)
+      "-"
+      (re/re-compose "(?<year>%s{2})" DIGIT)
+      SP
+      (re/re-compose "(?<hour>%s):(?<minute>%s):(?<second>%s)" hour minute second)
+      SP
+      GMT))
+    {:group
+     {:rfc850-date 0
+      :day-name "dayname"
+      :day "day"
+      :month "month"
+      :year "year"
+      :hour "hour"
+      :minute "minute"
+      :second "second"}})})
+
 ;; TODO
 
 ;; second = 2DIGIT
