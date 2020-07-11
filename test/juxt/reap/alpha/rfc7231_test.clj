@@ -150,10 +150,6 @@
             {:juxt.reap/decode-preserve-case true}))
           (re/input "text/html;foo=bar;ZIP=qux")))))
 
-(deftest year-test
-  (is (= "2020" ((rfc7231/year {}) (re/input "2020"))))
-  (is (nil? ((rfc7231/year {}) (re/input "123")))))
-
 ;; TODO: Create a very cryptic Accept test designed to catch out all but the most compliant of parsers
 
 ((:juxt.reap/decode (rfc7231/accept {}))
@@ -287,3 +283,20 @@
       ",    ,, , accept" "accept"
       "accept,accept-charset" "accept, accept-charset"
       "accept, \taccept-language" "accept, accept-language")))
+
+
+(deftest imf-fixdate-test
+  (let [decode (:juxt.reap/decode (rfc7231/imf-fixdate {}))]
+    (are [input expected]
+        (= expected (decode (re/input input)))
+
+      "Mon, 20 Jul 2020 12:00:00 GMT"
+      {:imf-fixdate "Mon, 20 Jul 2020 12:00:00 GMT"
+       :day-name "Mon"
+       :day "20" :month "Jul" :year "2020"
+       :hour "12" :minute "00" :second "00"}
+
+      ;; Test bad input returns nil
+      "Mon,20 Jul 2020 12:00:00 GMT" nil
+      "Mon, 20 Jul 2020 12:00:00 BST" nil
+      "Pie, 20 Jul 2020 12:00:00 GMT" nil)))

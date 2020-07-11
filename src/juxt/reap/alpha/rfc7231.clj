@@ -1,17 +1,21 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.alpha.rfc7231
-  (:refer-clojure :exclude [type])
+  (:refer-clojure :exclude [type second])
   (:require
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.rfc4647 :as rfc4647]
-   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT]]
+   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT SP]]
    [juxt.reap.alpha.rfc5646 :as rfc5646]
    [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
+
+(declare hour)
+(declare minute)
+(declare second)
 
 ;; parameter = token "=" ( token / quoted-string )
 (defn ^:juxt.reap/codec parameter
@@ -116,11 +120,73 @@
 
 ;; From = mailbox
 
-;; GMT = %x47.4D.54 ; GMT
+;; GMT
+(def GMT ^String (re/re-str (map #(format "\\x%02X" %) (map int "GMT"))))
 
 ;; HTTP-date = IMF-fixdate / obs-date
+(declare imf-fixdate)
+
+;; TODO: We should add a convenience function for decoding dates into
+;; java.util.Date (which can be easily turned into java.time.Instant if
+;; necessary. If we detect a date is an IMF-fixdate, we can parse with
+;; java.time.format.DateTimeFormat or java.text.SimpleDateFormat.
+;; Perhaps add a 'to-date' function via a combinator?
+
+(defn ^:juxt.reap/codec http-date [_]
+  (let [imf-fixdate (imf-fixdate)]
+    {:juxt.reap/decode
+     (p/alternatives
+      (:juxt.reap/decode imf-fixdate))})
+  )
 
 ;; IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
+
+(declare day)
+(declare month)
+(declare year)
+
+(defn ^:juxt.reap/codec imf-fixdate [_]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format
+       "(?<dayname>%s)"
+       (str/join
+        "|"
+        (for [day ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"]]
+          (re/re-str
+           (map #(format "\\x%02X" %) (map int day))))))
+      (re/re-concat "," SP)
+      (format "(?<day>%s)" day)
+      SP
+      (format "(?<month>%s)" month)
+      SP
+      (format "(?<year>%s)" year)
+      SP
+      (re/re-compose "(?<hour>%s):(?<minute>%s):(?<second>%s)" hour minute second)
+      SP
+      GMT))
+    {:group
+     {:imf-fixdate 0
+      :day-name "dayname"
+      :day "day"
+      :month "month"
+      :year "year"
+      :hour "hour"
+      :minute "minute"
+      :second "second"}})})
+
+#_((p/pattern-parser
+  (re-pattern
+   (str
+    (format "(?<dayname>%s)" day-name)
+    (re/re-concat "," SP)
+    (format "(?<date1>%s)" date1)))
+  {:group {:day-name "dayname"}})
+
+ (re/input "Tue, "))
+
 
 ;; Location = URI-reference
 
@@ -136,7 +202,7 @@
 ;; User-Agent = product *( RWS ( product / comment ) )
 
 ;; Vary = "*" / ( *( "," OWS ) field-name *( OWS "," [ OWS field-name ] ) )
-(defn vary [_]
+(defn ^:juxt.reap/codec vary [_]
   {:juxt.reap/decode
    (p/alternatives
     (p/array-map
@@ -290,9 +356,28 @@
 ;; comment = <comment, see [RFC7230], Section 3.2.6>
 
 ;; date1 = day SP month SP year
+
+(defn ^:juxt.reap/codec date1 [_]
+  {:juxt.reap/decode
+   (p/pattern-parser
+    (re-pattern
+     (str
+      (format "(?<day>%s)" day)
+      SP
+      (format "(?<month>%s)" month)
+      SP
+      (format "(?<year>%s)" year)))
+    {:group {:day "day"
+             :month "month"
+             :year "year"}})})
+
 ;; date2 = day "-" month "-" 2DIGIT
 ;; date3 = month SP ( 2DIGIT / ( SP DIGIT ) )
+
 ;; day = 2DIGIT
+(def ^String day (re/re-compose "%s{2}" DIGIT))
+
+
 ;; day-name = %x4D.6F.6E ; Mon
 ;;  / %x54.75.65 ; Tue
 ;;  / %x57.65.64 ; Wed
@@ -300,6 +385,21 @@
 ;;  / %x46.72.69 ; Fri
 ;;  / %x53.61.74 ; Sat
 ;;  / %x53.75.6E ; Sun
+(def day-name
+  (re-pattern
+   (format
+    "(?:%s)"
+    (str/join
+     "|"
+     (for [day ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"]]
+       (re/re-str
+        (map #(format "\\x%02X" %) (map int day))))))))
+
+
+(comment
+  (re-matches day-name "Mon"))
+
+
 ;; day-name-l = %x4D.6F.6E.64.61.79 ; Monday
 ;;  / %x54.75.65.73.64.61.79 ; Tuesday
 ;;  / %x57.65.64.6E.65.73.64.61.79 ; Wednesday
@@ -313,6 +413,8 @@
 ;; As per verified errata (https://www.rfc-editor.org/errata_search.php?rfc=7231)
 
 ;; hour = 2DIGIT
+(def ^String hour (re/re-compose "%s{2}" DIGIT))
+
 
 ;; language-range = <language-range, see [RFC4647], Section 2.1>
 
@@ -415,6 +517,8 @@
 (def method token)
 
 ;; minute = 2DIGIT
+(def ^String minute (re/re-compose "%s{2}" DIGIT))
+
 ;; month = %x4A.61.6E ; Jan
 ;;  / %x46.65.62 ; Feb
 ;;  / %x4D.61.72 ; Mar
@@ -427,6 +531,18 @@
 ;;  / %x4F.63.74 ; Oct
 ;;  / %x4E.6F.76 ; Nov
 ;;  / %x44.65.63 ; Dec
+(def month
+  (re-pattern
+   (format
+    "(?:%s)"
+    (str/join
+     "|"
+     (for [day ["Jan" "Feb" "Mar"
+                "Apr" "May" "Jun"
+                "Jul" "Aug" "Sep"
+                "Oct" "Nov" "Dec"]]
+       (re/re-str
+        (map #(format "\\x%02X" %) (map int day))))))))
 
 ;; obs-date = rfc850-date / asctime-date
 
@@ -476,9 +592,12 @@
 
 ;; rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
 
+
 ;; second = 2DIGIT
+(def ^String second (re/re-compose "%s{2}" DIGIT))
 
 ;; time-of-day = hour ":" minute ":" second
+(def ^String time-of-day (re/re-compose "%s:%s:%s" hour minute second))
 
 ;; Accept = [ ( "," / ( media-range [ accept-params ] ) ) *( OWS "," [
 ;;  OWS ( media-range [ accept-params ] ) ] ) ]
@@ -554,11 +673,8 @@
 (comment
   ((:juxt.reap/decode (accept {})) (re/input "text/html;foo=bar;i=j ; q=0.8;a , application/json;v=10")))
 
-(defn year [_]
-  (p/pattern-parser
-   (re-pattern (re/re-compose "%s{4}" DIGIT))))
-
 ;; year = 4DIGIT
+(def ^String year (re/re-compose "%s{4}" DIGIT))
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
 ;;  "," [ OWS ( ( charset / "*" ) [ weight ] ) ] )
