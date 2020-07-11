@@ -346,9 +346,6 @@
 ;; Content-Location = absolute-URI / partial-URI
 ;; TODO
 
-;; Content-Type = media-type
-(def content-type media-type)
-
 ;; Date = HTTP-date
 (def date http-date)
 
@@ -709,6 +706,9 @@
            (p/ignore (p/pattern-parser (re-pattern ";")))
            (p/ignore (p/pattern-parser (re-pattern OWS)))
            (:juxt.reap/decode parameter))))))))})
+
+;; Content-Type = media-type
+(def content-type media-type)
 
 ;; method = token
 (def ^String method token)
