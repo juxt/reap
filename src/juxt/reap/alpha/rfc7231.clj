@@ -374,35 +374,49 @@
         obs-date (obs-date opts)]
     {:juxt.reap/decode
      (p/alternatives
-      (:juxt.reap/decode imf-fixdate) ;; TODO: wrap in function that create a date inst
+      (:juxt.reap/decode imf-fixdate)
       (:juxt.reap/decode obs-date))}))
 
 ;; IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
 (defn ^:juxt.reap/codec imf-fixdate [_]
-  {:juxt.reap/decode
-   (p/pattern-parser
-    (re-pattern
-     (str
-      (format "(?<dayname>%s)" day-name)
-      (re/re-concat "," SP)
-      (format "(?<day>%s)" day)
-      SP
-      (format "(?<month>%s)" month)
-      SP
-      (format "(?<year>%s)" year)
-      SP
-      (re/re-compose "(?<hour>%s):(?<minute>%s):(?<second>%s)" hour minute second)
-      SP
-      GMT))
-    {:group
-     {:imf-fixdate 0
-      :day-name "dayname"
-      :day "day"
-      :month "month"
-      :year "year"
-      :hour "hour"
-      :minute "minute"
-      :second "second"}})})
+  (let [formatter (.withZone
+                   java.time.format.DateTimeFormatter/RFC_1123_DATE_TIME
+                   (java.time.ZoneId/of "GMT")
+                   )]
+    {:juxt.reap/decode
+     (p/comp
+      ;; TODO: Do the same for for obs-date
+      (fn [m]
+        (assoc
+         m :date
+         (some-> m
+                 :imf-fixdate
+                 (java.time.ZonedDateTime/parse formatter)
+                 java.time.Instant/from
+                 java.util.Date/from)))
+      (p/pattern-parser
+       (re-pattern
+        (str
+         (format "(?<dayname>%s)" day-name)
+         (re/re-concat "," SP)
+         (format "(?<day>%s)" day)
+         SP
+         (format "(?<month>%s)" month)
+         SP
+         (format "(?<year>%s)" year)
+         SP
+         (re/re-compose "(?<hour>%s):(?<minute>%s):(?<second>%s)" hour minute second)
+         SP
+         GMT))
+       {:group
+        {:imf-fixdate 0
+         :day-name "dayname"
+         :day "day"
+         :month "month"
+         :year "year"
+         :hour "hour"
+         :minute "minute"
+         :second "second"}}))}))
 
 ;; obsolete
 

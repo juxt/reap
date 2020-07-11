@@ -144,6 +144,7 @@
           (re/input input)))
       "Sun, 06 Nov 1994 08:49:37 GMT"
       {:imf-fixdate "Sun, 06 Nov 1994 08:49:37 GMT"
+       :date #inst "1994-11-06T08:49:37.000-00:00"
        :day-name "Sun"
        :day "06"
        :month "Nov"
@@ -179,6 +180,7 @@
 
         "Mon, 20 Jul 2020 12:00:00 GMT"
         {:imf-fixdate "Mon, 20 Jul 2020 12:00:00 GMT"
+         :date #inst "2020-07-20T12:00:00.000-00:00"
          :day-name "Mon"
          :day "20" :month "Jul" :year "2020"
          :hour "12" :minute "00" :second "00"}
