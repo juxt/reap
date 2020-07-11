@@ -11,6 +11,7 @@
 
 ;; RFC 5234 Section 3.2. Alternatives: Rule1 / Rule2
 (defn alternatives [& parsers]
+  (assert (every? some? parsers))
   (fn [matcher]
     (cc/some (fn [p] (p matcher)) parsers)))
 
@@ -23,6 +24,7 @@
 (defn sequence-group
   "Create a parser that matches sequentially on each of the arguments."
   [& parsers]
+  (assert (every? some? parsers))
   (fn [matcher]
     (reduce
      (fn [acc p]
