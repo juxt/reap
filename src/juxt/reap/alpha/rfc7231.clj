@@ -8,7 +8,7 @@
    [juxt.reap.alpha.rfc4647 :as rfc4647]
    [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [DIGIT SP]]
    [juxt.reap.alpha.rfc5646 :as rfc5646]
-   [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token]]
+   [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [OWS RWS token quoted-string]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -811,7 +811,7 @@
          (p/comp
           rfc7230/unescape-quoted-string
           (p/pattern-parser
-           (re-pattern rfc7230/quoted-string) {:group 1}))))))))})
+           (re-pattern quoted-string) {:group 1}))))))))})
 
 (defn ^:juxt.reap/codec optional-parameter
   "Return a parameter parser that parses into map containing :name and,
@@ -836,7 +836,7 @@
           (p/comp
            rfc7230/unescape-quoted-string
            (p/pattern-parser
-            (re-pattern rfc7230/quoted-string) {:group 1})))))))))})
+            (re-pattern quoted-string) {:group 1})))))))))})
 
 ;; partial-URI = <partial-URI, see [RFC7230], Section 2.7>
 ;; TODO
@@ -863,7 +863,6 @@
 (def product-version token)
 
 ;; quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
-;; TODO
 
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 (def qvalue (re/re-compose "(?:0(?:\\.%s{0,3})?|1(?:\\.[0]{0,3})?)(?![0-9\\.])" DIGIT))
