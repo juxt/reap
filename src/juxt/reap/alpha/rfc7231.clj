@@ -362,7 +362,6 @@
 (def ^String GMT (re/re-str (map #(format "\\x%02X" %) (map int "GMT"))))
 
 ;; HTTP-date = IMF-fixdate / obs-date
-
 (defn ^:juxt.reap/codec http-date [opts]
   (let [imf-fixdate (imf-fixdate opts)
         obs-date (obs-date opts)]
@@ -854,8 +853,6 @@
       :hour "hour"
       :minute "minute"
       :second "second"}})})
-
-;; TODO
 
 ;; second = 2DIGIT
 (def ^String second (re/re-compose "%s{2}" DIGIT))
