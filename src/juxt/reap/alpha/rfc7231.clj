@@ -441,7 +441,7 @@
 ;; TODO
 
 ;; Max-Forwards = 1*DIGIT
-;; TODO
+(def max-forwards (re/re-compose "%s+" DIGIT))
 
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 ;; TODO
