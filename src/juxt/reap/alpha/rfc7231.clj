@@ -326,7 +326,9 @@
         (p/pattern-parser (re-pattern ","))
         (p/pattern-parser (re-pattern OWS)))))
      (p/cons
-      (p/array-map :juxt.http/content-coding (p/pattern-parser (re-pattern content-coding)))
+      (p/array-map
+       :juxt.http/content-coding
+       (p/pattern-parser (re-pattern content-coding)))
       (p/zero-or-more
        (p/first
         (p/sequence-group
@@ -338,7 +340,9 @@
           (p/optionally
            (p/sequence-group
             (p/ignore (p/pattern-parser (re-pattern OWS)))
-            (p/array-map :juxt.http/content-coding (p/pattern-parser (re-pattern content-coding))))))))))))})
+            (p/array-map
+             :juxt.http/content-coding
+             (p/pattern-parser (re-pattern content-coding))))))))))))})
 
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
@@ -406,9 +410,9 @@
       ;; TODO: Do the same for for obs-date
       (fn [m]
         (assoc
-         m :date
+         m :juxt.http/date
          (some-> m
-                 :imf-fixdate
+                 :juxt.http/imf-fixdate
                  (java.time.ZonedDateTime/parse formatter)
                  java.time.Instant/from
                  java.util.Date/from)))
@@ -427,6 +431,7 @@
          SP
          GMT))
        {:group
+        #:juxt.http
         {:imf-fixdate 0
          :day-name "dayname"
          :day "day"
@@ -458,7 +463,7 @@
      (p/alternatives
       (:juxt.reap/decode http-date)
       (p/array-map
-       :delay-seconds
+       :juxt.http/delay-seconds
        (p/pattern-parser (re-pattern delay-seconds))))}))
 
 ;; Server = product *( RWS ( product / comment ) )
@@ -576,6 +581,7 @@
       SP
       (format "(?<year>%s)" year)))
     {:group
+     #:juxt.http
      {:asctime-date 0
       :day-name "dayname"
       :day "day"
@@ -614,9 +620,11 @@
       (format "(?<month>%s)" month)
       SP
       (format "(?<year>%s)" year)))
-    {:group {:day "day"
-             :month "month"
-             :year "year"}})})
+    {:group
+     #:juxt.http
+     {:day "day"
+      :month "month"
+      :year "year"}})})
 
 ;; date2 = day "-" month "-" 2DIGIT
 (defn ^:juxt.reap/codec date2 [_]
@@ -629,9 +637,11 @@
       (format "(?<month>%s)" month)
       "-"
       (re/re-compose "(?<year>%s{2})" DIGIT)))
-    {:group {:day "day"
-             :month "month"
-             :year "year"}})})
+    {:group
+     #:juxt.http
+     {:day "day"
+      :month "month"
+      :year "year"}})})
 
 ;; date3 = month SP ( 2DIGIT / ( SP DIGIT ) )
 (defn ^:juxt.reap/codec date3 [_]
@@ -642,8 +652,10 @@
       (format "(?<month>%s)" month)
       SP
       (re/re-compose "(?<day>%s{2}|%s%s)" DIGIT SP DIGIT)))
-    {:group {:day "day"
-             :month "month"}})})
+    {:group
+     #:juxt.http
+     {:day "day"
+      :month "month"}})})
 
 ;; day = 2DIGIT
 (def ^String day (re/re-compose "%s{2}" DIGIT))
@@ -875,6 +887,7 @@
       SP
       GMT))
     {:group
+     #:juxt.http
      {:rfc850-date 0
       :day-name "dayname"
       :day "day"

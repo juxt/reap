@@ -151,6 +151,7 @@
          ((:juxt.reap/decode (rfc7231/http-date {}))
           (re/input input)))
       "Sun, 06 Nov 1994 08:49:37 GMT"
+      #:juxt.http
       {:imf-fixdate "Sun, 06 Nov 1994 08:49:37 GMT"
        :date #inst "1994-11-06T08:49:37.000-00:00"
        :day-name "Sun"
@@ -162,6 +163,7 @@
        :second "37"}
 
       "Sunday, 06-Nov-94 08:49:37 GMT"
+      #:juxt.http
       {:rfc850-date "Sunday, 06-Nov-94 08:49:37 GMT"
        :day-name "Sunday"
        :day "06"
@@ -172,6 +174,7 @@
        :second "37"}
 
       "Sun Nov  6 08:49:37 1994"
+      #:juxt.http
       {:asctime-date "Sun Nov  6 08:49:37 1994"
        :day-name "Sun"
        :day " 6"
@@ -187,6 +190,7 @@
         (= expected (decode (re/input input)))
 
         "Mon, 20 Jul 2020 12:00:00 GMT"
+        #:juxt.http
         {:imf-fixdate "Mon, 20 Jul 2020 12:00:00 GMT"
          :date #inst "2020-07-20T12:00:00.000-00:00"
          :day-name "Mon"
@@ -203,16 +207,17 @@
     (are [input expected]
         (= expected (decode (re/input input)))
 
-      "Sunday, 06-Nov-94 08:49:37 GMT"
-      {:rfc850-date "Sunday, 06-Nov-94 08:49:37 GMT"
-       :day-name "Sunday"
-       :day "06" :month "Nov" :year "94"
-       :hour "08" :minute "49" :second "37"}
+        "Sunday, 06-Nov-94 08:49:37 GMT"
+        #:juxt.http
+        {:rfc850-date "Sunday, 06-Nov-94 08:49:37 GMT"
+         :day-name "Sunday"
+         :day "06" :month "Nov" :year "94"
+         :hour "08" :minute "49" :second "37"}
 
-      ;; Test bad input returns nil
-      "Sun, 06-Nov-94 08:49:37 GMT" nil
-      "Sunday, 06-Nov-1994 08:49:37 GMT" nil
-      "Sunday, 06-Nov-94 08:49:37 CET" nil)))
+        ;; Test bad input returns nil
+        "Sun, 06-Nov-94 08:49:37 GMT" nil
+        "Sunday, 06-Nov-1994 08:49:37 GMT" nil
+        "Sunday, 06-Nov-94 08:49:37 CET" nil)))
 
 (deftest vary-test
   (let [vary (juxt.reap.alpha.rfc7231/vary {})]
@@ -232,6 +237,7 @@
     (are [input expected]
         (= expected (decode (re/input input)))
         "Sun Nov  6 08:49:37 1994"
+        #:juxt.http
         {:asctime-date "Sun Nov  6 08:49:37 1994"
          :day-name "Sun"
          :day " 6"
@@ -254,6 +260,7 @@
 (deftest date1-test
   (is
    (=
+    #:juxt.http
     {:day "30" :month "Sep" :year "2002"}
     ((:juxt.reap/decode (rfc7231/date1 {}))
      (re/input "30 Sep 2002")))))
@@ -261,6 +268,7 @@
 (deftest date2-test
   (is
    (=
+    #:juxt.http
     {:day "10" :month "Apr" :year "82"}
     ((:juxt.reap/decode (rfc7231/date2 {}))
      (re/input "10-Apr-82")))))
@@ -268,6 +276,7 @@
 (deftest date3-test
   (is
    (=
+    #:juxt.http
     {:day " 6" :month "Nov"}
     ((:juxt.reap/decode (rfc7231/date3 {}))
      (re/input "Nov  6"))))
@@ -276,6 +285,7 @@
      (re/input "Nov 6"))))
   (is
    (=
+    #:juxt.http
     {:day "12" :month "Jun"}
     ((:juxt.reap/decode (rfc7231/date3 {}))
      (re/input "Jun 12")))))
@@ -394,17 +404,19 @@
           (re/input input)))
 
       "Wed, 29 Jul 2020 10:00:00 GMT"
-      {:day "29",
-       :date #inst "2020-07-29T10:00:00.000-00:00",
-       :hour "10",
-       :second "00",
-       :imf-fixdate "Wed, 29 Jul 2020 10:00:00 GMT",
-       :month "Jul",
-       :day-name "Wed",
-       :year "2020",
+      #:juxt.http
+      {:day "29"
+       :date #inst "2020-07-29T10:00:00.000-00:00"
+       :hour "10"
+       :second "00"
+       :imf-fixdate "Wed, 29 Jul 2020 10:00:00 GMT"
+       :month "Jul"
+       :day-name "Wed"
+       :year "2020"
        :minute "00"}
 
       "120"
+      #:juxt.http
       {:delay-seconds "120"}))
 
 (deftest qvalue-test
