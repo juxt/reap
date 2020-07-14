@@ -377,7 +377,7 @@
 (def date http-date)
 
 ;; Expect = "100-continue"
-;; TODO
+(def expect "100-continue")
 
 ;; From = mailbox
 ;; TODO
