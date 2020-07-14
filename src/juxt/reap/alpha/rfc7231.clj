@@ -27,6 +27,7 @@
 (declare imf-fixdate)
 (declare language-tag)
 (declare media-type)
+(declare method)
 (declare minute)
 (declare month)
 (declare parameter)
@@ -283,7 +284,30 @@
                (p/as-entry :juxt.http/qvalue (:juxt.reap/decode weight))))))))))))}))
 
 ;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
-;; TODO
+(defn ^:juxt.reap/codec allow [_]
+  {:juxt.reap/decode
+   (p/optionally
+    (p/cons
+     (p/alternatives
+      (p/pattern-parser (re-pattern ","))
+      (p/array-map
+       :juxt.http/method
+       (p/pattern-parser (re-pattern method))))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser (re-pattern OWS)))
+        (p/ignore
+         (p/pattern-parser (re-pattern ",")))
+        (p/optionally
+         (p/array-map
+          :juxt.http/method
+          (p/first
+           (p/sequence-group
+            (p/ignore
+             (p/pattern-parser (re-pattern OWS)))
+            (p/pattern-parser (re-pattern method)))))))))))})
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
 ;; TODO

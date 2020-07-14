@@ -119,6 +119,14 @@
      #:juxt.http{:language-range "en-US", :qvalue 0.7}
      #:juxt.http{:language-range "*"}]))
 
+(deftest allow-test
+  (is
+   (= [#:juxt.http{:method "GET"}
+       #:juxt.http{:method "HEAD"}
+       #:juxt.http{:method "PUT"}]
+      ((:juxt.reap/decode (rfc7231/allow {}))
+       (re/input "GET, HEAD, PUT")))))
+
 (deftest content-encoding-test
   (is
    (= [#:juxt.http{:content-coding "gzip"}
