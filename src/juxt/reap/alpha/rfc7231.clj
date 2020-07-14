@@ -22,6 +22,7 @@
 (declare date3)
 (declare day)
 (declare day-name)
+(declare delay-seconds)
 (declare hour)
 (declare http-date)
 (declare imf-fixdate)
@@ -444,16 +445,21 @@
 (def max-forwards (re/re-compose "%s+" DIGIT))
 
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
-;; TODO
 
 ;; RWS = <RWS, see [RFC7230], Section 3.2.3>
-;; TODO
 
 ;; Referer = absolute-URI / partial-URI
 ;; TODO
 
 ;; Retry-After = HTTP-date / delay-seconds
-;; TODO
+(defn ^:juxt.reap/codec retry-after [opts]
+  (let [http-date (http-date opts)]
+    {:juxt.reap/decode
+     (p/alternatives
+      (:juxt.reap/decode http-date)
+      (p/array-map
+       :delay-seconds
+       (p/pattern-parser (re-pattern delay-seconds))))}))
 
 ;; Server = product *( RWS ( product / comment ) )
 (defn ^:juxt.reap/codec server [opts]
@@ -674,7 +680,7 @@
       (map #(format "\\x%02X" %) (map int day))))))
 
 ;; delay-seconds = 1*DIGIT
-;; TODO
+(def delay-seconds (re/re-compose "%s+" DIGIT))
 
 ;; field-name    = <field-name, see [RFC7230], Section 3.2>
 

@@ -387,6 +387,26 @@
   ;; TODO
   )
 
+(deftest retry-after-test
+  (are [input expected]
+      (= expected
+         ((:juxt.reap/decode (rfc7231/retry-after {}))
+          (re/input input)))
+
+      "Wed, 29 Jul 2020 10:00:00 GMT"
+      {:day "29",
+       :date #inst "2020-07-29T10:00:00.000-00:00",
+       :hour "10",
+       :second "00",
+       :imf-fixdate "Wed, 29 Jul 2020 10:00:00 GMT",
+       :month "Jul",
+       :day-name "Wed",
+       :year "2020",
+       :minute "00"}
+
+      "120"
+      {:delay-seconds "120"}))
+
 (deftest qvalue-test
   (is (re-matches (re-pattern rfc7231/qvalue) "1"))
   (is (re-matches (re-pattern rfc7231/qvalue) "1.000"))
