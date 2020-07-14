@@ -10,11 +10,14 @@
 
 (set! *warn-on-reflection* true)
 
+(declare OWS)
+
 ;; RFC 7230
 
 ;; Appendix B.  Collected ABNF
 
 ;; BWS = OWS
+(def BWS OWS)
 
 ;; Connection = *( "," OWS ) connection-option *( OWS "," [ OWS
 ;;  connection-option ] )
