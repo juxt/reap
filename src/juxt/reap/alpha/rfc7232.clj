@@ -55,11 +55,6 @@
                 :juxt.http/entity-tag
                 (:juxt.reap/decode entity-tag))))))))))))}))
 
-(comment
-  [((:juxt.reap/decode (if-match {})) (re/input "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\""))
-   ((:juxt.reap/decode (if-match {})) (re/input "\"xyzzy\""))
-   ((:juxt.reap/decode (if-match {})) (re/input "*"))])
-
 ;; If-Modified-Since = HTTP-date
 (def if-modified-since http-date)
 
