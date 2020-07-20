@@ -376,7 +376,7 @@
 ;; TODO
 
 ;; Content-Type = media-type
-(def content-type media-type)
+(def content-type #'media-type)
 
 ;; Date = HTTP-date
 (def date http-date)
@@ -397,14 +397,18 @@
     {:juxt.reap/decode
      (p/alternatives
       (:juxt.reap/decode imf-fixdate)
-      (:juxt.reap/decode obs-date))}))
+      (:juxt.reap/decode obs-date))
+     :juxt.reap/encode
+     (fn [http-date]
+       ((:juxt.reap/encode imf-fixdate)
+        http-date)
+       )}))
 
 ;; IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
 (defn ^:juxt.reap/codec imf-fixdate [_]
   (let [formatter (.withZone
                    java.time.format.DateTimeFormatter/RFC_1123_DATE_TIME
-                   (java.time.ZoneId/of "GMT")
-                   )]
+                   (java.time.ZoneId/of "GMT"))]
     {:juxt.reap/decode
      (p/comp
       ;; TODO: Do the same for for obs-date
@@ -439,7 +443,11 @@
          :year "year"
          :hour "hour"
          :minute "minute"
-         :second "second"}}))}))
+         :second "second"}}))
+     :juxt.reap/encode
+     (fn [m]
+       (when-let [date (:juxt.http/date m)]
+         (. formatter format (. date toInstant))))}))
 
 ;; obsolete
 
