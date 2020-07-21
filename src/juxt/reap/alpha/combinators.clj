@@ -83,6 +83,19 @@
   (fn [matcher]
     (when (some? (parser matcher)) :ignore)))
 
+(defn expect [message parser]
+  (fn [^Matcher matcher]
+    (let [result (parser matcher)]
+      (if (some? result)
+        result
+        (throw
+         (ex-info
+          message
+          {:matcher matcher
+           :message message
+           :start (.regionStart matcher)
+           :end (.regionEnd matcher)}))))))
+
 (defn pattern-parser
   ([^Pattern pat]
    (pattern-parser pat {}))
