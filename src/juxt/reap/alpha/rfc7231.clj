@@ -446,7 +446,7 @@
          :second "second"}}))
      :juxt.reap/encode
      (fn [m]
-       (when-let [date (:juxt.http/date m)]
+       (when-let [^java.util.Date date (:juxt.http/date m)]
          (. formatter format (. date toInstant))))}))
 
 ;; obsolete
