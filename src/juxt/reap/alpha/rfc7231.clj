@@ -808,6 +808,12 @@
     (:juxt.reap/decode (rfc850-date opts))
     (:juxt.reap/decode (asctime-date opts)))})
 
+;; TODO: https://tools.ietf.org/html/rfc7231#section-7.1.1.1
+   ;; Recipients of a timestamp value in rfc850-date format, which uses a
+   ;; two-digit year, MUST interpret a timestamp that appears to be more
+   ;; than 50 years in the future as representing the most recent year in
+   ;; the past that had the same last two digits.
+
 ;; parameter = token "=" ( token / quoted-string )
 (defn ^:juxt.reap/codec parameter
   "Return a parameter parser that parses into map containing :name
