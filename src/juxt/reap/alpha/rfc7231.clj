@@ -425,7 +425,21 @@
         (str
          (format "(?<dayname>%s)" day-name)
          (re/re-concat "," SP)
-         (format "(?<day>%s)" day)
+         ;; Strictly speaking, we should insist on a 2-digit day
+         ;; number. However, java.time.format.DateTimeFormat/RFC_1123_DATE_TIME
+         ;; generate days with 1 digit, for single digit days. There could be
+         ;; other examples of date formatters that don't strictly conform. RFC
+         ;; 7231 states "Recipients of timestamp values are encouraged to be
+         ;; robust in parsing timestamps unless otherwise restricted by the
+         ;; field definition.  For example, messages are occasionally forwarded
+         ;; over HTTP from a non-HTTP source that might generate any of the date
+         ;; and time specifications defined by the Internet Message
+         ;; Format.". Therefore, we relax the DIGIT{2} of day to use DIGIT{1,2}
+         ;; here instead. In future, reap could include a 'strict' option to
+         ;; switch between enforcing strict conformance and being more
+         ;; permissive (see Postel's Law:
+         ;; https://en.wikipedia.org/wiki/Robustness_principle).
+         (format "(?<day>%s)" (re/re-compose "%s{1,2}" DIGIT))
          SP
          (format "(?<month>%s)" month)
          SP
