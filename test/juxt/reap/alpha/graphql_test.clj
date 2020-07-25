@@ -29,11 +29,14 @@
 }
 ")))
 
+(deftest int-value-test
+  (is (= 2891 (reap/decode g/IntValue "   2891   "))))
+
 ;; TODO: Parse a full Document (list of Definitions)
 #_(deftest document-test
-  (is
-   (reap/decode g/Document
-                "query:
+    (is
+     (reap/decode g/Document
+                  "query:
     query IntrospectionQuery {
       __schema {
 
