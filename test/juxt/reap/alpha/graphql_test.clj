@@ -37,6 +37,22 @@
 (deftest int-value-test
   (is (= 2891 (reap/decode g/IntValue "   2891   "))))
 
+(reap/decode g/Document
+                  "
+    query IntrospectionQuery {
+      __schema {
+        queryType { name }
+        mutationType { name }
+        subscriptionType { name }
+        types {
+          ...FullType
+        }
+      }
+    }
+
+
+  ")
+
 #_(reap/decode g/Document
                   "
     query IntrospectionQuery {

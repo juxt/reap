@@ -161,10 +161,7 @@
   (p/first
    (p/sequence-group
     (p/ignore
-     (as-token
-      (p/pattern-parser
-       (re-pattern
-        "\\{"))))
+     (token "{"))
 
     (p/comp
      vec
@@ -178,12 +175,11 @@
        )))
 
     (p/ignore
-     (p/expect
-      "Did you forget a closing brace?"
-      (as-token
-       (p/pattern-parser
-        (re-pattern
-         "\\}"))))))))
+     (token "}")
+
+     #_(p/expect
+        "Did you forget a closing brace?"
+        (token "}"))))))
 
 
 ;; 2.5 Fields
@@ -218,9 +214,9 @@
 (def Arguments
   (p/first
    (p/sequence-group
-    (p/ignore (p/pattern-parser #"\("))
+    (p/ignore (token "("))
     (p/zero-or-more #'Argument)
-    (p/ignore (p/pattern-parser #"\)")))))
+    (p/ignore (token ")")))))
 
 (comment
   (Arguments (re/input "(name:4, foo:10)")))
@@ -232,7 +228,7 @@
    {}
    (p/sequence-group
     (p/as-entry :name Name)
-    (p/ignore (p/pattern-parser (re-pattern ":")))
+    (p/ignore (token ":"))
     (p/as-entry :value #'Value)
     ))
   )
@@ -333,9 +329,10 @@
 
 (def VariableDefinitions
   (p/sequence-group
+   (token "(")
    (p/pattern-parser #"\(")
    (p/zero-or-more VariableDefinition)
-   (p/pattern-parser #"\)")))
+   (token ")")))
 
 ;; 2.11 Type References
 
