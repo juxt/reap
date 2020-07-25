@@ -4,7 +4,8 @@
   (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map seq apply merge array-map some contains? into])
   (:require [clojure.core :as cc]
             [clojure.string :as str]
-            [juxt.reap.alpha.regex :as re])
+            [juxt.reap.alpha.regex :as re]
+            [juxt.reap.alpha.combinators :as p])
   (:import [java.util.regex Pattern Matcher]))
 
 (set! *warn-on-reflection* true)
@@ -138,6 +139,11 @@
                   (.end ^Matcher matcher)
                   (.regionEnd ^Matcher matcher))
          res)))))
+
+(defn literal-string [s]
+  (p/pattern-parser
+   (re-pattern
+    (format "\\Q%s\\E" s))))
 
 (defn first [parser]
   (fn [matcher]
