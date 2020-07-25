@@ -65,6 +65,9 @@
     p
     (p/ignore (p/pattern-parser Ignored*)))))
 
+(defn token [s]
+  (as-token (p/string-literal s)))
+
 ;; 2.1.8 Punctuators
 
 (def Punctuator
@@ -128,7 +131,7 @@
      (p/optionally
       (p/as-entry
        :name
-       Name))
+       NameToken))
      (p/optionally
       (p/as-entry
        :variable-definitions
@@ -146,9 +149,9 @@
 
 (def OperationType
   (p/alternatives
-   (p/literal-string "query")
-   (p/literal-string "mutation")
-   (p/literal-string "subscription")))
+   (token "query")
+   (token "mutation")
+   (token "subscription")))
 
 ;; 2.4 Selection Sets
 
@@ -248,7 +251,7 @@
 
 (def FragmentDefinition
   (p/sequence-group
-   (p/literal-string "fragment")
+   (token "fragment")
    FragmentName
 ;;   TypeCondition
 ;;   Directives
@@ -312,18 +315,18 @@
 
 (def DefaultValue
   (p/sequence-group
-   (p/literal-string "=")
+   (token "=")
    Value))
 
 (def Variable
   (p/sequence-group
-   (p/literal-string "$")
+   (token "$")
    NameToken))
 
 (def VariableDefinition
   (p/sequence-group
    Variable
-   (p/literal-string ":")
+   (token ":")
    #'Type
    (p/optionally
     DefaultValue)))
@@ -350,20 +353,20 @@
 
 (def ListType
   (p/sequence-group
-   (p/literal-string "[")
+   (token "[")
    Type
-   (p/literal-string "]")))
+   (token "]")))
 
 (def NonNullType
   (p/alternatives
-   (p/sequence-group NamedType (p/literal-string "!"))
-   (p/sequence-group ListType (p/literal-string "!"))))
+   (p/sequence-group NamedType (token "!"))
+   (p/sequence-group ListType (token "!"))))
 
 ;; 2.12 Directives
 
 (def Directive
   (p/sequence-group
-   (p/literal-string "@")
+   (token "@")
    NameToken
    Arguments))
 

@@ -27,16 +27,76 @@
     }
   }
 }
-")))
+"))
+  (is
+   (reap/decode
+    g/OperationDefinition
+    "  query    IntrospectionQuery
+{       }     ")))
 
 (deftest int-value-test
   (is (= 2891 (reap/decode g/IntValue "   2891   "))))
 
+#_(reap/decode g/Document
+                  "
+    query IntrospectionQuery {
+      __schema {
+
+        queryType { name }
+        mutationType { name }
+        subscriptionType { name }
+        types {
+          ...FullType
+        }
+        directives {
+          name
+          description
+
+          locations
+          args {
+            ...InputValue
+          }
+        }
+      }
+    }
+
+
+  ")
+
 ;; TODO: Parse a full Document (list of Definitions)
+#_(deftest query-test
+    (is
+     (reap/decode g/Document
+                  "
+    query IntrospectionQuery {
+      __schema {
+
+        queryType { name }
+        mutationType { name }
+        subscriptionType { name }
+        types {
+          ...FullType
+        }
+        directives {
+          name
+          description
+
+          locations
+          args {
+            ...InputValue
+          }
+        }
+      }
+    }
+
+
+  ")))
+
+
 #_(deftest document-test
     (is
      (reap/decode g/Document
-                  "query:
+                  "
     query IntrospectionQuery {
       __schema {
 

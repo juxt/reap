@@ -140,7 +140,7 @@
                   (.regionEnd ^Matcher matcher))
          res)))))
 
-(defn literal-string [s]
+(defn string-literal [s]
   (p/pattern-parser
    (re-pattern
     (format "\\Q%s\\E" s))))
