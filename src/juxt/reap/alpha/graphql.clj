@@ -92,12 +92,13 @@
 
 ;; 2.2 Document
 
-(declare Definition)
+(declare OperationDefinition)
 
-(def Document
-  (p/sequence-group Definition))
-
-(declare ExecutableDefinition)
+(def ExecutableDefinition
+  (p/alternatives
+   #'OperationDefinition
+   ;; FragmentDefinition
+   ))
 
 (def Definition
   (p/alternatives
@@ -106,13 +107,8 @@
 ;;   TypeSystemExtension
    ))
 
-(declare OperationDefinition)
-
-(def ExecutableDefinition
-  (p/alternatives
-   OperationDefinition
-   ;; FragmentDefinition
-   ))
+(def Document
+  (p/sequence-group Definition))
 
 ;; 2.3 Operations
 
@@ -136,11 +132,11 @@
      (p/optionally
       (p/as-entry
        :variable-definitions
-       VariableDefinitions))
+       #'VariableDefinitions))
      (p/optionally
       (p/as-entry
        :directives
-       Directives))
+       #'Directives))
      (p/as-entry
       :selection-set
       #'SelectionSet))
@@ -243,6 +239,21 @@
   (Argument (re/input "id: 4")))
 
 
+;; 2.8 Fragments
+
+(def FragmentName
+  (p/comp
+   (fn [res] (when-not (= res "on") res))
+   Name))
+
+(def FragmentDefinition
+  (p/sequence-group
+   (p/literal-string "fragment")
+   FragmentName
+;;   TypeCondition
+;;   Directives
+   SelectionSet))
+
 ;; 2.9 Input Values
 
 (declare BooleanValue)
@@ -295,6 +306,58 @@
 
 (def IntValueToken (as-token IntValue))
 
+;; 2.10 Variables
+
+(declare Type)
+
+(def DefaultValue
+  (p/sequence-group
+   (p/literal-string "=")
+   Value))
+
+(def Variable
+  (p/sequence-group
+   (p/literal-string "$")
+   NameToken))
+
+(def VariableDefinition
+  (p/sequence-group
+   Variable
+   (p/literal-string ":")
+   #'Type
+   (p/optionally
+    DefaultValue)))
+
+(def VariableDefinitions
+  (p/sequence-group
+   (p/pattern-parser #"\(")
+   (p/zero-or-more VariableDefinition)
+   (p/pattern-parser #"\)")))
+
+;; 2.11 Type References
+
+(declare NamedType)
+(declare ListType)
+(declare NonNullType)
+
+(def Type
+  (p/alternatives
+   NamedType
+   ListType
+   NonNullType))
+
+(def NamedType Name)
+
+(def ListType
+  (p/sequence-group
+   (p/literal-string "[")
+   Type
+   (p/literal-string "]")))
+
+(def NonNullType
+  (p/alternatives
+   (p/sequence-group NamedType (p/literal-string "!"))
+   (p/sequence-group ListType (p/literal-string "!"))))
 
 ;; 2.12 Directives
 
@@ -358,22 +421,7 @@
 
 
 
-;; 2.8 Fragments
 
-(declare FragmentName)
-
-(def FragmentDefinition
-  (p/sequence-group
-   (p/literal-string "fragment")
-   FragmentName
-;;   TypeCondition
-;;   Directives
-   SelectionSet))
-
-(def FragmentName
-  (p/comp
-   (fn [res] (when-not (= res "on") res))
-   Name))
 
 
 
