@@ -139,6 +139,11 @@
                   (.regionEnd ^Matcher matcher))
          res)))))
 
+(defn string-literal [s]
+  (pattern-parser
+   (re-pattern
+    (format "\\Q%s\\E" s))))
+
 (defn first [parser]
   (fn [matcher]
     (cc/first
