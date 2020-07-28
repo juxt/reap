@@ -218,11 +218,15 @@
 (declare Argument)
 
 (def Arguments
-  (p/first
-   (p/sequence-group
-    (p/ignore (token "("))
-    (p/zero-or-more #'Argument)
-    (p/ignore (token ")")))))
+  (p/into
+   {}
+   (p/map
+    (juxt :name :value)
+    (p/first
+     (p/sequence-group
+      (p/ignore (token "("))
+      (p/zero-or-more #'Argument)
+      (p/ignore (token ")")))))))
 
 (comment
   (Arguments (re/input "(name:4, foo:10)")))
