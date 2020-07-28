@@ -49,9 +49,9 @@
   (p/alternatives
    (p/array-map :punctuator Punctuator)
    (p/array-map :name Name)
-   (p/array-map :int-value IntValue)
+   (p/array-map :int-value #'IntValue)
    ;;(p/array-map :float-value FloatValue)
-   (p/array-map :string-value StringValue)))
+   (p/array-map :string-value #'StringValue)))
 
 ;; 2.1.7 Ignored Tokens
 
@@ -296,8 +296,8 @@
 (def Value
   (p/alternatives
    #'IntValue
-   BooleanValue
-   StringValue))
+   #'BooleanValue
+   #'StringValue))
 
 ;; TODO: ValueToken?
 
