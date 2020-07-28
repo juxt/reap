@@ -394,7 +394,8 @@
 
 (def Directive
   (p/sequence-group
-   (token "@")
+   (p/ignore
+    (token "@"))
    NameToken
    Arguments))
 
