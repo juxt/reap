@@ -400,7 +400,11 @@
    Arguments))
 
 (def Directives
-  (p/zero-or-more Directive))
+  (p/into
+   {}
+   (p/comp
+    (comp seq vec)
+    (p/zero-or-more Directive))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
