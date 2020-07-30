@@ -31,7 +31,7 @@
 
 ;; 2.1.4 Comments
 
-;; TODO
+(def Comment #"\#[\u0009\u0020-\uFFFF]*")
 
 ;; 2.1.5 Insignificant Commas
 
@@ -56,7 +56,7 @@
 ;; 2.1.7 Ignored Tokens
 
 (def Ignored*
-  (re-pattern (format "(?:%s|%s|%s)*" WhiteSpace LineTerminator Comma)))
+  (re-pattern (format "(?:%s|%s|%s|%s)*" WhiteSpace LineTerminator Comment Comma)))
 
 (defn as-token [p]
   (p/first
