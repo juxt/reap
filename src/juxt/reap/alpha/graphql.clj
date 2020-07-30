@@ -96,11 +96,12 @@
 ;; 2.2 Document
 
 (declare OperationDefinition)
+(declare FragmentDefinition)
 
 (def ExecutableDefinition
   (p/alternatives
    #'OperationDefinition
-   ;; FragmentDefinition
+   #'FragmentDefinition
    ))
 
 (def Definition
@@ -111,7 +112,7 @@
    ))
 
 (def Document
-  (p/sequence-group Definition))
+  (p/zero-or-more Definition))
 
 ;; 2.3 Operations
 
@@ -171,7 +172,9 @@
        (p/as-entry
         :field
         #'Field)
-       #'FragmentSpread
+       (p/as-entry
+        :fragment-spread
+        #'FragmentSpread)
        ;; TODO: InlineFragment
        )))
 
@@ -205,7 +208,7 @@
       #'Arguments))
     (p/optionally
      (p/as-entry
-      :arguments
+      :directives
       #'Directives))
     (p/optionally
      (p/as-entry
@@ -264,30 +267,49 @@
 (declare TypeCondition)
 
 (def FragmentDefinition
-  (p/sequence-group
-   (token "fragment")
-   FragmentName
-   #'TypeCondition
-   #'Directives
-   SelectionSet))
+  (p/into
+   {}
+   (p/sequence-group
+    (p/ignore
+     (token "fragment"))
+    (p/as-entry
+     :fragment-name
+     FragmentName)
+    #'TypeCondition
+    (p/as-entry
+     :directives
+     (p/optionally
+      #'Directives))
+    (p/as-entry
+     :selection-set
+     SelectionSet))))
 
 (def FragmentSpread
-  (p/sequence-group
-   (token "...")
-   FragmentName
-   #'TypeCondition
-   (p/optionally
-    Directives)
-   SelectionSet))
+  (p/into
+   {}
+   (p/sequence-group
+    (p/ignore
+     (token "..."))
+    (p/as-entry
+     :fragment-name
+     FragmentName)
+    (p/optionally
+     (p/as-entry
+      :directives
+      #'Directives)))))
 
 ;; 2.8.1 Type Conditions
 
 (declare NamedType)
 
 (def TypeCondition
-  (p/sequence-group
-   (token "on")
-   NamedType))
+  (p/first
+   (p/sequence-group
+    (p/ignore
+     (token "on"))
+    (p/as-entry
+     :named-type
+     #'NamedType))))
 
 ;; 2.9 Input Values
 
@@ -377,7 +399,7 @@
 
 (def Type
   (p/alternatives
-   NamedType
+   #'NamedType
    ListType
    NonNullType))
 
@@ -410,9 +432,10 @@
     (comp seq vec)
     (p/zero-or-more Directive))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^{:ref "2.9.3"} BooleanValue
+(def BooleanValue
   (p/comp
    #(Boolean/valueOf %)
    (p/first
@@ -426,7 +449,7 @@
 
 ;; TODO: This is an approxmiate definition - see spec for more details on
 ;; escaping rules.
-(def ^{:ref "2.9.4"} StringValue
+(def StringValue
   (p/first
    (p/sequence-group
     (p/ignore (p/pattern-parser Ignored*))
