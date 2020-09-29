@@ -7,7 +7,7 @@
  :aliases
  {:dev
   {:extra-paths ["test"]
-   :extra-deps {criterium {:mvn/version "0.4.5"}}}
+   :extra-deps {criterium/criterium {:mvn/version "0.4.5"}}}
 
   :test {:extra-paths ["test"]
          :extra-deps {com.cognitect/test-runner
@@ -16,5 +16,5 @@
          :main-opts ["-m" "cognitect.test-runner"]}
 
   :lint
-  {:extra-deps {clj-kondo {:mvn/version "RELEASE"}}
+  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "RELEASE"}}
    :main-opts ["-m" "clj-kondo.main" "--lint" "src/juxt"]}}}
