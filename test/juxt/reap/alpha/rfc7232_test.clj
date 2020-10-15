@@ -14,23 +14,19 @@
 
         "\"xyzzy\"" [#:juxt.http
                      {:entity-tag
-                      {:weak false
-                       :tag "xyzzy"
-                       :opaque-tag "\"xyzzy\""}}]
+                      {:weak? false
+                       :entity-tag "\"xyzzy\""}}]
 
-        "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\""
+        "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
         [#:juxt.http{:entity-tag
-                     {:weak false
-                      :tag "xyzzy"
-                      :opaque-tag "\"xyzzy\""}}
+                     {:weak? false
+                      :entity-tag "\"xyzzy\""}}
          #:juxt.http{:entity-tag
-                     {:weak false
-                      :tag "r2d2xxxx"
-                      :opaque-tag "\"r2d2xxxx\""}}
+                     {:weak? false
+                      :entity-tag "\"r2d2xxxx\""}}
          #:juxt.http{:entity-tag
-                     {:weak false
-                      :tag "c3piozzzz"
-                      :opaque-tag "\"c3piozzzz\""}}]
+                     {:weak? true
+                      :entity-tag "W/\"c3piozzzz\""}}]
 
         "*" #:juxt.http{:wildcard "*"})))
 
@@ -40,18 +36,15 @@
         (= expected
            (decode (re/input input)))
 
-        "W/\"xyzzy\", W/\"r2d2xxxx\", W/\"c3piozzzz\""
+        "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
         [#:juxt.http{:entity-tag
-                     {:weak true
-                      :tag "xyzzy"
-                      :opaque-tag "\"xyzzy\""}}
+                     {:weak? false
+                      :entity-tag "\"xyzzy\""}}
          #:juxt.http{:entity-tag
-                     {:weak true
-                      :tag "r2d2xxxx"
-                      :opaque-tag "\"r2d2xxxx\""}}
+                     {:weak? false
+                      :entity-tag "\"r2d2xxxx\""}}
          #:juxt.http{:entity-tag
-                     {:weak true
-                      :tag "c3piozzzz"
-                      :opaque-tag "\"c3piozzzz\""}}]
+                     {:weak? true
+                      :entity-tag "W/\"c3piozzzz\""}}]
 
         "*" #:juxt.http{:wildcard "*"})))

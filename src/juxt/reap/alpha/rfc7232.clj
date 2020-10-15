@@ -79,18 +79,12 @@
 ;; entity-tag = [ weak ] opaque-tag
 (defn entity-tag ^:juxt.reap/codec [opts]
   {:juxt.reap/decode
-   (p/into
-    {}
-    (p/sequence-group
-     (let [p (p/pattern-parser (re-pattern weak))]
-       (fn [matcher]
-         [:weak (some? (p matcher))]))
-     (p/pattern-parser
-      (re-pattern
-       (re/re-compose "%s(?<tag>[%s]*)%s" rfc5234/DQUOTE etagc rfc5234/DQUOTE)
-       )
-      {:group {:tag "tag"
-               :opaque-tag 0}})))})
+   (p/comp
+    (fn [x] (update x :weak? some?))
+    (p/pattern-parser
+     (re-pattern (re/re-compose "((?<weak>%s)?%s(?<tag>[%s]*)%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
+     {:group {:weak? "weak"
+              :entity-tag 0}}))})
 
 (comment
   ((:juxt.reap/decode (entity-tag {}))
