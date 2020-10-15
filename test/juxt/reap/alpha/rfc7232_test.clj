@@ -33,3 +33,25 @@
                       :opaque-tag "\"c3piozzzz\""}}]
 
         "*" #:juxt.http{:wildcard "*"})))
+
+(deftest if-none-match-test
+  (let [decode (:juxt.reap/decode (rfc7232/if-none-match {}))]
+    (are [input expected]
+        (= expected
+           (decode (re/input input)))
+
+        "W/\"xyzzy\", W/\"r2d2xxxx\", W/\"c3piozzzz\""
+        [#:juxt.http{:entity-tag
+                     {:weak true
+                      :tag "xyzzy"
+                      :opaque-tag "\"xyzzy\""}}
+         #:juxt.http{:entity-tag
+                     {:weak true
+                      :tag "r2d2xxxx"
+                      :opaque-tag "\"r2d2xxxx\""}}
+         #:juxt.http{:entity-tag
+                     {:weak true
+                      :tag "c3piozzzz"
+                      :opaque-tag "\"c3piozzzz\""}}]
+
+        "*" #:juxt.http{:wildcard "*"})))
