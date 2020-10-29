@@ -34,24 +34,31 @@ This will return the following data:
 
 [source,clojure]
 ----
-[#:juxt.http{:media-range "text/html"
-             :type "text"
-             :subtype "html"
-             :parameters {}}
- #:juxt.http{:media-range "application/xhtml+xml"
-             :type "application"
-             :subtype "xhtml+xml"
-             :parameters {}}
- #:juxt.http{:media-range "application/xml"
-             :type "application"
-             :subtype "xml"
-             :parameters {}
-             :qvalue 0.9}
- #:juxt.http{:media-range "*/*"
-             :type "*"
-             :subtype "*"
-             :parameters {}
-             :qvalue 0.8}]
+[#:juxt.reap.alpha.rfc7231
+ {:media-range "text/html"
+  :type "text"
+  :subtype "html"
+  :parameters {}}
+
+ #:juxt.reap.alpha.rfc7231
+ {:media-range "application/xhtml+xml"
+  :type "application"
+  :subtype "xhtml+xml"
+  :parameters {}}
+
+ #:juxt.reap.alpha.rfc7231
+ {:media-range "application/xml"
+  :type "application"
+  :subtype "xml"
+  :parameters {}
+  :qvalue 0.9}
+
+ #:juxt.reap.alpha.rfc7231
+ {:media-range "*/*"
+  :type "*"
+  :subtype "*"
+  :parameters {}
+  :qvalue 0.8}]
 ----
 
 *reap* contains parsers for most things you'd want to parse when writing web

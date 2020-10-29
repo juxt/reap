@@ -2,8 +2,8 @@
 
 (ns juxt.reap.alpha.rfc5234
   (:require
-   [juxt.reap.alpha.regex :as re]
-   [juxt.reap.alpha.interval :as i]))
+   [juxt.reap.alpha.interval :as i]
+   [juxt.reap.alpha.regex :as re]))
 
 (set! *warn-on-reflection* true)
 

@@ -2,10 +2,11 @@
 
 (ns juxt.reap.alpha.rfc7235
   (:require
+   [juxt.reap.alpha :as reap]
    [juxt.reap.alpha.combinators :as p]
+   [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [token OWS]]
-   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [SP]]
-   [juxt.reap.alpha.regex :as re]))
+   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [SP]]))
 
 (set! *warn-on-reflection* true)
 
@@ -19,18 +20,18 @@
 ;; token = <token, see [RFC7230], Section 3.2.6>
 
 ;; auth-param = token BWS "=" BWS ( token / quoted-string )
-(defn ^:juxt.reap/codec auth-param [_]
-  {:juxt.reap/decode
+(defn ^::reap/codec auth-param [_]
+  {::reap/decode
    (p/into
     {}
     (p/sequence-group
      (p/as-entry
-      :juxt.http/parameter-name
+      ::auth-param-name
       (p/pattern-parser
        (re-pattern (re/re-compose "(%s)%s=%s" token BWS BWS))
        {:group 1}))
      (p/as-entry
-      :juxt.http/parameter-value
+      ::auth-param-value
       (p/alternatives
        (p/pattern-parser (re-pattern token))
        (p/comp
@@ -50,14 +51,14 @@
 
 ;; credentials = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
 ;;  *( OWS "," [ OWS auth-param ] ) ] ) ]
-(defn ^:juxt.reap/codec credentials [opts]
+(defn ^::reap/codec credentials [opts]
   (let [auth-param (auth-param opts)]
-    {:juxt.reap/decode
+    {::reap/decode
      (p/into
       {}
       (p/sequence-group
        (p/as-entry
-        :juxt.http/auth-scheme
+        ::auth-scheme
         (p/pattern-parser
          (re-pattern auth-scheme)))
        (p/optionally
@@ -69,11 +70,11 @@
              (re/re-compose "%s" SP))))
           (p/alternatives
            (p/as-entry
-            :juxt.http/token68
+            ::token68
             (p/pattern-parser
              (re-pattern token68-with-lookahead)))
            (p/as-entry
-            :juxt.http/auth-params
+            ::auth-params
             (p/comp
              vec
              (p/optionally
@@ -84,7 +85,7 @@
                   (p/ignore
                    (p/pattern-parser
                     (re-pattern #",")))
-                  (:juxt.reap/decode auth-param))
+                  (::reap/decode auth-param))
                  (p/zero-or-more
                   (p/first
                    (p/sequence-group
@@ -96,7 +97,7 @@
                      (p/first
                       (p/sequence-group
                        (p/ignore (p/pattern-parser (re-pattern OWS)))
-                       (:juxt.reap/decode auth-param)))))))))))))))))))}))
+                       (::reap/decode auth-param)))))))))))))))))))}))
 
 ;; Authorization = credentials
 (def authorization credentials)
@@ -108,12 +109,12 @@
 ;;  OWS "," [ OWS auth-param ] ) ] ) ]
 (defn ^:juxt.reap/codec challenge [opts]
   (let [auth-param (auth-param opts)]
-    {:juxt.reap/decode
+    {::reap/decode
      (p/into
       {}
       (p/sequence-group
        (p/as-entry
-        :juxt.http/auth-scheme
+        ::auth-scheme
         (p/pattern-parser
          (re-pattern auth-scheme)))
        (p/optionally
@@ -125,11 +126,11 @@
              (re/re-compose "%s" SP))))
           (p/alternatives
            (p/as-entry
-            :juxt.http/token68
+            ::token68
             (p/pattern-parser
              (re-pattern token68-with-lookahead)))
            (p/as-entry
-            :juxt.http/auth-params
+            ::auth-params
             (p/comp
              vec
              (p/optionally
@@ -140,7 +141,7 @@
                   (p/ignore
                    (p/pattern-parser
                     (re-pattern #",")))
-                  (:juxt.reap/decode auth-param))
+                  (::reap/decode auth-param))
                  (p/zero-or-more
                   (p/first
                    (p/sequence-group
@@ -158,12 +159,12 @@
                      (p/first
                       (p/sequence-group
                        (p/ignore (p/pattern-parser (re-pattern OWS)))
-                       (:juxt.reap/decode auth-param)))))))))))))))))))}))
+                       (::reap/decode auth-param)))))))))))))))))))}))
 
 ;; WWW-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge ] )
-(defn ^:juxt.reap/codec www-authenticate [opts]
+(defn ^::reap/codec www-authenticate [opts]
   (let [challenge (challenge opts)]
-    {:juxt.reap/decode
+    {::reap/decode
      (p/first
       (p/sequence-group
        (p/ignore
@@ -172,7 +173,7 @@
           (re-pattern
            (re/re-compose ",%s" OWS)))))
        (p/cons
-        (:juxt.reap/decode challenge)
+        (::reap/decode challenge)
         (p/zero-or-more
          (p/first
           (p/sequence-group
@@ -186,10 +187,10 @@
               (p/ignore
                (p/pattern-parser
                 (re-pattern OWS)))
-              (:juxt.reap/decode challenge))))))))))}))
+              (::reap/decode challenge))))))))))}))
 
 (comment
-  (let [p (:juxt.reap/decode (www-authenticate {}))
+  (let [p (::reap/decode (www-authenticate {}))
         m (re/input "Newauth realm=\"apps\", type=1,   title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")]
     (p m)))
 

@@ -2,12 +2,12 @@
 
 (ns juxt.reap.alpha.graphql-test
   (:require
-   [juxt.reap.alpha.graphql :as g]
-   [juxt.reap.alpha.regex :as re]
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest is]]
    [juxt.reap.alpha.api :as reap]
-   [clojure.test :refer [deftest is are testing successful? run-tests]]
+   [juxt.reap.alpha.graphql :as g]
    [juxt.reap.alpha.graphql.util :as gutil]
-   [clojure.java.io :as io]))
+   [juxt.reap.alpha.regex :as re]))
 
 (deftest punctuator-test
   (is
@@ -151,7 +151,7 @@
 
   )
 
-(deftest document-test
+(deftest document2-test
   (is
    (reap/decode g/Document
                 "

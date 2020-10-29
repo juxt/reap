@@ -2,49 +2,50 @@
 
 (ns juxt.reap.alpha.rfc7232-test
   (:require
-   [clojure.test :refer [deftest is are testing]]
-   [juxt.reap.alpha.rfc7232 :as rfc7232]
-   [juxt.reap.alpha.regex :as re]))
+   [clojure.test :refer [deftest are]]
+   [juxt.reap.alpha :as reap]
+   [juxt.reap.alpha.regex :as re]
+   [juxt.reap.alpha.rfc7232 :as rfc7232]))
 
 (deftest if-match-test
-  (let [decode (:juxt.reap/decode (rfc7232/if-match {}))]
+  (let [decode (::reap/decode (rfc7232/if-match {}))]
     (are [input expected]
         (= expected
            (decode (re/input input)))
 
-        "\"xyzzy\"" [#:juxt.http
-                     {:entity-tag
-                      {:weak? false
-                       :entity-tag "\"xyzzy\""}}]
+      "\"xyzzy\"" [#::rfc7232
+                   {:entity-tag
+                    {:weak? false
+                     :entity-tag "\"xyzzy\""}}]
 
-        "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
-        [#:juxt.http{:entity-tag
-                     {:weak? false
-                      :entity-tag "\"xyzzy\""}}
-         #:juxt.http{:entity-tag
-                     {:weak? false
-                      :entity-tag "\"r2d2xxxx\""}}
-         #:juxt.http{:entity-tag
-                     {:weak? true
-                      :entity-tag "W/\"c3piozzzz\""}}]
+      "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
+      [#::rfc7232{:entity-tag
+                  {:weak? false
+                   :entity-tag "\"xyzzy\""}}
+       #::rfc7232{:entity-tag
+                  {:weak? false
+                   :entity-tag "\"r2d2xxxx\""}}
+       #::rfc7232{:entity-tag
+                  {:weak? true
+                   :entity-tag "W/\"c3piozzzz\""}}]
 
-        "*" #:juxt.http{:wildcard "*"})))
+      "*" #::rfc7232{:wildcard "*"})))
 
 (deftest if-none-match-test
-  (let [decode (:juxt.reap/decode (rfc7232/if-none-match {}))]
+  (let [decode (::reap/decode (rfc7232/if-none-match {}))]
     (are [input expected]
         (= expected
            (decode (re/input input)))
 
-        "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
-        [#:juxt.http{:entity-tag
-                     {:weak? false
-                      :entity-tag "\"xyzzy\""}}
-         #:juxt.http{:entity-tag
-                     {:weak? false
-                      :entity-tag "\"r2d2xxxx\""}}
-         #:juxt.http{:entity-tag
-                     {:weak? true
-                      :entity-tag "W/\"c3piozzzz\""}}]
+      "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
+      [#::rfc7232{:entity-tag
+                  {:weak? false
+                   :entity-tag "\"xyzzy\""}}
+       #::rfc7232{:entity-tag
+                  {:weak? false
+                   :entity-tag "\"r2d2xxxx\""}}
+       #::rfc7232{:entity-tag
+                  {:weak? true
+                   :entity-tag "W/\"c3piozzzz\""}}]
 
-        "*" #:juxt.http{:wildcard "*"})))
+      "*" #::rfc7232{:wildcard "*"})))

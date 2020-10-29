@@ -3,11 +3,12 @@
 (ns juxt.reap.alpha.rfc5646
   (:require
    [clojure.string :as str]
+   [juxt.reap.alpha :as reap]
    [juxt.reap.alpha.combinators :as p]))
 
 (defn- langtag [_]
   (p/into
-   {:juxt.http/lang-type :langtag}
+   {::lang-type :langtag}
    (p/pattern-parser
     (re-pattern
      (str
@@ -39,28 +40,27 @@
       "(?!\\p{Alnum}|-)"))
 
     {:group
-     #:juxt.http
-     {:langtag 0
-      :language "Language"
-      :code "LangCode"
-      :extlang "ExtLang"
-      :reserved "Reserved"
-      :reg-lang-subtag "RegLangSubtag"
-      :script "Script"
-      :region "Region"
-      :variant "Variant"
-      :extension "Extension"
-      :privateuse "PrivateUse"
-      :privatetag "PrivateTag"}})))
+     #::{:langtag 0
+         :language "Language"
+         :code "LangCode"
+         :extlang "ExtLang"
+         :reserved "Reserved"
+         :reg-lang-subtag "RegLangSubtag"
+         :script "Script"
+         :region "Region"
+         :variant "Variant"
+         :extension "Extension"
+         :privateuse "PrivateUse"
+         :privatetag "PrivateTag"}})))
 
 (defn- privateuse [_]
   (p/into
-   {:juxt.http/lang-type :privateuse}
+   {::lang-type :privateuse}
    (p/pattern-parser
     #"x-(\p{Alnum}{1,8}(?:-\p{Alnum}{1,8})*)(?!\p{Alnum})"
     {:group
-     {:juxt.http/langtag 0
-      :juxt.http/privatetag 1}})))
+     {::langtag 0
+      ::privatetag 1}})))
 
 (defn- match-literal
   ([set]
@@ -82,7 +82,7 @@
 
 (defn- irregular [opts]
   (p/into
-   {:juxt.http/lang-subtype :irregular}
+   {::lang-subtype :irregular}
    (match-literal
     #{"en-GB-oed"
       "i-ami"
@@ -101,11 +101,11 @@
       "sgn-BE-FR"
       "sgn-BE-NL"
       "sgn-CH-DE"}
-    (conj opts [:group {:juxt.http/langtag 0}]))))
+    (conj opts [:group {::langtag 0}]))))
 
 (defn- regular [opts]
   (p/into
-   {:juxt.http/lang-subtype :regular}
+   {::lang-subtype :regular}
    (match-literal
     #{"art-lojban"
       "cel-gaulish"
@@ -116,17 +116,17 @@
       "zh-min"
       "zh-min-nan"
       "zh-xiang"}
-    (conj opts [:group {:juxt.http/langtag 0}]))))
+    (conj opts [:group {::langtag 0}]))))
 
 (defn- grandfathered [opts]
   (p/into
-   {:juxt.http/lang-type :grandfathered}
+   {::lang-type :grandfathered}
    (p/alternatives
     (irregular opts)
     (regular opts))))
 
-(defn ^:juxt.reap/codec language-tag [opts]
-  {:juxt.reap/decode
+(defn ^::reap/codec language-tag [opts]
+  {::reap/decode
    (p/alternatives
     (langtag opts)
     (privateuse opts)

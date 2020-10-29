@@ -1,10 +1,14 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.alpha.combinators
-  (:refer-clojure :exclude [comp sequence cons concat filter list constantly first second map seq apply merge array-map some contains? into])
-  (:require [clojure.core :as cc]
-            [clojure.string :as str]
-            [juxt.reap.alpha.regex :as re])
+  (:refer-clojure
+   :exclude [comp sequence cons concat filter
+             list constantly first second map seq
+             apply merge array-map some contains? into])
+  (:require
+   [clojure.core :as cc]
+   [clojure.string :as str]
+   [juxt.reap.alpha :as reap])
   (:import [java.util.regex Pattern Matcher]))
 
 (set! *warn-on-reflection* true)
@@ -201,4 +205,4 @@
   (fn [matcher]
     (let [s (parser matcher)]
       (cond-> s
-        (not (:juxt.reap/decode-preserve-case opts)) str/lower-case))))
+        (not (::reap/decode-preserve-case opts)) str/lower-case))))
