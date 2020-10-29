@@ -13,7 +13,7 @@ lint2:
 	clj-kondo --lint src/juxt --lint test/juxt
 
 watch:
-	find . -name "*.clj" | entr make test
+	find . -name "*.clj" | entr -c make test
 
 clean:
 	rm /tmp/reap-test-status
