@@ -257,7 +257,7 @@
          {}
          (p/sequence-group
           (p/as-entry
-           ::language-range
+           ::rfc4647/language-range
            (rfc4647/language-range opts))
           (p/optionally
            (p/as-entry
@@ -278,7 +278,7 @@
                (p/pattern-parser
                 (re-pattern OWS)))
               (p/as-entry
-               ::language-range
+               ::rfc4647/language-range
                (rfc4647/language-range opts))
               (p/optionally
                (p/as-entry ::qvalue (::reap/decode weight))))))))))))}))
@@ -718,7 +718,7 @@
 (def ^String hour (re/re-compose "%s{2}" DIGIT))
 
 ;; language-range = <language-range, see [RFC4647], Section 2.1>
-;; TODO
+(def language-range rfc4647/language-range)
 
 ;; language-tag = <Language-Tag, see [RFC5646], Section 2.1>
 (def language-tag rfc5646/language-tag)
@@ -888,7 +888,6 @@
 
 ;; qvalue = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
 (def qvalue (re/re-compose "(?:0(?:\\.%s{0,3})?|1(?:\\.[0]{0,3})?)(?![0-9\\.])" DIGIT))
-
 
 ;; rfc850-date = day-name-l "," SP date2 SP time-of-day SP GMT
 (defn ^::reap/codec rfc850-date [_]
