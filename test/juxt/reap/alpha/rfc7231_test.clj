@@ -4,8 +4,9 @@
   (:require
    [clojure.test :refer [deftest is are testing]]
    [juxt.reap.alpha :as reap]
-   [juxt.reap.alpha.rfc7231 :as rfc7231]
+   [juxt.reap.alpha.rfc4647 :as rfc4647]
    [juxt.reap.alpha.rfc5646 :as rfc5646]
+   [juxt.reap.alpha.rfc7231 :as rfc7231]
    [juxt.reap.alpha.regex :as re]))
 
 (deftest media-range-without-parameters-test
@@ -84,12 +85,15 @@
          ((::reap/decode (rfc7231/accept-encoding {}))
           (re/input "")))))
 
+((::reap/decode (rfc7231/accept-language {}))
+ (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3"))
+
 (deftest accept-language-test
   (is
-   (= [#::rfc7231{:language-range "en-GB"}
-       #::rfc7231{:language-range "en-US" :qvalue 0.8}
-       #::rfc7231{:language-range "en" :qvalue 0.5}
-       #::rfc7231{:language-range "it" :qvalue 0.3}]
+   (= [{::rfc4647/language-range "en-GB"}
+       {::rfc4647/language-range "en-US" ::rfc7231/qvalue 0.8}
+       {::rfc4647/language-range "en" ::rfc7231/qvalue 0.5}
+       {::rfc4647/language-range "it" ::rfc7231/qvalue 0.3}]
       ((::reap/decode (rfc7231/accept-language {}))
        (re/input "en-GB,en-US;q=0.8,en;q=0.5,it;q=0.3"))))
 
@@ -97,29 +101,29 @@
       (= expected
          ((::reap/decode (rfc7231/accept-language {})) (re/input input)))
 
-    ", , de ;q=0.7" [#::rfc7231{:language-range "de" :qvalue 0.7}]
+    ", , de ;q=0.7" [{::rfc4647/language-range "de" ::rfc7231/qvalue 0.7}]
 
-    "en-US ; q=1.0 ," [#::rfc7231{:language-range "en-US", :qvalue 1.0}]
+    "en-US ; q=1.0 ," [{::rfc4647/language-range "en-US", ::rfc7231/qvalue 1.0}]
 
-    "*;q=0.9 , fr;q=0.9" [#::rfc7231{:language-range "*", :qvalue 0.9}
-                          #::rfc7231{:language-range "fr", :qvalue 0.9}]
+    "*;q=0.9 , fr;q=0.9" [{::rfc4647/language-range "*", ::rfc7231/qvalue 0.9}
+                          {::rfc4647/language-range "fr", ::rfc7231/qvalue 0.9}]
 
-    ", *" [#::rfc7231{:language-range "*"}]
+    ", *" [{::rfc4647/language-range "*"}]
 
-    ", , fr ;q=0.7" [#::rfc7231{:language-range "fr", :qvalue 0.7}]
+    ", , fr ;q=0.7" [{::rfc4647/language-range "fr", ::rfc7231/qvalue 0.7}]
 
-    "de;q=1.0" [#::rfc7231{:language-range "de", :qvalue 1.0}]
+    "de;q=1.0" [{::rfc4647/language-range "de", ::rfc7231/qvalue 1.0}]
 
-    ", de;q=1.0" [#::rfc7231{:language-range "de", :qvalue 1.0}]
+    ", de;q=1.0" [{::rfc4647/language-range "de", ::rfc7231/qvalue 1.0}]
 
-    "en-US ;q=0.7 ," [#::rfc7231{:language-range "en-US", :qvalue 0.7}]
+    "en-US ;q=0.7 ," [{::rfc4647/language-range "en-US", ::rfc7231/qvalue 0.7}]
 
-    ", * ," [#::rfc7231{:language-range "*"}]
+    ", * ," [{::rfc4647/language-range "*"}]
 
     ", * ,en-US ;q=0.7 , *"
-    [#::rfc7231{:language-range "*"}
-     #::rfc7231{:language-range "en-US", :qvalue 0.7}
-     #::rfc7231{:language-range "*"}]))
+    [{::rfc4647/language-range "*"}
+     {::rfc4647/language-range "en-US", ::rfc7231/qvalue 0.7}
+     {::rfc4647/language-range "*"}]))
 
 (deftest allow-test
   (is
