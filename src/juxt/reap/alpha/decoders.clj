@@ -93,3 +93,19 @@
   (when s
     ((::reap/decode precompiled-if-none-match)
      (re/input s))))
+
+;; Convenience and utility functions
+
+(defn decode-accept-headers
+  "Return a map of headers in a Ring request."
+  [request]
+  (into
+   {}
+   (for [[header decoder]
+         [["accept" accept]
+          ["accept-charset" accept-charset]
+          ["accept-encoding" accept-encoding]
+          ["accept-language" accept-language]]
+         :let [hv (get-in request [:headers header])]
+         :when hv]
+     [header (decoder hv)])))
