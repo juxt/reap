@@ -96,7 +96,7 @@
 
 ;; Convenience and utility functions
 
-(defn decode-accept-headers
+(defn request->decoded-accept-headers
   "Return a map of headers in a Ring request."
   [request]
   (into
