@@ -1,9 +1,9 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.alpha.decoders-test
+(ns juxt.reap.alpha.ring-test
   (:require
    [clojure.test :refer [deftest is]]
-   [juxt.reap.alpha.decoders :as decoders]))
+   [juxt.reap.alpha.ring :as ring]))
 
 (deftest request->decoded-preferences-test
   (is
@@ -14,11 +14,11 @@
        :type "application",
        :subtype "json",
        :parameters {}}]}
-    (decoders/request->decoded-preferences
+    (ring/request->decoded-preferences
      {:headers {"accept" "application/json"}}))))
 
 (deftest request->delay-decoded-preferences-test
-  (let [result (decoders/request->delay-decoded-preferences
+  (let [result (ring/request->delay-decoded-preferences
                 {:headers {"accept" "application/json"}})]
     (is result)
     (is (delay? (get result "accept")))
