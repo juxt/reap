@@ -124,6 +124,11 @@
   [s]
   (string/replace s (re-pattern quoted-pair) #(subs % 1)))
 
+(defn escape-quoted-string
+  "Take a string and escape DQUOTEs."
+  [s]
+  (string/replace s "\"" "\\\""))
+
 ;; ctext = HTAB / SP / %x21-27 ; '!'-'''
 ;;  / %x2A-5B ; '*'-'['
 ;;  / %x5D-7E ; ']'-'~'

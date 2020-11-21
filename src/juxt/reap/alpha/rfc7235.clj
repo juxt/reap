@@ -36,7 +36,16 @@
        (p/pattern-parser (re-pattern token))
        (p/comp
         rfc7230/unescape-quoted-string
-        (p/pattern-parser (re-pattern rfc7230/quoted-string) {:group 1}))))))})
+        (p/pattern-parser (re-pattern rfc7230/quoted-string) {:group 1}))))))
+   ::reap/encode
+   (let [tok (re-pattern token)]
+     (fn [{::keys [auth-param-name auth-param-value]}]
+       (str
+        auth-param-name
+        "="
+        (if (re-matches tok auth-param-value)
+          auth-param-value
+          (str "\"" (rfc7230/escape-quoted-string auth-param-value) "\"")))))})
 
 ;; auth-scheme = token
 (def auth-scheme token)

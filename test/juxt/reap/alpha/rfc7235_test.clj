@@ -33,3 +33,17 @@
 
       (let [p (::reap/decode (rfc7235/www-authenticate {}))]
         (p (re/input "Newauth realm=\"apps\", type=1, \t title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")))))))
+
+(defn re-encodes? [input]
+  (let [auth-param (rfc7235/auth-param nil)
+        decoded ((::reap/decode auth-param) (re/input input))
+        re-encoded ((::reap/encode auth-param) decoded)]
+    (= input re-encoded)))
+
+(deftest auth-param-encoding-test
+  (is (re-encodes? "a=b"))
+  (is (re-encodes? "a=\"b\\\" a  \"")))
+
+(comment
+  ((::reap/encode (rfc7235/auth-param nil))
+   #::rfc7235{:auth-param-name "foo" :auth-param-value "bar"}))
