@@ -2,9 +2,15 @@
 
 (ns juxt.reap.alpha.ring
   (:require
-   [juxt.reap.alpha.decoders :as rdec]))
+   [juxt.reap.alpha.regex :as re]
+   [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]))
 
 ;; Convenience and utility functions
+
+(def accept (rfc7231/accept {}))
+(def accept-charset (rfc7231/accept-charset {}))
+(def accept-encoding (rfc7231/accept-encoding {}))
+(def accept-language (rfc7231/accept-language {}))
 
 (defn request-preference-decoders
   "Return a map mapping Ring accept header names to their corresponding
@@ -13,10 +19,10 @@
   a guide to your own function."
   [request]
   (for [[header decoder]
-        [["accept" rdec/accept]
-         ["accept-charset" rdec/accept-charset]
-         ["accept-encoding" rdec/accept-encoding]
-         ["accept-language" rdec/accept-language]]
+        [["accept" accept]
+         ["accept-charset" accept-charset]
+         ["accept-encoding" accept-encoding]
+         ["accept-language" accept-language]]
         :let [pref (get-in request [:headers header])]
         :when pref]
     [header pref decoder]))
@@ -27,7 +33,7 @@
   (into
    {}
    (for [[header pref decoder] (request-preference-decoders request)]
-     [header (decoder pref)])))
+     [header (decoder (re/input pref))])))
 
 (defn request->delay-decoded-preferences
   "Same as request->decoded-preferences, but each value is delayed to avoid
@@ -37,4 +43,4 @@
   (into
    {}
    (for [[header pref decoder] (request-preference-decoders request)]
-     [header (delay (decoder pref))])))
+     [header (delay (decoder (re/input pref)))])))
