@@ -7,8 +7,7 @@
              apply merge array-map some contains? into])
   (:require
    [clojure.core :as cc]
-   [clojure.string :as str]
-   [juxt.reap.alpha :as reap])
+   [clojure.string :as str])
   (:import [java.util.regex Pattern Matcher]))
 
 (set! *warn-on-reflection* true)
@@ -205,4 +204,4 @@
   (fn [matcher]
     (let [s (parser matcher)]
       (cond-> s
-        (not (::reap/decode-preserve-case opts)) str/lower-case))))
+        (not (:juxt.reap.alpha/decode-preserve-case opts)) str/lower-case))))

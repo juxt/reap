@@ -2,7 +2,7 @@
 
 (ns juxt.reap.alpha.decoders-test
   (:require
-   [clojure.test :refer [deftest is are testing]]
+   [clojure.test :refer [deftest is]]
    [juxt.reap.alpha.decoders :as decoders]))
 
 (deftest request->decoded-preferences-test

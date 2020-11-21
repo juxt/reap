@@ -3,7 +3,7 @@
 (ns juxt.reap.alpha.encoders.rfc7235
   (:require
    [juxt.reap.alpha.rfc7235 :as rfc]
-   [juxt.reap.alpha.decoders.rfc7230 :as rfc7230 :refer [token OWS]]
+   [juxt.reap.alpha.decoders.rfc7230 :as rfc7230 :refer [token]]
    [clojure.string :as str]))
 
 ;; auth-param = token BWS "=" BWS ( token / quoted-string )

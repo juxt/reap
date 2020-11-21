@@ -2,7 +2,6 @@
 
 (ns juxt.reap.alpha.decoders
   (:require
-   [juxt.reap.alpha :as reap]
    [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
    [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]
    [juxt.reap.alpha.regex :as re]))

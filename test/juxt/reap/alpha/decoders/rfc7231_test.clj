@@ -3,7 +3,6 @@
 (ns juxt.reap.alpha.decoders.rfc7231-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [juxt.reap.alpha :as reap]
    [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
    [juxt.reap.alpha.regex :as re]))
 
@@ -291,7 +290,7 @@
      :parameters [#:juxt.reap.alpha.rfc7231{:parameter-name "FOO" :parameter-value "bar"}
                   #:juxt.reap.alpha.rfc7231{:parameter-name "Baz" :parameter-value "qu'x"}]}
     ((rfc7231/media-range
-      {::reap/decode-preserve-case true})
+      {:juxt.reap.alpha/decode-preserve-case true})
      (re/input "text/html;FOO=bar;Baz=\"qu\\'x\""))))
 
   ;; "The type, subtype, and parameter name tokens are
@@ -319,7 +318,7 @@
           :parameters [#:juxt.reap.alpha.rfc7231{:parameter-name "foo" :parameter-value "bar"}
                        #:juxt.reap.alpha.rfc7231{:parameter-name "ZIP" :parameter-value "qux"}]}
          ((rfc7231/media-type
-           {::reap/decode-preserve-case true})
+           {:juxt.reap.alpha/decode-preserve-case true})
           (re/input "text/html;foo=bar;ZIP=qux")))))
 
 (deftest parameter-test
