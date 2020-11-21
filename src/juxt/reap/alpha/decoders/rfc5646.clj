@@ -1,14 +1,13 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.alpha.rfc5646
+(ns juxt.reap.alpha.decoders.rfc5646
   (:require
    [clojure.string :as str]
-   [juxt.reap.alpha :as reap]
    [juxt.reap.alpha.combinators :as p]))
 
 (defn- langtag [_]
   (p/into
-   {::lang-type :langtag}
+   {:juxt.reap.alpha.rfc5646/lang-type :langtag}
    (p/pattern-parser
     (re-pattern
      (str
@@ -40,27 +39,28 @@
       "(?!\\p{Alnum}|-)"))
 
     {:group
-     #::{:langtag 0
-         :language "Language"
-         :code "LangCode"
-         :extlang "ExtLang"
-         :reserved "Reserved"
-         :reg-lang-subtag "RegLangSubtag"
-         :script "Script"
-         :region "Region"
-         :variant "Variant"
-         :extension "Extension"
-         :privateuse "PrivateUse"
-         :privatetag "PrivateTag"}})))
+     #:juxt.reap.alpha.rfc5646
+     {:langtag 0
+      :language "Language"
+      :code "LangCode"
+      :extlang "ExtLang"
+      :reserved "Reserved"
+      :reg-lang-subtag "RegLangSubtag"
+      :script "Script"
+      :region "Region"
+      :variant "Variant"
+      :extension "Extension"
+      :privateuse "PrivateUse"
+      :privatetag "PrivateTag"}})))
 
 (defn- privateuse [_]
   (p/into
-   {::lang-type :privateuse}
+   {:juxt.reap.alpha.rfc5646/lang-type :privateuse}
    (p/pattern-parser
     #"x-(\p{Alnum}{1,8}(?:-\p{Alnum}{1,8})*)(?!\p{Alnum})"
     {:group
-     {::langtag 0
-      ::privatetag 1}})))
+     {:juxt.reap.alpha.rfc5646/langtag 0
+      :juxt.reap.alpha.rfc5646/privatetag 1}})))
 
 (defn- match-literal
   ([set]
@@ -82,7 +82,7 @@
 
 (defn- irregular [opts]
   (p/into
-   {::lang-subtype :irregular}
+   {:juxt.reap.alpha.rfc5646/lang-subtype :irregular}
    (match-literal
     #{"en-GB-oed"
       "i-ami"
@@ -101,11 +101,11 @@
       "sgn-BE-FR"
       "sgn-BE-NL"
       "sgn-CH-DE"}
-    (conj opts [:group {::langtag 0}]))))
+    (conj opts [:group {:juxt.reap.alpha.rfc5646/langtag 0}]))))
 
 (defn- regular [opts]
   (p/into
-   {::lang-subtype :regular}
+   {:juxt.reap.alpha.rfc5646/lang-subtype :regular}
    (match-literal
     #{"art-lojban"
       "cel-gaulish"
@@ -116,18 +116,17 @@
       "zh-min"
       "zh-min-nan"
       "zh-xiang"}
-    (conj opts [:group {::langtag 0}]))))
+    (conj opts [:group {:juxt.reap.alpha.rfc5646/langtag 0}]))))
 
 (defn- grandfathered [opts]
   (p/into
-   {::lang-type :grandfathered}
+   {:juxt.reap.alpha.rfc5646/lang-type :grandfathered}
    (p/alternatives
     (irregular opts)
     (regular opts))))
 
-(defn ^::reap/codec language-tag [opts]
-  {::reap/decode
-   (p/alternatives
-    (langtag opts)
-    (privateuse opts)
-    (grandfathered opts))})
+(defn language-tag [opts]
+  (p/alternatives
+   (langtag opts)
+   (privateuse opts)
+   (grandfathered opts)))

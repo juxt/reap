@@ -3,8 +3,8 @@
 (ns juxt.reap.alpha.decoders
   (:require
    [juxt.reap.alpha :as reap]
-   [juxt.reap.alpha.rfc7231 :as rfc7231]
-   [juxt.reap.alpha.rfc7232 :as rfc7232]
+   [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
+   [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]
    [juxt.reap.alpha.regex :as re]))
 
 ;; Warning: This ALPHA API is very likely to change. The recommendation for now
@@ -19,8 +19,7 @@
 
 (defn accept [s]
   (when s
-    ((::reap/decode precompiled-accept)
-     (re/input s))))
+    (precompiled-accept (re/input s))))
 
 ;; Accept-Charset
 
@@ -28,8 +27,7 @@
 
 (defn accept-charset [s]
   (when s
-    ((::reap/decode precompiled-accept-charset)
-     (re/input s))))
+    (precompiled-accept-charset (re/input s))))
 
 ;; Accept-Language
 
@@ -37,8 +35,7 @@
 
 (defn accept-language [s]
   (when s
-    ((::reap/decode precompiled-accept-language)
-     (re/input s))))
+    (precompiled-accept-language (re/input s))))
 
 ;; Accept-Encoding
 
@@ -46,8 +43,7 @@
 
 (defn accept-encoding [s]
   (when s
-    ((::reap/decode precompiled-accept-encoding)
-     (re/input s))))
+    (precompiled-accept-encoding (re/input s))))
 
 ;; Content-Type
 
@@ -55,8 +51,7 @@
 
 (defn content-type [s]
   (when s
-    ((::reap/decode precompiled-content-type)
-     (re/input s))))
+    (precompiled-content-type (re/input s))))
 
 ;; Content-Language
 
@@ -64,8 +59,7 @@
 
 (defn content-language [s]
   (when s
-    ((::reap/decode precompiled-content-language)
-     (re/input s))))
+    (precompiled-content-language (re/input s))))
 
 ;; Content-Encoding
 
@@ -73,8 +67,7 @@
 
 (defn content-encoding [s]
   (when s
-    ((::reap/decode precompiled-content-encoding)
-     (re/input s))))
+    (precompiled-content-encoding (re/input s))))
 
 ;; If-Match
 
@@ -82,8 +75,7 @@
 
 (defn if-match [s]
   (when s
-    ((::reap/decode precompiled-if-match)
-     (re/input s))))
+    (precompiled-if-match (re/input s))))
 
 ;; If-None-Match
 
@@ -91,8 +83,7 @@
 
 (defn if-none-match [s]
   (when s
-    ((::reap/decode precompiled-if-none-match)
-     (re/input s))))
+    (precompiled-if-none-match (re/input s))))
 
 ;; Convenience and utility functions
 

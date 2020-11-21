@@ -1,9 +1,9 @@
 ;; Copyright © 2020, JUXT LTD.
 
-(ns juxt.reap.alpha.rfc5234-test
+(ns juxt.reap.alpha.decoders.rfc5234-test
   (:require
    [clojure.test :refer [deftest is]]
-   [juxt.reap.alpha.rfc5234 :as rfc5234]))
+   [juxt.reap.alpha.decoders.rfc5234 :as rfc5234]))
 
 ;; Normalization assumes sorted but not disjoint
 
