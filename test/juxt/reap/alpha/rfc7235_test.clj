@@ -47,3 +47,22 @@
 (comment
   ((::reap/encode (rfc7235/auth-param nil))
    #::rfc7235{:auth-param-name "foo" :auth-param-value "bar"}))
+
+(deftest authorization-encoding-test
+  (is
+   (= "AWS4-HMAC-SHA256 Credential=\"abc/20200618/us-east-1/execute-api/aws4_request\", SignedHeaders=\"host;x-amz-date\", Signature=c6c85d0eb7b56076609570f4dbdf730d0a017208d964c615253924149ce65de5"
+      ((::reap/encode (rfc7235/authorization {}))
+       #::rfc7235{:auth-scheme "AWS4-HMAC-SHA256",
+                  :auth-params
+                  [#::rfc7235{:auth-param-name
+                              "Credential",
+                              :auth-param-value
+                              "abc/20200618/us-east-1/execute-api/aws4_request"}
+                   #::rfc7235{:auth-param-name
+                              "SignedHeaders",
+                              :auth-param-value
+                              "host;x-amz-date"}
+                   #::rfc7235{:auth-param-name
+                              "Signature",
+                              :auth-param-value
+                              "c6c85d0eb7b56076609570f4dbdf730d0a017208d964c615253924149ce65de5"}]}))))

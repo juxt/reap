@@ -6,7 +6,8 @@
    [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc7230 :as rfc7230 :refer [token OWS]]
-   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [SP]]))
+   [juxt.reap.alpha.rfc5234 :as rfc5234 :refer [SP]]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -106,7 +107,17 @@
                      (p/first
                       (p/sequence-group
                        (p/ignore (p/pattern-parser (re-pattern OWS)))
-                       (::reap/decode auth-param)))))))))))))))))))}))
+                       (::reap/decode auth-param)))))))))))))))))))
+     ::reap/encode
+     (let [auth-param-encoder (::reap/encode auth-param)]
+       (fn [{::keys [auth-scheme auth-params]}]
+         (str
+          auth-scheme
+          " "
+          (str/join
+           ", "
+           (for [auth-param auth-params]
+             (auth-param-encoder auth-param))))))}))
 
 ;; Authorization = credentials
 (def authorization credentials)
@@ -196,7 +207,8 @@
               (p/ignore
                (p/pattern-parser
                 (re-pattern OWS)))
-              (::reap/decode challenge))))))))))}))
+              (::reap/decode challenge))))))))))
+     }))
 
 (comment
   (let [p (::reap/decode (www-authenticate {}))
