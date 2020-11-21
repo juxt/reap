@@ -15,7 +15,13 @@ Suppose you want to decode an Accept header from an HTTP request. For example, F
 
 `Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`
 
-You can use *reap* to parse that header's value into data you can more easily work with. Here's how:
+whereas a Chrome browser on Windows 7 might send:
+
+`Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9`
+
+You can use *reap* to parse that header's value into data you can more easily work with.
+
+Here's how:
 
 [source,clojure]
 ----
@@ -26,38 +32,57 @@ You can use *reap* to parse that header's value into data you can more easily wo
 (let [decoder (accept {})]
   (decoder
     (re/input
-      "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")))
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")))
 ----
 
-This will return the following data:
+This will return the following sequence of items:
 
 [source,clojure]
 ----
-[#:juxt.reap.alpha.rfc7231
- {:media-range "text/html"
-  :type "text"
-  :subtype "html"
-  :parameters {}}
+#:juxt.reap.alpha.rfc7231
+{:media-range "text/html",
+ :type "text",
+ :subtype "html",
+ :parameters {}}
 
- #:juxt.reap.alpha.rfc7231
- {:media-range "application/xhtml+xml"
-  :type "application"
-  :subtype "xhtml+xml"
-  :parameters {}}
+#:juxt.reap.alpha.rfc7231
+{:media-range "application/xhtml+xml",
+ :type "application",
+ :subtype "xhtml+xml",
+ :parameters {}}
 
- #:juxt.reap.alpha.rfc7231
- {:media-range "application/xml"
-  :type "application"
-  :subtype "xml"
-  :parameters {}
-  :qvalue 0.9}
+#:juxt.reap.alpha.rfc7231
+{:media-range "application/xml",
+ :type "application",
+ :subtype "xml",
+ :parameters {},
+ :qvalue 0.9}
 
- #:juxt.reap.alpha.rfc7231
- {:media-range "*/*"
-  :type "*"
-  :subtype "*"
-  :parameters {}
-  :qvalue 0.8}]
+#:juxt.reap.alpha.rfc7231
+{:media-range "image/webp",
+ :type "image",
+ :subtype "webp",
+ :parameters {}}
+
+#:juxt.reap.alpha.rfc7231
+{:media-range "image/apng",
+ :type "image",
+ :subtype "apng",
+ :parameters {}}
+
+#:juxt.reap.alpha.rfc7231
+{:media-range "*/*",
+ :type "*",
+ :subtype "*",
+ :parameters {},
+ :qvalue 0.8}
+
+#:juxt.reap.alpha.rfc7231
+{:media-range "application/signed-exchange",
+ :type "application",
+ :subtype "signed-exchange",
+ :parameters {"v" "b3"},
+ :qvalue 0.9}
 ----
 
 *reap* contains parsers for most things you'd want to parse when writing web
