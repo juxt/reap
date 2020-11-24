@@ -14,20 +14,24 @@
 
         "\"xyzzy\"" [#:juxt.reap.alpha.rfc7232
                      {:entity-tag
+                      #:juxt.reap.alpha.rfc7232
                       {:weak? false
                        :opaque-tag "\"xyzzy\""}}]
 
         "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
         [#:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? false
            :opaque-tag "\"xyzzy\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? false
            :opaque-tag "\"r2d2xxxx\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? true
            :opaque-tag "W/\"c3piozzzz\""}}]
 
@@ -42,14 +46,17 @@
         "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
         [#:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? false
            :opaque-tag "\"xyzzy\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? false
            :opaque-tag "\"r2d2xxxx\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
+          #:juxt.reap.alpha.rfc7232
           {:weak? true
            :opaque-tag "W/\"c3piozzzz\""}}]
 

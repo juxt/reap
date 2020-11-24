@@ -75,11 +75,11 @@
 ;; entity-tag = [ weak ] opaque-tag
 (defn entity-tag [_]
   (p/comp
-   (fn [x] (update x :weak? some?))
+   (fn [x] (update x ::rfc/weak? some?))
    (p/pattern-parser
     (re-pattern (re/re-compose "((?<weak>%s)?%s(?<tag>[%s]*)%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
-    {:group {:weak? "weak"
-             :opaque-tag 0}})))
+    {:group {::rfc/weak? "weak"
+             ::rfc/opaque-tag 0}})))
 
 (comment
   ((entity-tag {})
