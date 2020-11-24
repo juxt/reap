@@ -79,7 +79,7 @@
    (p/pattern-parser
     (re-pattern (re/re-compose "((?<weak>%s)?%s(?<tag>[%s]*)%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
     {:group {:weak? "weak"
-             :entity-tag 0}})))
+             :opaque-tag 0}})))
 
 (comment
   ((entity-tag {})

@@ -15,21 +15,21 @@
         "\"xyzzy\"" [#:juxt.reap.alpha.rfc7232
                      {:entity-tag
                       {:weak? false
-                       :entity-tag "\"xyzzy\""}}]
+                       :opaque-tag "\"xyzzy\""}}]
 
         "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
         [#:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? false
-           :entity-tag "\"xyzzy\""}}
+           :opaque-tag "\"xyzzy\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? false
-           :entity-tag "\"r2d2xxxx\""}}
+           :opaque-tag "\"r2d2xxxx\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? true
-           :entity-tag "W/\"c3piozzzz\""}}]
+           :opaque-tag "W/\"c3piozzzz\""}}]
 
         "*" #:juxt.reap.alpha.rfc7232{:wildcard "*"})))
 
@@ -43,15 +43,15 @@
         [#:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? false
-           :entity-tag "\"xyzzy\""}}
+           :opaque-tag "\"xyzzy\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? false
-           :entity-tag "\"r2d2xxxx\""}}
+           :opaque-tag "\"r2d2xxxx\""}}
          #:juxt.reap.alpha.rfc7232
          {:entity-tag
           {:weak? true
-           :entity-tag "W/\"c3piozzzz\""}}]
+           :opaque-tag "W/\"c3piozzzz\""}}]
 
         "*" #:juxt.reap.alpha.rfc7232
         {:wildcard "*"})))
