@@ -5,7 +5,7 @@
    [clojure.test :refer [deftest is]]
    [juxt.reap.alpha.ring :as ring]))
 
-(deftest request->decoded-preferences-test
+(deftest headers->decoded-preferences-test
   (is
    (=
     {"accept"
@@ -14,12 +14,12 @@
        :type "application",
        :subtype "json",
        :parameters {}}]}
-    (ring/request->decoded-preferences
-     {:headers {"accept" "application/json"}}))))
+    (ring/headers->decoded-preferences
+     {"accept" "application/json"}))))
 
-(deftest request->delay-decoded-preferences-test
-  (let [result (ring/request->delay-decoded-preferences
-                {:headers {"accept" "application/json"}})]
+(deftest headers->delay-decoded-preferences-test
+  (let [result (ring/headers->delay-decoded-preferences
+                {"accept" "application/json"})]
     (is result)
     (is (delay? (get result "accept")))
     (is (not (realized? (get result "accept"))))
