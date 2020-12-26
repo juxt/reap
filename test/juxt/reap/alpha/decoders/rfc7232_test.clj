@@ -33,7 +33,7 @@
          {:entity-tag
           #:juxt.reap.alpha.rfc7232
           {:weak? true
-           :opaque-tag "W/\"c3piozzzz\""}}]
+           :opaque-tag "\"c3piozzzz\""}}]
 
         "*" #:juxt.reap.alpha.rfc7232{:wildcard "*"})))
 
@@ -58,7 +58,7 @@
          {:entity-tag
           #:juxt.reap.alpha.rfc7232
           {:weak? true
-           :opaque-tag "W/\"c3piozzzz\""}}]
+           :opaque-tag "\"c3piozzzz\""}}]
 
         "*" #:juxt.reap.alpha.rfc7232
         {:wildcard "*"})))

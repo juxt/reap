@@ -77,9 +77,9 @@
   (p/comp
    (fn [x] (update x ::rfc/weak? some?))
    (p/pattern-parser
-    (re-pattern (re/re-compose "((?<weak>%s)?%s(?<tag>[%s]*)%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
+    (re-pattern (re/re-compose "(?<weak>%s)?(?<tag>%s[%s]*%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
     {:group {::rfc/weak? "weak"
-             ::rfc/opaque-tag 0}})))
+             ::rfc/opaque-tag "tag"}})))
 
 (comment
   ((entity-tag {})
