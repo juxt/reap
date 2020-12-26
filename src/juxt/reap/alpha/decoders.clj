@@ -68,6 +68,14 @@
   (when s
     (precompiled-content-encoding (re/input s))))
 
+;; HTTP-date
+
+(def ^:private precompiled-http-date-decoder (rfc7231/http-date {}))
+
+(defn ^java.util.Date http-date [s]
+  (when s
+    (precompiled-http-date-decoder (re/input s))))
+
 ;; If-Match
 
 (def ^:private precompiled-if-match (rfc7232/if-match {}))
@@ -83,3 +91,11 @@
 (defn if-none-match [s]
   (when s
     (precompiled-if-none-match (re/input s))))
+
+;; entity-tag
+
+(def ^:private precompiled-entity-tag (rfc7232/entity-tag {}))
+
+(defn entity-tag [s]
+  (when s
+    (precompiled-entity-tag (re/input s))))
