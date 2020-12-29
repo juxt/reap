@@ -7,7 +7,8 @@
    [juxt.reap.alpha.interval :as i]
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc7232 :as rfc]
-   [juxt.reap.alpha.decoders.rfc5234 :as rfc5234]
+   [juxt.reap.alpha.rfc5234 :as rfc5234]
+   [juxt.reap.alpha.decoders.rfc5234 :refer [DQUOTE alternatives]]
    [juxt.reap.alpha.decoders.rfc7230 :refer [OWS obs-text]]
    [juxt.reap.alpha.decoders.rfc7231 :refer [http-date]]))
 
@@ -24,7 +25,7 @@
 
 ;; If-Match = "*" / ( *( "," OWS ) entity-tag *( OWS "," [ OWS
 ;;  entity-tag ] ) )
-(defn if-match[opts]
+(defn if-match [opts]
   (let [entity-tag (entity-tag opts)]
     (p/alternatives
      (p/array-map
@@ -77,7 +78,7 @@
   (p/comp
    (fn [x] (update x ::rfc/weak? some?))
    (p/pattern-parser
-    (re-pattern (re/re-compose "(?<weak>%s)?(?<tag>%s[%s]*%s)" weak rfc5234/DQUOTE etagc rfc5234/DQUOTE))
+    (re-pattern (re/re-compose "(?<weak>%s)?(?<tag>%s[%s]*%s)" weak DQUOTE etagc DQUOTE))
     {:group {::rfc/weak? "weak"
              ::rfc/opaque-tag "tag"}})))
 
@@ -91,9 +92,9 @@
 
 ;; etagc = "!" / %x23-7E ; '#'-'~'
 ;;  / obs-text
-(def ^{:type :juxt.reap.alpha.rfc5234/alternatives}
+(def ^{:type ::rfc5234/alternatives}
   etagc
-  (rfc5234/alternatives
+  (alternatives
    \!
    (i/->interval [0x23 0x7E])
    obs-text))
@@ -102,7 +103,7 @@
 
 ;; opaque-tag = DQUOTE *etagc DQUOTE
 (def opaque-tag
-  (re/re-compose "%s(?:[%s])*%s" rfc5234/DQUOTE etagc rfc5234/DQUOTE))
+  (re/re-compose "%s(?:[%s])*%s" DQUOTE etagc DQUOTE))
 
 ;; weak = %x57.2F ; W/
 (def weak (str \W \/))
