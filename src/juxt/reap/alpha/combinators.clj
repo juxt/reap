@@ -189,7 +189,7 @@
         (cc/into to res)))))
 
 (defn merge [& parsers]
-  (let [p (sequence-group parsers)]
+  (let [p (cc/apply sequence-group parsers)]
     (fn [matcher]
       (cc/apply cc/merge (p matcher)))))
 
