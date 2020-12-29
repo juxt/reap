@@ -3,7 +3,6 @@
 (ns juxt.reap.alpha.rfc7232)
 
 (defn strong-compare-match?
-  "Warning, requires reap structures."
   [etag-1 etag-2]
   (assert etag-1)
   (assert etag-2)
@@ -14,7 +13,6 @@
       (:juxt.reap.alpha.rfc7232/opaque-tag etag-2))))
 
 (defn weak-compare-match?
-  "Warning, requires reap structures."
   [etag-1 etag-2]
   (assert etag-1)
   (assert etag-2)
