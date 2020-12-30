@@ -4,61 +4,62 @@
   (:require
    [clojure.test :refer [deftest are]]
    [juxt.reap.alpha.regex :as re]
-   [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]))
+   [juxt.reap.alpha.rfc7232 :as rfc7232]
+   [juxt.reap.alpha.decoders.rfc7232 :as dec]))
 
 (deftest if-match-test
-  (let [decode (rfc7232/if-match {})]
+  (let [decode (dec/if-match {})]
     (are [input expected]
         (= expected
            (decode (re/input input)))
 
-        "\"xyzzy\"" [#:juxt.reap.alpha.rfc7232
+        "\"xyzzy\"" [#::rfc7232
                      {:entity-tag
-                      #:juxt.reap.alpha.rfc7232
+                      #::rfc7232
                       {:weak? false
                        :opaque-tag "\"xyzzy\""}}]
 
         "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
-        [#:juxt.reap.alpha.rfc7232
+        [#::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? false
            :opaque-tag "\"xyzzy\""}}
-         #:juxt.reap.alpha.rfc7232
+         #::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? false
            :opaque-tag "\"r2d2xxxx\""}}
-         #:juxt.reap.alpha.rfc7232
+         #::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? true
            :opaque-tag "\"c3piozzzz\""}}]
 
-        "*" #:juxt.reap.alpha.rfc7232{:wildcard "*"})))
+        "*" #::rfc7232{:wildcard "*"})))
 
 (deftest if-none-match-test
-  (let [decode (rfc7232/if-none-match {})]
+  (let [decode (dec/if-none-match {})]
     (are [input expected]
         (= expected
            (decode (re/input input)))
 
         "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
-        [#:juxt.reap.alpha.rfc7232
+        [#::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? false
            :opaque-tag "\"xyzzy\""}}
-         #:juxt.reap.alpha.rfc7232
+         #::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? false
            :opaque-tag "\"r2d2xxxx\""}}
-         #:juxt.reap.alpha.rfc7232
+         #::rfc7232
          {:entity-tag
-          #:juxt.reap.alpha.rfc7232
+          #::rfc7232
           {:weak? true
            :opaque-tag "\"c3piozzzz\""}}]
 
-        "*" #:juxt.reap.alpha.rfc7232
+        "*" #::rfc7232
         {:wildcard "*"})))
