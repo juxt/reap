@@ -2,12 +2,37 @@
 
 (ns juxt.reap.alpha.decoders.rfc7233-test
   (:require
-   [clojure.test :refer [deftest are]]
+   [clojure.test :refer [deftest is are]]
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc7231 :as rfc7231]
    [juxt.reap.alpha.rfc7232 :as rfc7232]
    [juxt.reap.alpha.rfc7233 :as rfc7233]
    [juxt.reap.alpha.decoders.rfc7233 :as dec]))
+
+(deftest acceptable-ranges-test
+  (is
+   (=
+    ["foo" "zip" "bar"]
+    ((dec/acceptable-ranges {})
+     (re/input "foo,zip,  bar")))))
+
+;;((dec/content-range {}) (re/input "pages 20-30/1000"))
+
+(deftest content-range-test
+  (let [decode (dec/content-range {})]
+    (are [input expected]
+        (= expected
+           (decode (re/input input)))
+
+        "bytes 20-30/1000"
+        #::rfc7233{:units "bytes"
+                   :first-byte-pos 20
+                   :last-byte-pos 30
+                   :complete-length 1000}
+
+        "bytes */100"
+        #::rfc7233{:units "bytes"
+                   :complete-length 100})))
 
 (deftest range-test
   (let [decode (dec/range {})]

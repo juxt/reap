@@ -52,10 +52,6 @@
      (p/array-map ::rfc7232/entity-tag entity-tag)
      (p/array-map ::rfc7231/http-date http-date))))
 
-(comment
-  ((if-range {}) (re/input "W/\"foo\""))
-  ((if-range {}) (re/input "Tue, 29 Dec 2020 00:41:56 GMT")))
-
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 
 ;; Range = byte-ranges-specifier / other-ranges-specifier
@@ -65,9 +61,6 @@
     (p/alternatives
      byte-ranges-specifier
      other-ranges-specifier)))
-
-(comment
-  ((range {}) (re/input "bytes=10-20,  30-40, 80-   ")))
 
 ;; acceptable-ranges = ( *( "," OWS ) range-unit *( OWS "," [ OWS
 ;;  range-unit ] ) ) / "none"
@@ -96,9 +89,6 @@
                 (re-pattern OWS)))
               range-unit))))))))))))
 
-(comment
-  ((acceptable-ranges {}) (re/input "foo,zip,  bar")))
-
 ;; byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
 (defn byte-content-range [opts]
   (let [bytes-unit (bytes-unit opts)
@@ -115,14 +105,9 @@
         (re-pattern
          (re/re-compose "%s" SP))))
       (p/alternatives
-       (p/as-entry ::rfc/byte-range-resp byte-range-resp)
-       (p/as-entry ::rfc/unsatisfied-range unsatisfied-range))))))
+       byte-range-resp
+       unsatisfied-range)))))
 
-(comment
-  ((byte-content-range {}) (re/input "bytes 10-20/30")))
-
-(comment
-  ((byte-content-range {}) (re/input "bytes */100")))
 
 ;; byte-range = first-byte-pos "-" last-byte-pos
 (defn byte-range [opts]
@@ -149,9 +134,6 @@
       (p/array-map
        ::rfc/wildcard
        (p/pattern-parser #"\*"))))))
-
-(comment
-  ((byte-range-resp {}) (re/input "123-32/98980")))
 
 ;; byte-range-set = *( "," OWS ) ( byte-range-spec /
 ;;  suffix-byte-range-spec ) *( OWS "," [ OWS ( byte-range-spec /
@@ -185,9 +167,6 @@
              (p/alternatives
               byte-range-spec
               suffix-byte-range-spec))))))))))))
-
-(comment
-  ((byte-range-set {}) (re/input ",,,  ,  20-30 , 50-80,90-\t , -10")))
 
 ;; byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
 (defn byte-range-spec [opts]
@@ -267,7 +246,7 @@
         (re-pattern
          (re/re-compose "%s" SP))))
       (p/as-entry
-       ::rfc/other-range-resp
+       ::rfc/range-resp
        (p/pattern-parser (re-pattern other-range-resp)))))))
 
 ;; other-range-resp = *CHAR
@@ -295,9 +274,6 @@
        (p/as-entry
         ::rfc/range-set
         (p/pattern-parser (re-pattern other-range-set))))))))
-
-(comment
-  (other-ranges-specifier (re/input "foo=abc")))
 
 ;; range-unit = bytes-unit / other-range-unit
 (defn range-unit [opts]
@@ -340,6 +316,3 @@
       (p/as-entry
        ::rfc/complete-length
        complete-length)))))
-
-(comment
-  (unsatisfied-range (re/input "*/10")))
