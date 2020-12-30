@@ -14,27 +14,16 @@
            (decode (re/input input)))
 
         "\"xyzzy\"" [#::rfc7232
-                     {:entity-tag
-                      #::rfc7232
-                      {:weak? false
-                       :opaque-tag "\"xyzzy\""}}]
+                     {:weak? false
+                      :opaque-tag "\"xyzzy\""}]
 
         "\"xyzzy\", \t \"r2d2xxxx\", W/\"c3piozzzz\""
-        [#::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? false
-           :opaque-tag "\"xyzzy\""}}
-         #::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? false
-           :opaque-tag "\"r2d2xxxx\""}}
-         #::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? true
-           :opaque-tag "\"c3piozzzz\""}}]
+        [#::rfc7232{:weak? false
+                    :opaque-tag "\"xyzzy\""}
+         #::rfc7232{:weak? false
+                    :opaque-tag "\"r2d2xxxx\""}
+         #::rfc7232{:weak? true
+                    :opaque-tag "\"c3piozzzz\""}]
 
         "*" #::rfc7232{:wildcard "*"})))
 
@@ -46,20 +35,14 @@
 
         "\"xyzzy\", \"r2d2xxxx\", W/\"c3piozzzz\""
         [#::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? false
-           :opaque-tag "\"xyzzy\""}}
+         {:weak? false
+          :opaque-tag "\"xyzzy\""}
          #::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? false
-           :opaque-tag "\"r2d2xxxx\""}}
+         {:weak? false
+          :opaque-tag "\"r2d2xxxx\""}
          #::rfc7232
-         {:entity-tag
-          #::rfc7232
-          {:weak? true
-           :opaque-tag "\"c3piozzzz\""}}]
+         {:weak? true
+          :opaque-tag "\"c3piozzzz\""}]
 
         "*" #::rfc7232
         {:wildcard "*"})))

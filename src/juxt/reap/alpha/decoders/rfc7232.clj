@@ -37,7 +37,7 @@
         (p/pattern-parser
          (re-pattern (re/re-compose "(?:%s%s)*" \, OWS))))
        (p/cons
-        (p/array-map ::rfc/entity-tag entity-tag)
+        entity-tag
         (p/zero-or-more
          (p/first
           (p/sequence-group
@@ -50,7 +50,7 @@
              (p/sequence-group
               (p/ignore
                (p/pattern-parser (re-pattern OWS)))
-              (p/array-map ::rfc/entity-tag entity-tag)))))))))))))
+              entity-tag))))))))))))
 
 ;; If-Modified-Since = HTTP-date
 (def if-modified-since http-date)
