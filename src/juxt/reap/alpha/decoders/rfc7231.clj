@@ -202,37 +202,38 @@
 (defn accept-encoding [opts]
   (let [codings (codings opts)
         weight (weight opts)]
-    (p/optionally
-     (p/cons
-      (p/alternatives
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern ",")))
-       (p/into
-        {}
-        (p/sequence-group
-         (p/as-entry ::rfc/codings codings)
-         (p/optionally
-          (p/as-entry ::rfc/qvalue weight)))))
-      (p/zero-or-more
-       (p/first
-        (p/sequence-group
-         (p/ignore
-          (p/pattern-parser
-           (re-pattern
-            (re/re-concat OWS ","))))
-         (p/optionally
-          (p/first
-           (p/sequence-group
-            (p/ignore
-             (p/pattern-parser
-              (re-pattern OWS)))
-            (p/into
-             {}
-             (p/sequence-group
-              (p/as-entry ::rfc/codings codings)
-              (p/optionally
-               (p/as-entry ::rfc/qvalue weight))))))))))))))
+    (p/unignore
+     (p/optionally
+      (p/cons
+       (p/alternatives
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern ",")))
+        (p/into
+         {}
+         (p/sequence-group
+          (p/as-entry ::rfc/codings codings)
+          (p/optionally
+           (p/as-entry ::rfc/qvalue weight)))))
+       (p/zero-or-more
+        (p/first
+         (p/sequence-group
+          (p/ignore
+           (p/pattern-parser
+            (re-pattern
+             (re/re-concat OWS ","))))
+          (p/optionally
+           (p/first
+            (p/sequence-group
+             (p/ignore
+              (p/pattern-parser
+               (re-pattern OWS)))
+             (p/into
+              {}
+              (p/sequence-group
+               (p/as-entry ::rfc/codings codings)
+               (p/optionally
+                (p/as-entry ::rfc/qvalue weight)))))))))))))))
 
 ;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
 ;;  "," [ OWS ( language-range [ weight ] ) ] )

@@ -36,13 +36,13 @@
 
   (testing "Bad accept headers"
     (is
-     (= '()
+     (= :ignore
         ((dec/accept {})
          (re/input "text"))))
     (is
-     (= '()
-        ((dec/accept {})
-         (re/input "text;text/html")))))
+     (= :ignore
+      ((dec/accept {})
+       (re/input "text;text/html")))))
 
   ;; https://www.newmediacampaigns.com/blog/browser-rest-http-accept-headers
   (testing "Firefox"
@@ -81,9 +81,10 @@
        #::rfc7231{:codings "br"}]
       ((dec/accept-encoding {})
        (re/input "gzip;q=0.3, deflate, br"))))
-  (is (= '()
-         ((dec/accept-encoding {})
-          (re/input "")))))
+  (is
+   (nil?
+    ((dec/accept-encoding {})
+     (re/input "")))))
 
 (deftest accept-language-test
   (is
@@ -137,9 +138,9 @@
       ((dec/content-encoding {})
        (re/input "gzip,deflate"))))
   (is
-   (= []
-      ((dec/content-encoding {})
-       (re/input "")))))
+   (nil?
+    ((dec/content-encoding {})
+     (re/input "")))))
 
 (deftest content-language-test
   (is

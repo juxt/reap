@@ -72,19 +72,36 @@
 (defn cons
   [parser parsers]
   (fn [matcher]
-    (if-let [fst (parser matcher)]
+    (when-let [fst (parser matcher)]
       (let [rst (parsers matcher)]
         (if (not= fst :ignore)
           (cc/cons fst rst)
-          rst))
-      '())))
+          (when (seq rst)
+            rst))))))
 
 (defn constantly [constant]
   (fn [_] constant))
 
-(defn ignore [parser]
+(defn ignore
+  "Wrap the parser to allow a nil production, When a certain parser is optional,
+  or its value is not useful enough to be emitted (i.e. it should be ignored),
+  returning nil causes the top-level parser to terminate a branch. Instead, wrap
+  the parser with this function to replace the result with the special :ignore
+  keyword. Other combinators treat this keyword specially."
+  [parser]
   (fn [matcher]
     (when (some? (parser matcher)) :ignore)))
+
+(defn unignore
+  "To prevent allowing the :ignore keyword to escape and become the result of
+  evaluating an input with a parser, wrap in this function which will convert
+  the special :ignore keyword to nil."
+  [parser]
+  (fn [matcher]
+    (let [result (parser matcher)]
+      (if (= result :ignore)
+        nil
+        result))))
 
 (defn expect [message parser]
   (fn [^Matcher matcher]
