@@ -4,6 +4,7 @@
   (:require
    [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
    [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]
+   [juxt.reap.alpha.decoders.rfc7233 :as rfc7233]
    [juxt.reap.alpha.regex :as re]))
 
 ;; Warning: This ALPHA API is very likely to change. The recommendation for now
@@ -99,3 +100,19 @@
 (defn entity-tag [s]
   (when s
     (precompiled-entity-tag (re/input s))))
+
+;; Range
+
+(def ^:private precompiled-range (rfc7233/range {}))
+
+(defn range [s]
+  (when s
+    (precompiled-range (re/input s))))
+
+;; If-Range
+
+(def ^:private precompiled-if-range (rfc7233/if-range {}))
+
+(defn if-range [s]
+  (when s
+    (precompiled-if-range (re/input s))))
