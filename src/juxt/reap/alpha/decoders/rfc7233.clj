@@ -168,18 +168,6 @@
               byte-range-spec
               suffix-byte-range-spec))))))))))))
 
-#_((byte-range-set {}) (re/input "10"))
-
-#_((suffix-byte-range-spec {}) (re/input "10"))
-
-#_((p/cons
-  (p/alternatives
-   (byte-range-spec {})
-   (suffix-byte-range-spec {}))
-  (p/zero-or-more (p/pattern-parser #" "))) (re/input "10"))
-
-#_((p/zero-or-more (p/pattern-parser #" ")) (re/input "10"))
-
 ;; byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
 (defn byte-range-spec [opts]
   (let [first-byte-pos (first-byte-pos opts)
