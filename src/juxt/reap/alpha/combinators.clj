@@ -230,18 +230,23 @@
             (ignore (pattern-parser #"\s*"))))
           result (parser matcher)]
       (when result
-        (if (.hitEnd ^Matcher matcher)
+        (if (>= (.regionStart ^Matcher matcher) (.regionEnd ^Matcher matcher))
           result
           (do
-            (.usePattern ^Matcher matcher #".+")
-            (.find ^Matcher matcher)
-            (let [remainder (.group ^Matcher matcher)]
+            (.usePattern ^Matcher matcher #".*")
+            (if (.find ^Matcher matcher)
+              (let [remainder (.group ^Matcher matcher)]
+                (throw
+                 (ex-info
+                  "Extraneous input"
+                  {:matcher matcher
+                   :remainder (let [limit 10]
+                                (cond-> (subs remainder 0 (min (count remainder) limit))
+                                  (> (count remainder) limit) (str "…")))})))
               (throw
                (ex-info
                 "Extraneous input"
-                {:remainder (let [limit 10]
-                              (cond-> (subs remainder 0 (min (count remainder) limit))
-                                (> (count remainder) limit) (str "…")))})))))))))
+                {:matcher matcher})))))))))
 
 ;; Transformers
 
