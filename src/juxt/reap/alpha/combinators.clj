@@ -229,7 +229,7 @@
             ;; We don't mind extraneous whitespace, so we'll let that match
             (ignore (pattern-parser #"\s*"))))
           result (parser matcher)]
-      (when result
+      (when (and result (not= result :ignore))
         (if (>= (.regionStart ^Matcher matcher) (.regionEnd ^Matcher matcher))
           result
           (do
@@ -240,18 +240,23 @@
                  (ex-info
                   "Extraneous input"
                   {:matcher matcher
+                   :result result
                    :remainder (let [limit 10]
                                 (cond-> (subs remainder 0 (min (count remainder) limit))
                                   (> (count remainder) limit) (str "…")))})))
               (throw
                (ex-info
                 "Extraneous input"
-                {:matcher matcher})))))))))
+                {:matcher matcher
+                 :result result})))))))))
 
 ;; Transformers
 
 (defn lower-case [opts parser]
   (fn [matcher]
-    (let [s (parser matcher)]
+    (when-let [s (parser matcher)]
       (cond-> s
         (not (:juxt.reap.alpha/decode-preserve-case opts)) str/lower-case))))
+
+(defn as-long [parser]
+  (comp #(Long/parseLong %) parser))

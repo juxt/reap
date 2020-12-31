@@ -36,11 +36,11 @@
 
   (testing "Bad accept headers"
     (is
-     (= :ignore
+     (nil?
         ((dec/accept {})
          (re/input "text"))))
     (is
-     (= :ignore
+     (nil?
       ((dec/accept {})
        (re/input "text;text/html")))))
 
@@ -53,12 +53,12 @@
   (testing "Webkit"
     (is
      ((dec/accept {})
-      (re/input "application/xml,application/xhtml+xml,text/html;q=0.9,\r\ntext/plain;q=0.8,image/png,*/*;q=0.5"))))
+      (re/input "application/xml,application/xhtml+xml,text/html;q=0.9, text/plain;q=0.8,image/png,*/*;q=0.5"))))
 
   (testing "IE"
     (is
      ((dec/accept {})
-      (re/input "image/jpeg, application/x-ms-application, image/gif,\r\napplication/xaml+xml, image/pjpeg, application/x-ms-xbap,\r\napplication/x-shockwave-flash, application/msword, */*"))))
+      (re/input "image/jpeg, application/x-ms-application, image/gif, application/xaml+xml, image/pjpeg, application/x-ms-xbap, application/x-shockwave-flash, application/msword, */*"))))
 
   (testing "Windows 7 Chrome"
     (is

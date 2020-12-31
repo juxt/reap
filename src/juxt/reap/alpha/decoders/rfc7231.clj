@@ -129,34 +129,35 @@
                         conj [(::rfc/parameter-name match)
                               (::rfc/parameter-value match)]))
                 result))))]
-    (p/optionally
-     (p/cons
-      (p/alternatives
-       (p/ignore
-        (p/pattern-parser #","))
-       (p/comp
-        #(apply merge %)
-        (p/sequence-group
-         (media-range-without-parameters opts)
-         parameters-weight-accept-params)))
-      (p/zero-or-more
-       (p/first
-        (p/sequence-group
-         (p/ignore
-          (p/pattern-parser
-           (re-pattern
-            (re/re-concat OWS ","))))
-         (p/optionally
-          (p/first
-           (p/sequence-group
-            (p/ignore
-             (p/pattern-parser
-              (re-pattern OWS)))
-            (p/comp
-             #(apply merge %)
-             (p/sequence-group
-              (media-range-without-parameters opts)
-              parameters-weight-accept-params))))))))))))
+    (p/complete
+     (p/optionally
+      (p/cons
+       (p/alternatives
+        (p/ignore
+         (p/pattern-parser #","))
+        (p/comp
+         #(apply merge %)
+         (p/sequence-group
+          (media-range-without-parameters opts)
+          parameters-weight-accept-params)))
+       (p/zero-or-more
+        (p/first
+         (p/sequence-group
+          (p/ignore
+           (p/pattern-parser
+            (re-pattern
+             (re/re-concat OWS ","))))
+          (p/optionally
+           (p/first
+            (p/sequence-group
+             (p/ignore
+              (p/pattern-parser
+               (re-pattern OWS)))
+             (p/comp
+              #(apply merge %)
+              (p/sequence-group
+               (media-range-without-parameters opts)
+               parameters-weight-accept-params)))))))))))))
 
 
 ;; Accept-Charset = *( "," OWS ) ( ( charset / "*" ) [ weight ] ) *( OWS
@@ -176,129 +177,134 @@
             (re-pattern (re/re-str \*))))
           (p/optionally
            (p/as-entry ::rfc/qvalue weight))))]
-    (p/cons
-     (p/first
-      (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
-       charset-with-weight))
-     (p/zero-or-more
+    (p/complete
+     (p/cons
       (p/first
        (p/sequence-group
         (p/ignore
          (p/pattern-parser
-          (re-pattern (re/re-compose "%s%s" OWS ","))))
-        (p/optionally
-         (p/first
-          (p/sequence-group
-           (p/ignore
-            (p/pattern-parser
-             (re-pattern OWS)))
-           charset-with-weight)))))))))
+          (re-pattern (re/re-compose "(?:%s)*" (re/re-concat \, OWS)))))
+        charset-with-weight))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser
+           (re-pattern (re/re-compose "%s%s" OWS ","))))
+         (p/optionally
+          (p/first
+           (p/sequence-group
+            (p/ignore
+             (p/pattern-parser
+              (re-pattern OWS)))
+            charset-with-weight))))))))))
 
 ;; Accept-Encoding = [ ( "," / ( codings [ weight ] ) ) *( OWS "," [ OWS
 ;;  ( codings [ weight ] ) ] ) ]
 (defn accept-encoding [opts]
   (let [codings (codings opts)
         weight (weight opts)]
-    (p/unignore
-     (p/optionally
-      (p/cons
-       (p/alternatives
-        (p/ignore
-         (p/pattern-parser
-          (re-pattern ",")))
-        (p/into
-         {}
-         (p/sequence-group
-          (p/as-entry ::rfc/codings codings)
-          (p/optionally
-           (p/as-entry ::rfc/qvalue weight)))))
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern
-             (re/re-concat OWS ","))))
-          (p/optionally
-           (p/first
-            (p/sequence-group
-             (p/ignore
-              (p/pattern-parser
-               (re-pattern OWS)))
-             (p/into
-              {}
-              (p/sequence-group
-               (p/as-entry ::rfc/codings codings)
-               (p/optionally
-                (p/as-entry ::rfc/qvalue weight)))))))))))))))
+    (p/complete
+     (p/unignore
+      (p/optionally
+       (p/cons
+        (p/alternatives
+         (p/ignore
+          (p/pattern-parser
+           (re-pattern ",")))
+         (p/into
+          {}
+          (p/sequence-group
+           (p/as-entry ::rfc/codings codings)
+           (p/optionally
+            (p/as-entry ::rfc/qvalue weight)))))
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser
+             (re-pattern
+              (re/re-concat OWS ","))))
+           (p/optionally
+            (p/first
+             (p/sequence-group
+              (p/ignore
+               (p/pattern-parser
+                (re-pattern OWS)))
+              (p/into
+               {}
+               (p/sequence-group
+                (p/as-entry ::rfc/codings codings)
+                (p/optionally
+                 (p/as-entry ::rfc/qvalue weight))))))))))))))))
 
 ;; Accept-Language = *( "," OWS ) ( language-range [ weight ] ) *( OWS
 ;;  "," [ OWS ( language-range [ weight ] ) ] )
 (defn accept-language [opts]
   (let [weight (weight opts)]
-    (p/first
-     (p/sequence-group
-      (p/ignore
-       (p/zero-or-more
-        (p/pattern-parser
-         (re-pattern
-          (re/re-concat "," OWS)))))
-      (p/cons
-       (p/into
-        {}
-        (p/sequence-group
-         (p/as-entry
-          :juxt.reap.alpha.rfc4647/language-range
-          (rfc4647/language-range opts))
-         (p/optionally
-          (p/as-entry ::rfc/qvalue weight))))
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore
-           (p/pattern-parser
-            (re-pattern
-             (re/re-concat OWS ","))))
-          (p/optionally
-           (p/into
-            {}
-            (p/sequence-group
-             (p/ignore
-              (p/pattern-parser
-               (re-pattern OWS)))
-             (p/as-entry
-              :juxt.reap.alpha.rfc4647/language-range
-              (rfc4647/language-range opts))
-             (p/optionally
-              (p/as-entry ::rfc/qvalue weight)))))))))))))
-
-;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
-(defn allow [_]
-  (p/optionally
-   (p/cons
-    (p/alternatives
-     (p/pattern-parser (re-pattern ","))
-     (p/array-map
-      ::rfc/method
-      (p/pattern-parser (re-pattern method))))
-    (p/zero-or-more
+    (p/complete
      (p/first
       (p/sequence-group
        (p/ignore
-        (p/pattern-parser (re-pattern OWS)))
-       (p/ignore
-        (p/pattern-parser (re-pattern ",")))
-       (p/optionally
-        (p/array-map
-         ::rfc/method
+        (p/zero-or-more
+         (p/pattern-parser
+          (re-pattern
+           (re/re-concat "," OWS)))))
+       (p/cons
+        (p/into
+         {}
+         (p/sequence-group
+          (p/as-entry
+           :juxt.reap.alpha.rfc4647/language-range
+           (rfc4647/language-range opts))
+          (p/optionally
+           (p/as-entry ::rfc/qvalue weight))))
+        (p/zero-or-more
          (p/first
           (p/sequence-group
            (p/ignore
-            (p/pattern-parser (re-pattern OWS)))
-           (p/pattern-parser (re-pattern method))))))))))))
+            (p/pattern-parser
+             (re-pattern
+              (re/re-concat OWS ","))))
+           (p/optionally
+            (p/into
+             {}
+             (p/sequence-group
+              (p/ignore
+               (p/pattern-parser
+                (re-pattern OWS)))
+              (p/as-entry
+               :juxt.reap.alpha.rfc4647/language-range
+               (rfc4647/language-range opts))
+              (p/optionally
+               (p/as-entry ::rfc/qvalue weight))))))))))))))
+
+;; Allow = [ ( "," / method ) *( OWS "," [ OWS method ] ) ]
+(defn allow [_]
+  (p/complete
+   (p/unignore
+    (p/optionally
+     (p/cons
+      (p/alternatives
+       (p/pattern-parser (re-pattern ","))
+       (p/array-map
+        ::rfc/method
+        (p/pattern-parser (re-pattern method))))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser (re-pattern OWS)))
+         (p/ignore
+          (p/pattern-parser (re-pattern ",")))
+         (p/optionally
+          (p/array-map
+           ::rfc/method
+           (p/first
+            (p/sequence-group
+             (p/ignore
+              (p/pattern-parser (re-pattern OWS)))
+             (p/pattern-parser (re-pattern method))))))))))))))
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
 ;; TODO
@@ -307,70 +313,77 @@
 ;;  content-coding ] )
 
 (defn content-encoding [_]
-  (p/first
-   (p/sequence-group
-    (p/ignore
-     (p/zero-or-more
-      (p/sequence-group
-       (p/pattern-parser (re-pattern ","))
-       (p/pattern-parser (re-pattern OWS)))))
-    (p/cons
-     (p/array-map
-      ::rfc/content-coding
-      (p/pattern-parser (re-pattern content-coding)))
-     (p/zero-or-more
-      (p/first
+  (p/complete
+   (p/first
+    (p/sequence-group
+     (p/ignore
+      (p/zero-or-more
        (p/sequence-group
-        (p/ignore
-         (p/pattern-parser (re-pattern OWS)))
-        (p/ignore
-         (p/pattern-parser (re-pattern ",")))
-        (p/first
-         (p/optionally
-          (p/sequence-group
-           (p/ignore (p/pattern-parser (re-pattern OWS)))
-           (p/array-map
-            ::rfc/content-coding
-            (p/pattern-parser (re-pattern content-coding)))))))))))))
+        (p/pattern-parser (re-pattern ","))
+        (p/pattern-parser (re-pattern OWS)))))
+     (p/cons
+      (p/array-map
+       ::rfc/content-coding
+       (p/pattern-parser (re-pattern content-coding)))
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser (re-pattern OWS)))
+         (p/ignore
+          (p/pattern-parser (re-pattern ",")))
+         (p/first
+          (p/optionally
+           (p/sequence-group
+            (p/ignore (p/pattern-parser (re-pattern OWS)))
+            (p/array-map
+             ::rfc/content-coding
+             (p/pattern-parser (re-pattern content-coding))))))))))))))
 
 ;; Content-Language = *( "," OWS ) language-tag *( OWS "," [ OWS
 ;;  language-tag ] )
 (defn content-language [opts]
   (let [language-tag (language-tag opts)]
-    (p/first
-     (p/sequence-group
-      (p/ignore
-       (p/zero-or-more
-        (p/sequence-group
-         (p/pattern-parser (re-pattern ","))
-         (p/pattern-parser (re-pattern OWS)))))
-      (p/cons
-       language-tag
-       (p/zero-or-more
-        (p/first
+    (p/complete
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/zero-or-more
          (p/sequence-group
-          (p/ignore
-           (p/pattern-parser (re-pattern OWS)))
-          (p/ignore
-           (p/pattern-parser (re-pattern ",")))
-          (p/optionally
-           (p/first
-            (p/sequence-group
-             (p/ignore
-              (p/pattern-parser (re-pattern OWS)))
-             language-tag)))))))))))
+          (p/pattern-parser (re-pattern ","))
+          (p/pattern-parser (re-pattern OWS)))))
+       (p/cons
+        language-tag
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser (re-pattern OWS)))
+           (p/ignore
+            (p/pattern-parser (re-pattern ",")))
+           (p/optionally
+            (p/first
+             (p/sequence-group
+              (p/ignore
+               (p/pattern-parser (re-pattern OWS)))
+              language-tag))))))))))))
 
 ;; Content-Location = absolute-URI / partial-URI
 ;; TODO
 
 ;; Content-Type = media-type
-(def content-type #'media-type)
+(defn content-type [opts]
+  (p/complete (media-type [opts])))
 
 ;; Date = HTTP-date
-(def date http-date)
+(defn date [opts]
+  (p/complete
+   (http-date opts)))
 
 ;; Expect = "100-continue"
-(def expect "100-continue")
+(defn expect [_]
+  (p/complete
+   (p/pattern-parser #"\Q100-continue\E")))
 
 ;; From = mailbox
 ;; TODO
@@ -442,7 +455,13 @@
 ;; TODO
 
 ;; Max-Forwards = 1*DIGIT
-(def max-forwards (re/re-compose "%s+" DIGIT))
+(defn max-forwards [_]
+  (p/complete
+   (p/pattern-parser
+    (re-pattern
+     (re/re-compose "%s+" DIGIT)))))
+
+((max-forwards {}) (re/input "98987"))
 
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 
@@ -454,24 +473,26 @@
 ;; Retry-After = HTTP-date / delay-seconds
 (defn retry-after [opts]
   (let [http-date (http-date opts)]
-    (p/alternatives
-     http-date
-     (p/array-map
-      ::rfc/delay-seconds
-      (p/pattern-parser (re-pattern delay-seconds))))))
+    (p/complete
+     (p/alternatives
+      http-date
+      (p/array-map
+       ::rfc/delay-seconds
+       (p/pattern-parser (re-pattern delay-seconds)))))))
 
 ;; Server = product *( RWS ( product / comment ) )
 (defn server [opts]
   (let [product (product opts)]
-    (p/cons
-     product
-     (p/zero-or-more
-      (p/first
-       (p/sequence-group
-        (p/ignore (p/pattern-parser (re-pattern RWS)))
-        (p/alternatives
-         product
-         #_(rfc7230/rfc-comment))))))))
+    (p/complete
+     (p/cons
+      product
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore (p/pattern-parser (re-pattern RWS)))
+         (p/alternatives
+          product
+          #_(rfc7230/rfc-comment)))))))))
 
 ;; URI-reference = <URI-reference, see [RFC7230], Section 2.7>
 ;; TODO
@@ -481,33 +502,34 @@
 
 ;; Vary = "*" / ( *( "," OWS ) field-name *( OWS "," [ OWS field-name ] ) )
 (defn vary [_]
-  (p/alternatives
-   (p/array-map
-    ::rfc/wildcard
-    (p/pattern-parser #"\*"))
-   (p/cons
-    (p/first
-     (p/sequence-group
-      (p/ignore
-       (p/zero-or-more
-        (p/sequence-group
-         (p/pattern-parser (re-pattern ","))
-         (p/pattern-parser (re-pattern OWS)))))
-      (p/array-map
-       ::rfc/field-name
-       (p/pattern-parser
-        (re-pattern rfc7230/field-name)))))
-    (p/zero-or-more
+  (p/complete
+   (p/alternatives
+    (p/array-map
+     ::rfc/wildcard
+     (p/pattern-parser #"\*"))
+    (p/cons
      (p/first
       (p/sequence-group
-       (p/ignore (p/pattern-parser (re-pattern (str OWS ","))))
-       (p/optionally
-        (p/first
+       (p/ignore
+        (p/zero-or-more
          (p/sequence-group
-          (p/ignore (p/pattern-parser (re-pattern OWS)))
-          (p/array-map
-           ::rfc/field-name
-           (p/pattern-parser (re-pattern rfc7230/field-name))))))))))))
+          (p/pattern-parser (re-pattern ","))
+          (p/pattern-parser (re-pattern OWS)))))
+       (p/array-map
+        ::rfc/field-name
+        (p/pattern-parser
+         (re-pattern rfc7230/field-name)))))
+     (p/zero-or-more
+      (p/first
+       (p/sequence-group
+        (p/ignore (p/pattern-parser (re-pattern (str OWS ","))))
+        (p/optionally
+         (p/first
+          (p/sequence-group
+           (p/ignore (p/pattern-parser (re-pattern OWS)))
+           (p/array-map
+            ::rfc/field-name
+            (p/pattern-parser (re-pattern rfc7230/field-name)))))))))))))
 
 ;; absolute-URI = <absolute-URI, see [RFC7230], Section 2.7>
 ;; TODO

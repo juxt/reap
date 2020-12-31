@@ -19,7 +19,10 @@
 (declare weak)
 
 ;; ETag = entity-tag
-(def etag entity-tag)
+(defn etag [opts]
+  (let [entity-tag (entity-tag opts)]
+    (p/complete
+     entity-tag)))
 
 ;; HTTP-date = <HTTP-date, see [RFC7231], Section 7.1.1.1>
 
@@ -27,49 +30,52 @@
 ;;  entity-tag ] ) )
 (defn if-match [opts]
   (let [entity-tag (entity-tag opts)]
-    (p/alternatives
-     (p/array-map
-      ::rfc/wildcard
-      (p/pattern-parser (re-pattern "\\*")))
-     (p/first
-      (p/sequence-group
-       (p/ignore
-        (p/pattern-parser
-         (re-pattern (re/re-compose "(?:%s%s)*" \, OWS))))
-       (p/cons
-        entity-tag
-        (p/zero-or-more
-         (p/first
-          (p/sequence-group
-           (p/ignore
-            (p/pattern-parser
-             (re-pattern
-              (re/re-compose "%s%s" OWS ","))))
-           (p/optionally
-            (p/first
-             (p/sequence-group
-              (p/ignore
-               (p/pattern-parser (re-pattern OWS)))
-              entity-tag))))))))))))
+    (p/complete
+     (p/alternatives
+      (p/array-map
+       ::rfc/wildcard
+       (p/pattern-parser (re-pattern "\\*")))
+      (p/first
+       (p/sequence-group
+        (p/ignore
+         (p/pattern-parser
+          (re-pattern (re/re-compose "(?:%s%s)*" \, OWS))))
+        (p/cons
+         entity-tag
+         (p/zero-or-more
+          (p/first
+           (p/sequence-group
+            (p/ignore
+             (p/pattern-parser
+              (re-pattern
+               (re/re-compose "%s%s" OWS ","))))
+            (p/optionally
+             (p/first
+              (p/sequence-group
+               (p/ignore
+                (p/pattern-parser (re-pattern OWS)))
+               entity-tag)))))))))))))
 
 ;; If-Modified-Since = HTTP-date
-(def if-modified-since http-date)
+(defn if-modified-since [opts]
+  (let [http-date (http-date opts)]
+    (p/complete http-date)))
 
 ;; If-None-Match = "*" / ( *( "," OWS ) entity-tag *( OWS "," [ OWS
 ;;  entity-tag ] ) )
 (defn if-none-match [opts]
-  (if-match opts))
-
-(comment
-  [((if-none-match {}) (re/input "\"xyzzy\", \"r2d2xxxx\", \"c3piozzzz\""))
-   ((if-none-match {}) (re/input "\"xyzzy\""))
-   ((if-none-match {}) (re/input "*"))])
+  (let [if-none-match (if-match opts)]
+    (p/complete if-none-match)))
 
 ;; If-Unmodified-Since = HTTP-date
-(def if-unmodified-since http-date)
+(defn if-unmodified-since [opts]
+  (let [http-date (http-date opts)]
+    (p/complete http-date)))
 
 ;; Last-Modified = HTTP-date
-(def last-modified http-date)
+(defn last-modified [opts]
+  (let [http-date (http-date opts)]
+    (p/complete http-date)))
 
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 
@@ -81,14 +87,6 @@
     (re-pattern (re/re-compose "(?<weak>%s)?(?<tag>%s[%s]*%s)" weak DQUOTE etagc DQUOTE))
     {:group {::rfc/weak? "weak"
              ::rfc/opaque-tag "tag"}})))
-
-(comment
-  ((entity-tag {})
-   (re/input "W/\"xyzzy\"")))
-
-(comment
-  ((entity-tag {})
-   (re/input "\"\"")))
 
 ;; etagc = "!" / %x23-7E ; '#'-'~'
 ;;  / obs-text

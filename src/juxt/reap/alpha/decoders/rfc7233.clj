@@ -34,13 +34,16 @@
 (declare unsatisfied-range)
 
 ;; Accept-Ranges = acceptable-ranges
-(def accept-ranges acceptable-ranges)
+(defn accept-ranges [opts]
+  (p/complete
+   (acceptable-ranges opts)))
 
 ;; Content-Range = byte-content-range / other-content-range
 (defn content-range [opts]
-  (p/alternatives
-   (byte-content-range opts)
-   (other-content-range opts)))
+  (p/complete
+   (p/alternatives
+    (byte-content-range opts)
+    (other-content-range opts))))
 
 ;; HTTP-date = <HTTP-date, see [RFC7231], Section 7.1.1.1>
 
@@ -48,9 +51,10 @@
 (defn if-range [opts]
   (let [entity-tag (entity-tag opts)
         http-date (http-date opts)]
-    (p/alternatives
-     (p/array-map ::rfc7232/entity-tag entity-tag)
-     (p/array-map ::rfc7231/http-date http-date))))
+    (p/complete
+     (p/alternatives
+      (p/array-map ::rfc7232/entity-tag entity-tag)
+      (p/array-map ::rfc7231/http-date http-date)))))
 
 ;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 
@@ -202,18 +206,13 @@
        ::rfc/byte-range-set
        byte-range-set)))))
 
-;;((range {}) (re/input "bytes=10"))
-
-
-
 ;; bytes-unit = "bytes"
 (defn bytes-unit [_]
   (p/pattern-parser (re-pattern "bytes")))
 
 ;; complete-length = 1*DIGIT
 (defn complete-length [_]
-  (p/comp
-   #(Long/parseLong %)
+  (p/as-long
    (p/pattern-parser
     (re-pattern
      (re/re-compose "%s+" DIGIT)))))
@@ -222,16 +221,14 @@
 
 ;; first-byte-pos = 1*DIGIT
 (defn first-byte-pos [_]
-  (p/comp
-   #(Long/parseLong %)
+  (p/as-long
    (p/pattern-parser
     (re-pattern
      (re/re-compose "%s+" DIGIT)))))
 
 ;; last-byte-pos = 1*DIGIT
 (defn last-byte-pos [_]
-  (p/comp
-   #(Long/parseLong %)
+  (p/as-long
    (p/pattern-parser
     (re-pattern
      (re/re-compose "%s+" DIGIT)))))
@@ -301,8 +298,7 @@
 
 ;; suffix-length = 1*DIGIT
 (defn suffix-length [_]
-  (p/comp
-   #(Long/parseLong %)
+  (p/as-long
    (p/pattern-parser
     (re-pattern
      (re/re-compose "%s+" DIGIT)))))
