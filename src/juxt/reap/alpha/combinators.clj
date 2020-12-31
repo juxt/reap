@@ -215,6 +215,34 @@
     (fn [matcher]
       (parser matcher))))
 
+;; Functional
+
+(defn complete
+  "Declare that the production must match the input entirely. This is useful for
+  top-level productions which must defend against extraneous input."
+  [parser]
+  (fn [matcher]
+    (let [_parser
+          (first
+           (sequence-group
+            parser
+            ;; We don't mind extraneous whitespace, so we'll let that match
+            (ignore (pattern-parser #"\s*"))))
+          result (parser matcher)]
+      (when result
+        (if (.hitEnd ^Matcher matcher)
+          result
+          (do
+            (.usePattern ^Matcher matcher #".+")
+            (.find ^Matcher matcher)
+            (let [remainder (.group ^Matcher matcher)]
+              (throw
+               (ex-info
+                "Extraneous input"
+                {:remainder (let [limit 10]
+                              (cond-> (subs remainder 0 (min (count remainder) limit))
+                                (> (count remainder) limit) (str "…")))})))))))))
+
 ;; Transformers
 
 (defn lower-case [opts parser]

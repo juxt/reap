@@ -58,9 +58,10 @@
 (defn range [opts]
   (let [byte-ranges-specifier (byte-ranges-specifier opts)
         other-ranges-specifier (other-ranges-specifier opts)]
-    (p/alternatives
-     byte-ranges-specifier
-     other-ranges-specifier)))
+    (p/complete
+     (p/alternatives
+      byte-ranges-specifier
+      other-ranges-specifier))))
 
 ;; acceptable-ranges = ( *( "," OWS ) range-unit *( OWS "," [ OWS
 ;;  range-unit ] ) ) / "none"

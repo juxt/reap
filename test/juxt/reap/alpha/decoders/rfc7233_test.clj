@@ -56,7 +56,12 @@
 
         "pages=abc"
         #::rfc7233{:units "pages"
-                   :range-set "abc"})))
+                   :range-set "abc"})
+
+    (is (thrown-with-msg?
+         clojure.lang.ExceptionInfo
+         #"\QExtraneous input\E"
+         (decode (re/input "bytes=-10-"))))))
 
 (deftest if-range-test
   (let [decode (dec/if-range {})]
