@@ -1,6 +1,7 @@
 ;; Copyright © 2020, JUXT LTD.
 
 (ns juxt.reap.alpha.decoders
+  (:refer-clojure :exclude [range])
   (:require
    [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
    [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]
