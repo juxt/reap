@@ -21,7 +21,7 @@
   ((encoder/auth-param {})
    #:juxt.reap.alpha.rfc7235{:auth-param-name "foo" :auth-param-value "bar"}))
 
-(deftest authorization-encoding-test
+(deftest authorization-encoder-test
   (is
    (= "AWS4-HMAC-SHA256 Credential=\"abc/20200618/us-east-1/execute-api/aws4_request\", SignedHeaders=\"host;x-amz-date\", Signature=c6c85d0eb7b56076609570f4dbdf730d0a017208d964c615253924149ce65de5"
       ((encoder/authorization {})
@@ -43,3 +43,40 @@
           "Signature",
           :auth-param-value
           "c6c85d0eb7b56076609570f4dbdf730d0a017208d964c615253924149ce65de5"}]}))))
+
+(deftest challenge-encoder-test
+  (is
+   (=
+    "Basic f8w9f98-efs789.sef8"
+    ((encoder/challenge {})
+     #:juxt.reap.alpha.rfc7235
+     {:auth-scheme "Basic", :token68 "f8w9f98-efs789.sef8"})))
+  (is
+   (=
+    "Newauth realm=apps, type=1, title=\"Login to \\\"apps\\\", Basic realm=\""
+    ((encoder/challenge {})
+     #:juxt.reap.alpha.rfc7235
+     {:auth-scheme "Newauth",
+      :auth-params
+      [#:juxt.reap.alpha.rfc7235{:auth-param-name "realm",
+                                 :auth-param-value "apps"}
+       #:juxt.reap.alpha.rfc7235{:auth-param-name "type",
+                                 :auth-param-value "1"}
+       #:juxt.reap.alpha.rfc7235{:auth-param-name "title",
+                                 :auth-param-value
+                                 "Login to \"apps\", Basic realm="}]}))))
+
+(deftest www-authenticate-encoder-test
+  (is
+   (=
+    "Newauth realm=apps, type=1, title=\"Login to \\\"apps\\\"\", Basic realm=simple"
+    ((encoder/www-authenticate {})
+     [#:juxt.reap.alpha.rfc7235
+      {:auth-scheme "Newauth",
+       :auth-params
+       [#:juxt.reap.alpha.rfc7235{:auth-param-name "realm", :auth-param-value "apps"}
+        #:juxt.reap.alpha.rfc7235{:auth-param-name "type", :auth-param-value "1"}
+        #:juxt.reap.alpha.rfc7235{:auth-param-name "title", :auth-param-value "Login to \"apps\""}]}
+      #:juxt.reap.alpha.rfc7235
+      {:auth-scheme "Basic",
+       :auth-params [#:juxt.reap.alpha.rfc7235{:auth-param-name "realm", :auth-param-value "simple"}]}]))))

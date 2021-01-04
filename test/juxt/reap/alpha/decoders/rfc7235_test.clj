@@ -32,3 +32,25 @@
 
       (let [p (rfc7235/www-authenticate {})]
         (p (re/input "Newauth realm=\"apps\", type=1, \t title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")))))))
+
+
+(deftest challenge-test
+  (is
+   (=
+    #:juxt.reap.alpha.rfc7235{:auth-scheme "Basic", :token68 "f8w9f98-efs789.sef8"}
+    ((rfc7235/challenge {})
+     (re/input "Basic f8w9f98-efs789.sef8"))))
+  (is
+   (=
+    #:juxt.reap.alpha.rfc7235
+    {:auth-scheme "Newauth",
+     :auth-params
+     [#:juxt.reap.alpha.rfc7235{:auth-param-name "realm"
+                                :auth-param-value "apps"}
+      #:juxt.reap.alpha.rfc7235{:auth-param-name "type"
+                                :auth-param-value "1"}
+      #:juxt.reap.alpha.rfc7235{:auth-param-name "title"
+                                :auth-param-value
+                                "Login to \"apps\", Basic realm="}]}
+    ((rfc7235/challenge {})
+     (re/input "Newauth realm=\"apps\", type=1, title=\"Login to \\\"apps\\\", Basic realm=\"simple\"")))))

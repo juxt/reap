@@ -10,14 +10,59 @@
 
 (set! *warn-on-reflection* true)
 
-;; OWS = <OWS, see [RFC7230], Section 3.2.3>
+(declare challenge)
+(declare credentials)
+(declare token68)
+(declare token68-with-lookahead)
+(declare www-authenticate)
+
+;; Authorization = credentials
+(defn authorization [opts]
+  (p/complete
+   (credentials opts)))
 
 ;; BWS = <BWS, see [RFC7230], Section 3.2.3>
 (def BWS OWS)
 
-;; quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
+;; OWS = <OWS, see [RFC7230], Section 3.2.3>
 
-;; token = <token, see [RFC7230], Section 3.2.6>
+;; Proxy-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS
+;;  challenge ] )
+(defn proxy-authenticate [opts]
+  (p/complete
+   (www-authenticate opts)))
+
+;; Proxy-Authorization = credentials
+(defn proxy-authorization [opts]
+  (p/complete (credentials opts)))
+
+;; WWW-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge ] )
+(defn www-authenticate [opts]
+  (let [challenge (challenge opts)]
+    (p/complete
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/zero-or-more
+         (p/pattern-parser
+          (re-pattern
+           (re/re-compose ",%s" OWS)))))
+       (p/cons
+        challenge
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           (p/ignore
+            (p/pattern-parser
+             (re-pattern
+              (re/re-compose ",%s" OWS))))
+           (p/optionally
+            (p/first
+             (p/sequence-group
+              (p/ignore
+               (p/pattern-parser
+                (re-pattern OWS)))
+              challenge))))))))))))
 
 ;; auth-param = token BWS "=" BWS ( token / quoted-string )
 (defn auth-param [_]
@@ -39,69 +84,6 @@
 
 ;; auth-scheme = token
 (def auth-scheme token)
-
-;; token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" )
-;;  *"="
-(def token68
-  (re/re-compose "[%s]+=*" (rfc5234/merge-alternatives rfc5234/ALPHA rfc5234/DIGIT #{\- \. \_ \~ \+ \/})))
-
-(def token68-with-lookahead
-  (re/re-compose "%s(?=%s(?:,|$))" token68 OWS))
-
-;; credentials = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
-;;  *( OWS "," [ OWS auth-param ] ) ] ) ]
-(defn credentials [opts]
-  (let [auth-param (auth-param opts)]
-    (p/into
-     {}
-     (p/sequence-group
-      (p/as-entry
-       ::rfc/auth-scheme
-       (p/pattern-parser
-        (re-pattern auth-scheme)))
-      (p/optionally
-       (p/first
-        (p/sequence-group
-         (p/ignore
-          (p/pattern-parser
-           (re-pattern
-            (re/re-compose "%s" SP))))
-         (p/alternatives
-          (p/as-entry
-           ::rfc/token68
-           (p/pattern-parser
-            (re-pattern token68-with-lookahead)))
-          (p/as-entry
-           ::rfc/auth-params
-           (p/comp
-            vec
-            (p/optionally
-             (p/first
-              (p/sequence-group
-               (p/cons
-                (p/alternatives
-                 (p/ignore
-                  (p/pattern-parser
-                   (re-pattern #",")))
-                 auth-param)
-                (p/zero-or-more
-                 (p/first
-                  (p/sequence-group
-                   (p/ignore
-                    (p/pattern-parser
-                     (re-pattern
-                      (re/re-compose "%s%s" OWS ","))))
-                   (p/optionally
-                    (p/first
-                     (p/sequence-group
-                      (p/ignore (p/pattern-parser (re-pattern OWS)))
-                      auth-param))))))))))))))))))))
-
-;; Authorization = credentials
-(def authorization credentials)
-
-;; Proxy-Authorization = credentials
-(def proxy-authorization credentials)
 
 ;; challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *(
 ;;  OWS "," [ OWS auth-param ] ) ] ) ]
@@ -158,39 +140,63 @@
                       (p/ignore (p/pattern-parser (re-pattern OWS)))
                       auth-param))))))))))))))))))))
 
-;; WWW-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS challenge ] )
-(defn www-authenticate [opts]
-  (let [challenge (challenge opts)]
-    (p/first
+;; credentials = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
+;;  *( OWS "," [ OWS auth-param ] ) ] ) ]
+(defn credentials [opts]
+  (let [auth-param (auth-param opts)]
+    (p/into
+     {}
      (p/sequence-group
-      (p/ignore
-       (p/zero-or-more
-        (p/pattern-parser
-         (re-pattern
-          (re/re-compose ",%s" OWS)))))
-      (p/cons
-       challenge
-       (p/zero-or-more
-        (p/first
-         (p/sequence-group
-          (p/ignore
+      (p/as-entry
+       ::rfc/auth-scheme
+       (p/pattern-parser
+        (re-pattern auth-scheme)))
+      (p/optionally
+       (p/first
+        (p/sequence-group
+         (p/ignore
+          (p/pattern-parser
+           (re-pattern
+            (re/re-compose "%s" SP))))
+         (p/alternatives
+          (p/as-entry
+           ::rfc/token68
            (p/pattern-parser
-            (re-pattern
-             (re/re-compose ",%s" OWS))))
-          (p/optionally
-           (p/first
-            (p/sequence-group
-             (p/ignore
-              (p/pattern-parser
-               (re-pattern OWS)))
-             challenge)))))))))))
+            (re-pattern token68-with-lookahead)))
+          (p/as-entry
+           ::rfc/auth-params
+           (p/comp
+            vec
+            (p/optionally
+             (p/first
+              (p/sequence-group
+               (p/cons
+                (p/alternatives
+                 (p/ignore
+                  (p/pattern-parser
+                   (re-pattern #",")))
+                 auth-param)
+                (p/zero-or-more
+                 (p/first
+                  (p/sequence-group
+                   (p/ignore
+                    (p/pattern-parser
+                     (re-pattern
+                      (re/re-compose "%s%s" OWS ","))))
+                   (p/optionally
+                    (p/first
+                     (p/sequence-group
+                      (p/ignore (p/pattern-parser (re-pattern OWS)))
+                      auth-param))))))))))))))))))))
 
-(comment
-  (let [p (www-authenticate {})
-        m (re/input "Newauth realm=\"apps\", type=1,   title=\"Login to \\\"apps\\\"\", Basic realm=\"simple\"")]
-    (p m)))
+;; quoted-string = <quoted-string, see [RFC7230], Section 3.2.6>
 
-;; Proxy-Authenticate = *( "," OWS ) challenge *( OWS "," [ OWS
-;;  challenge ] )
+;; token = <token, see [RFC7230], Section 3.2.6>
 
-(def proxy-authenticate www-authenticate)
+;; token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" )
+;;  *"="
+(def token68
+  (re/re-compose "[%s]+=*" (rfc5234/merge-alternatives rfc5234/ALPHA rfc5234/DIGIT #{\- \. \_ \~ \+ \/})))
+
+(def token68-with-lookahead
+  (re/re-compose "%s(?=%s(?:,|$))" token68 OWS))
