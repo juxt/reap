@@ -6,6 +6,7 @@
    [juxt.reap.alpha.decoders.rfc7231 :as rfc7231]
    [juxt.reap.alpha.decoders.rfc7232 :as rfc7232]
    [juxt.reap.alpha.decoders.rfc7233 :as rfc7233]
+   [juxt.reap.alpha.decoders.rfc7235 :as rfc7235]
    [juxt.reap.alpha.regex :as re]))
 
 ;; Warning: This ALPHA API is very likely to change. The recommendation for now
@@ -117,3 +118,11 @@
 (defn if-range [s]
   (when s
     (precompiled-if-range (re/input s))))
+
+;; Authorization
+
+(def ^:private precompiled-authorization (rfc7235/authorization {}))
+
+(defn authorization [s]
+  (when s
+    (precompiled-authorization (re/input s))))

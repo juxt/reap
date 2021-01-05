@@ -54,3 +54,9 @@
                                 "Login to \"apps\", Basic realm="}]}
     ((rfc7235/challenge {})
      (re/input "Newauth realm=\"apps\", type=1, title=\"Login to \\\"apps\\\", Basic realm=\"simple\"")))))
+
+(deftest authorization-test
+  (is
+   (=
+    #:juxt.reap.alpha.rfc7235{:auth-scheme "Basic", :token68 "YTpi"}
+    ((rfc7235/authorization {}) (re/input "Basic YTpi")))))
