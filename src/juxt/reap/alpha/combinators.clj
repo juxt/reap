@@ -3,7 +3,7 @@
 (ns juxt.reap.alpha.combinators
   (:refer-clojure
    :exclude [comp sequence cons concat filter
-             list constantly first second map seq
+             list constantly first second map keep seq
              apply merge array-map some contains? into])
   (:require
    [clojure.core :as cc]
@@ -180,6 +180,10 @@
 (defn map [f parser]
   (fn [matcher]
     (cc/map f (parser matcher))))
+
+(defn keep [f parser]
+  (fn [matcher]
+    (cc/keep f (parser matcher))))
 
 ;; Data construction
 (defn as-entry [k parser]
