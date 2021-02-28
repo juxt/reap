@@ -10,6 +10,8 @@
    [juxt.reap.alpha.decoders.rfc3986 :as rfc3986]
    [clojure.string :as str]))
 
+(alias 'rfc7230 (create-ns 'juxt.reap.alpha.rfc7230))
+
 (set! *warn-on-reflection* true)
 
 (declare OWS)
@@ -36,25 +38,39 @@
 (defn host [opts]
   (let [uri-host (uri-host opts)]
     (p/complete
-     (p/into
-      {}
-      (p/sequence-group
-       (p/as-entry
-        :host
-        uri-host)
-       (p/optionally
+     (p/comp
+      (fn [x]
+        (assoc x
+               ::rfc7230/host
+               (str (::rfc7230/uri-host x) (when-let [port (::rfc7230/port x)]
+                                             (str ":" port)))
+               ::rfc7230/decoded-host
+               (str (str/replace
+                     (::rfc7230/uri-host x) #"%[0-9A-Z]{2}"
+                     (fn [mtch] (str
+                                 (char
+                                  (Integer/parseInt (subs mtch 1) 16)))))
+                    (when-let [port (::rfc7230/port x)]
+                      (str ":" port)))))
+      (p/into
+       {}
+       (p/sequence-group
         (p/as-entry
-         :port
-         (p/comp
-          #(when-not (str/blank? %)
-             (try
-               (Integer/parseInt %)
-               (catch NumberFormatException e nil)))
-          (p/first
-           (p/sequence-group
-            (p/ignore
-             (p/pattern-parser #":"))
-            (p/pattern-parser port)))))))))))
+         ::rfc7230/uri-host
+         uri-host)
+        (p/optionally
+         (p/as-entry
+          ::rfc7230/port
+          (p/comp
+           #(when-not (str/blank? %)
+              (try
+                (Integer/parseInt %)
+                (catch NumberFormatException _ nil)))
+           (p/first
+            (p/sequence-group
+             (p/ignore
+              (p/pattern-parser #":"))
+             (p/pattern-parser port))))))))))))
 
 ;; OWS = *( SP / HTAB )
 
