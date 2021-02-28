@@ -6,18 +6,22 @@
    [juxt.reap.alpha.combinators :as p]
    [juxt.reap.alpha.interval :as i]
    [juxt.reap.alpha.regex :as re]
-   [juxt.reap.alpha.decoders.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]))
+   [juxt.reap.alpha.decoders.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]
+   [juxt.reap.alpha.decoders.rfc3986 :as rfc3986]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
 (declare OWS)
+(declare port)
+(declare uri-host)
 
 ;; RFC 7230
 
 ;; Appendix B.  Collected ABNF
 
 ;; BWS = OWS
-(def BWS OWS)
+(def ^String BWS OWS)
 
 ;; Connection = *( "," OWS ) connection-option *( OWS "," [ OWS
 ;;  connection-option ] )
@@ -29,6 +33,28 @@
 ;; HTTP-name = %x48.54.54.50 ; HTTP
 ;; HTTP-version = HTTP-name "/" DIGIT "." DIGIT
 ;; Host = uri-host [ ":" port ]
+(defn host [opts]
+  (let [uri-host (uri-host opts)]
+    (p/complete
+     (p/into
+      {}
+      (p/sequence-group
+       (p/as-entry
+        :host
+        uri-host)
+       (p/optionally
+        (p/as-entry
+         :port
+         (p/comp
+          #(when-not (str/blank? %)
+             (try
+               (Integer/parseInt %)
+               (catch NumberFormatException e nil)))
+          (p/first
+           (p/sequence-group
+            (p/ignore
+             (p/pattern-parser #":"))
+            (p/pattern-parser port)))))))))))
 
 ;; OWS = *( SP / HTAB )
 
@@ -92,7 +118,10 @@
 
 ;; partial-URI = relative-part [ "?" query ]
 ;; path-abempty = <path-abempty, see [RFC3986], Section 3.3>
+
 ;; port = <port, see [RFC3986], Section 3.2.3>
+(def port rfc3986/port)
+
 ;; protocol = protocol-name [ "/" protocol-version ]
 ;; protocol-name = token
 ;; protocol-version = token
@@ -197,6 +226,7 @@
 ;; transfer-parameter = token BWS "=" BWS ( token / quoted-string )
 
 ;; uri-host = <host, see [RFC3986], Section 3.2.2>
+(def uri-host rfc3986/host)
 
 ;; field-name = token
 (def field-name token)
