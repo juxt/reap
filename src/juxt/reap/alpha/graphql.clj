@@ -39,11 +39,7 @@
 
 ;; 2.1.6 Lexical Tokens
 
-(declare Punctuator)
-(declare Name)
-(declare IntValue)
-;;(declare FloatValue)
-(declare StringValue)
+(declare Punctuator Name IntValue #_FloatValue StringValue)
 
 (def Token
   (p/alternatives
@@ -95,8 +91,7 @@
 
 ;; 2.2 Document
 
-(declare OperationDefinition)
-(declare FragmentDefinition)
+(declare OperationDefinition FragmentDefinition)
 
 (def ExecutableDefinition
   (p/alternatives
@@ -104,22 +99,21 @@
    #'FragmentDefinition
    ))
 
+(declare TypeSystemDefinition)
+
 (def Definition
   (p/alternatives
    ExecutableDefinition
-;;   TypeSystemDefinition
+   TypeSystemDefinition
 ;;   TypeSystemExtension
    ))
 
 (def Document
-  (p/zero-or-more Definition))
+  (p/one-or-more Definition))
 
 ;; 2.3 Operations
 
-(declare SelectionSet)
-(declare OperationType)
-(declare VariableDefinitions)
-(declare Directives)
+(declare SelectionSet OperationType VariableDefinitions Directives)
 
 (def OperationDefinition
   (p/into
@@ -156,8 +150,7 @@
 
 ;; 2.4 Selection Sets
 
-(declare Field)
-(declare FragmentSpread)
+(declare Field FragmentSpread)
 
 (def SelectionSet
   (p/first
@@ -167,7 +160,7 @@
 
     (p/comp
      vec
-     (p/zero-or-more
+     (p/one-or-more
       (p/alternatives
        (p/as-entry
         :field
@@ -187,8 +180,7 @@
 
 ;; 2.5 Fields
 
-(declare Alias)
-(declare Arguments)
+(declare Alias Arguments)
 
 (def Field
   (p/into
@@ -228,7 +220,7 @@
     (p/first
      (p/sequence-group
       (p/ignore (token "("))
-      (p/zero-or-more #'Argument)
+      (p/one-or-more #'Argument)
       (p/ignore (token ")")))))))
 
 (comment
@@ -389,13 +381,12 @@
   (p/sequence-group
    (token "(")
    (p/pattern-parser #"\(")
-   (p/zero-or-more VariableDefinition)
+   (p/one-or-more VariableDefinition)
    (token ")")))
 
 ;; 2.11 Type References
 
-(declare ListType)
-(declare NonNullType)
+(declare ListType NonNullType)
 
 (def Type
   (p/alternatives
@@ -430,7 +421,7 @@
    {}
    (p/comp
     (comp seq vec)
-    (p/zero-or-more Directive))))
+    (p/one-or-more Directive))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -449,14 +440,23 @@
 
 ;; TODO: This is an approxmiate definition - see spec for more details on
 ;; escaping rules.
+(def StringCharacter
+  #"[\u0009\u0020\u0021\u0023-\u005B\u005D-\uFFFF]|\\u[0-9A-Fa-f]{4}|\\[\"\\\/bfnrt]")
+
 (def StringValue
   (p/first
    (p/sequence-group
     (p/ignore (p/pattern-parser Ignored*))
-    (p/pattern-parser #"\"([^\"\\\r\n]+)\"" {:group 1})
+    (p/pattern-parser
+     (re-pattern
+      (format "\\\"((?:%s)*)\\\"" StringCharacter))
+     {:group 1})
     (p/ignore (p/pattern-parser Ignored*)))))
 
-(def StringValueToken (as-token StringValue))
+;; TODO: BlockStringCharacter
+
+(def StringValueToken
+  (as-token StringValue))
 
 (comment
   (Token (re/input " abc  ")))
@@ -500,3 +500,147 @@
   }
 }
 "))
+
+;; 3. Type System
+
+(declare SchemaDefinition TypeDefinition RootOperationTypeDefinition)
+
+(def TypeSystemDefinition
+  (p/alternatives
+   SchemaDefinition
+   TypeDefinition
+   ;;DirectiveDefinition
+   )
+  )
+
+;; 3.2 Descriptions
+
+(def Description StringValue)
+
+;; 3.3 Schema
+
+(def SchemaDefinition
+  (p/sequence-group
+   (token "schema")
+   (p/optionally
+    (p/as-entry
+     :directives
+     #'Directives))
+   (p/ignore (token "{"))
+   (p/comp vec (p/one-or-more #'RootOperationTypeDefinition))
+   (p/ignore (token "}"))))
+
+(def RootOperationTypeDefinition
+  (p/into {}
+          (p/sequence-group
+           (p/as-entry :operation-type #'OperationType)
+           (p/ignore (token ":"))
+           (p/as-entry :named-type #'NamedType))))
+
+(comment
+  (reap/decode SchemaDefinition "schema {  }")
+  (reap/decode SchemaDefinition "schema { query: MyQueryRootType }")
+  (reap/decode SchemaDefinition "schema { query: MyQueryRootType  mutation: MyMutationRootType }"))
+
+;; 3.4 Types
+
+(declare ScalarTypeDefinition ObjectTypeDefinition InterfaceTypeDefinition
+         UnionTypeDefinition EnumTypeDefinition InputObjectTypeDefinition)
+
+(def TypeDefinition
+  (p/alternatives
+   ScalarTypeDefinition
+   ObjectTypeDefinition
+   InterfaceTypeDefinition
+   UnionTypeDefinition
+   EnumTypeDefinition
+   InputObjectTypeDefinition))
+
+(def ScalarTypeDefinition
+  (p/sequence-group
+   ;;(p/optionally #'Description)
+   (token "scalar")
+   #'Name
+   (p/optionally #'Directives)))
+
+(declare ImplementsInterfaces FieldsDefinition)
+
+(def ObjectTypeDefinition
+  (p/into
+   {:type "ObjectTypeDefinition"}
+   (p/sequence-group
+    ;;(p/optionally #'Description)
+    (p/ignore (token "type"))
+    (p/as-entry :type-name #'Name)
+    (p/optionally #'ImplementsInterfaces)
+    (p/optionally #'Directives)
+    (p/as-entry :fields (p/optionally #'FieldsDefinition)))))
+
+(def ImplementsInterfaces
+  (p/alternatives
+   (p/sequence-group
+    (token "implements")
+    (p/optionally (token "&"))
+    #'NamedType
+    (p/zero-or-more
+     (p/sequence-group
+      (token "&")
+      #'NamedType)))))
+
+(declare FieldDefinition)
+
+(def FieldsDefinition
+  (p/first
+   (p/sequence-group
+    (p/ignore (token "{"))
+    (p/comp vec
+            (p/one-or-more
+             #'FieldDefinition))
+    (p/ignore (token "}")))))
+
+(declare ArgumentsDefinition)
+
+(def FieldDefinition
+  (p/into
+   {}
+   (p/sequence-group
+    ;;(p/optionally #'Description)
+    (p/as-entry :name Name)
+    (p/as-entry :args (p/optionally #'ArgumentsDefinition))
+    (p/ignore (token ":"))
+    (p/as-entry :type Type)
+    (p/optionally Directives)
+    )))
+
+;; 3.6.1 Field Arguments
+
+(declare InputValueDefinition)
+
+(def ArgumentsDefinition
+  (p/comp
+   vec
+   (p/first
+    (p/sequence-group
+     (p/ignore (token "("))
+     (p/one-or-more #'InputValueDefinition)
+     (p/ignore (token ")"))))))
+
+(def InputValueDefinition
+  (p/into
+   {}
+   (p/sequence-group
+    (p/optionally Description)
+    (p/as-entry :name Name)
+    (p/ignore (token ":"))
+    (p/as-entry :type Type)
+    (p/optionally DefaultValue)
+    (p/optionally Directives))))
+
+(comment
+  (reap/decode
+   TypeDefinition
+   "type Person {
+  name: String
+  picture(size: Int): Url}"))
+
+;; 3.7 Interfaces

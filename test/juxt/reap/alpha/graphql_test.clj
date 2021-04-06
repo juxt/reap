@@ -18,17 +18,6 @@
    (= "GraphQL" (reap/decode g/Name "GraphQL"))
    (= "lastName" (reap/decode g/Name "lastName(a:123)"))))
 
-(reap/decode
- g/OperationDefinition
- "{
-  likeStory(storyID: 12345) {
-    story {
-      likeCount
-    }
-  }
-}
-")
-
 (deftest operation-definition-test
   (is
    (reap/decode
@@ -393,3 +382,17 @@
                  g/Document
                  (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
         (gutil/deref-fragments (first doc) doc)))))
+
+
+;; 2.9.4 String Value
+
+;; (reap/decode g/StringValue "\"\"\"hello\"\"\"")
+
+;;
+
+
+#_(reap/decode
+ g/Document
+ "type Query {
+  myName: String
+}")

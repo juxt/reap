@@ -47,6 +47,16 @@
     (fn [matcher]
       (or (super matcher) '()))))
 
+(defn one-or-more [parser]
+  (let [super
+        (fn this [matcher]
+          (when-let [match (parser matcher)]
+            (if (= match :ignore)
+              (this matcher)
+              (cc/cons match (this matcher)))))]
+    (fn [matcher]
+      (super matcher))))
+
 (defn seq [parser]
   (fn [matcher]
     (let [res (parser matcher)]
