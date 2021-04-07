@@ -746,15 +746,16 @@
     #'EnumValue
     (p/optionally (p/as-entry :directives Directives)))))
 
-(reap/decode
- EnumTypeDefinition
- "enum Direction {
+(comment
+  (reap/decode
+   EnumTypeDefinition
+   "enum Direction {
   NORTH
   EAST
   SOUTH
   WEST
 }
-")
+"))
 
 
 ;; 3.10 Input Objects
@@ -778,9 +779,10 @@
     (p/vec (p/one-or-more InputValueDefinition))
     (p/ignore (token "}")))))
 
-(reap/decode
- InputObjectTypeDefinition
- "input Point2D {
+(comment
+  (reap/decode
+   InputObjectTypeDefinition
+   "input Point2D {
   x: Float
   y: Float}
-")
+"))
