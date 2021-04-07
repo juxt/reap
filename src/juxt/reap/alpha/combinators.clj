@@ -4,7 +4,7 @@
   (:refer-clojure
    :exclude [comp sequence cons concat filter
              list constantly first second map keep seq
-             apply merge array-map some contains? into])
+             apply merge array-map some contains? into vec])
   (:require
    [clojure.core :as cc]
    [clojure.string :as str])
@@ -72,6 +72,11 @@
   (fn [matcher]
     (when-let [res (parser matcher)]
       (if (= res :ignore) res (f res)))))
+
+(defn vec [parser]
+  (fn [matcher]
+    (when-let [res (parser matcher)]
+      (if (= res :ignore) res (cc/vec res)))))
 
 (defn sequence
   "Wrap a parser in parser middleware."

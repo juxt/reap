@@ -157,9 +157,7 @@
    (p/sequence-group
     (p/ignore
      (token "{"))
-
-    (p/comp
-     vec
+    (p/vec
      (p/one-or-more
       (p/alternatives
        (p/as-entry
@@ -355,6 +353,11 @@
 
 (def IntValueToken (as-token IntValue))
 
+;; 2.9.6 Enum Value
+
+(def EnumValue
+  Name) ;; TODO: but not 'true', 'false' or 'null'
+
 ;; 2.10 Variables
 
 (declare Type)
@@ -527,7 +530,7 @@
      :directives
      #'Directives))
    (p/ignore (token "{"))
-   (p/comp vec (p/one-or-more #'RootOperationTypeDefinition))
+   (p/vec (p/one-or-more #'RootOperationTypeDefinition))
    (p/ignore (token "}"))))
 
 (def RootOperationTypeDefinition
@@ -549,21 +552,33 @@
 
 (def TypeDefinition
   (p/alternatives
-   ScalarTypeDefinition
-   ObjectTypeDefinition
-   InterfaceTypeDefinition
-   UnionTypeDefinition
-   EnumTypeDefinition
-   InputObjectTypeDefinition))
+   #'ScalarTypeDefinition
+   #'ObjectTypeDefinition
+   #'InterfaceTypeDefinition
+   #'UnionTypeDefinition
+   #'EnumTypeDefinition
+   #'InputObjectTypeDefinition))
+
+;; 3.5 Scalars
 
 (def ScalarTypeDefinition
-  (p/sequence-group
-   ;;(p/optionally #'Description)
-   (token "scalar")
-   #'Name
-   (p/optionally #'Directives)))
+  (p/into
+   {:type "ScalarTypeDefinition"}
+   (p/sequence-group
+    ;;(p/optionally #'Description)
+    (p/ignore (token "scalar"))
+    (p/as-entry :name Name)
+    (p/as-entry :directives (p/optionally Directives)))))
+
+
+(comment ; example  42
+  (reap/decode
+   ScalarTypeDefinition
+   "scalar Time}"))
 
 (declare ImplementsInterfaces FieldsDefinition)
+
+;; 3.6 Objects
 
 (def ObjectTypeDefinition
   (p/into
@@ -572,20 +587,24 @@
     ;;(p/optionally #'Description)
     (p/ignore (token "type"))
     (p/as-entry :type-name #'Name)
-    (p/optionally #'ImplementsInterfaces)
-    (p/optionally #'Directives)
+    (p/optionally (p/as-entry :interfaces ImplementsInterfaces))
+    (p/optionally (p/as-entry :directives Directives))
     (p/as-entry :fields (p/optionally #'FieldsDefinition)))))
 
 (def ImplementsInterfaces
   (p/alternatives
-   (p/sequence-group
-    (token "implements")
-    (p/optionally (token "&"))
-    #'NamedType
-    (p/zero-or-more
-     (p/sequence-group
-      (token "&")
-      #'NamedType)))))
+   (p/first
+    (p/sequence-group
+     (p/ignore (token "implements"))
+     (p/optionally (p/ignore (token "&")))
+     (p/vec
+      (p/cons
+       NamedType
+       (p/zero-or-more
+        (p/first
+         (p/sequence-group
+          (p/ignore (token "&"))
+          NamedType)))))))))
 
 (declare FieldDefinition)
 
@@ -593,9 +612,9 @@
   (p/first
    (p/sequence-group
     (p/ignore (token "{"))
-    (p/comp vec
-            (p/one-or-more
-             #'FieldDefinition))
+    (p/vec
+     (p/one-or-more
+      #'FieldDefinition))
     (p/ignore (token "}")))))
 
 (declare ArgumentsDefinition)
@@ -604,21 +623,19 @@
   (p/into
    {}
    (p/sequence-group
-    ;;(p/optionally #'Description)
+    (p/optionally #'Description)
     (p/as-entry :name Name)
     (p/as-entry :args (p/optionally #'ArgumentsDefinition))
     (p/ignore (token ":"))
     (p/as-entry :type Type)
-    (p/optionally Directives)
-    )))
+    (p/as-entry :directives (p/optionally Directives)))))
 
 ;; 3.6.1 Field Arguments
 
 (declare InputValueDefinition)
 
 (def ArgumentsDefinition
-  (p/comp
-   vec
+  (p/vec
    (p/first
     (p/sequence-group
      (p/ignore (token "("))
@@ -626,8 +643,7 @@
      (p/ignore (token ")"))))))
 
 (def InputValueDefinition
-  (p/into
-   {}
+  (p/into {}
    (p/sequence-group
     (p/optionally Description)
     (p/as-entry :name Name)
@@ -644,3 +660,100 @@
   picture(size: Int): Url}"))
 
 ;; 3.7 Interfaces
+
+(def InterfaceTypeDefinition
+  (p/sequence-group
+   (p/optionally Description)
+   (p/ignore (token "interface"))
+   (p/as-entry :name Name)
+   (p/optionally ImplementsInterfaces)
+   (p/optionally Directives)
+   (p/optionally FieldsDefinition)))
+
+(comment ; example no. 64
+  (reap/decode
+   InterfaceTypeDefinition
+   "interface NamedEntity {
+  name: String
+}"))
+
+(comment
+  (reap/decode
+   TypeDefinition
+   "type Business implements NamedEntity & ValuedEntity {
+  name: String
+  value: Int
+  employeeCount: Int
+}"))
+
+;; 3.8 Unions
+
+(declare UnionMemberTypes)
+
+(def UnionTypeDefinition
+  (p/into
+   {:type "UnionTypeDefinition"}
+   (p/sequence-group
+    (p/optionally Description)
+    (p/ignore (token "union"))
+    (p/as-entry :name Name)
+    (p/optionally (p/as-entry :directives Directives))
+    (p/optionally (p/as-entry :union-member-types #'UnionMemberTypes)))))
+
+(def UnionMemberTypes
+  (p/first
+   (p/sequence-group
+    (p/ignore (token "="))
+    (p/optionally (p/ignore (token "|")))
+    (p/vec
+     (p/cons
+      NamedType
+      (p/zero-or-more
+       (p/first
+        (p/sequence-group
+         (p/ignore (token "|"))
+         NamedType))))))))
+
+(comment
+  (reap/decode
+   UnionTypeDefinition
+   "union SearchResult = Photo | Person"))
+
+;; 3.9 Enums
+
+(declare EnumValuesDefinition EnumValueDefinition EnumValue)
+
+(def EnumTypeDefinition
+  (p/into
+   {:type "EnumTypeDefinition"}
+   (p/sequence-group
+    (p/optionally Description)
+    (p/ignore (token "enum"))
+    (p/as-entry :name Name)
+    (p/optionally (p/as-entry :directives Directives))
+    (p/as-entry :values #'EnumValuesDefinition))))
+
+(def EnumValuesDefinition
+  (p/vec
+   (p/first
+    (p/sequence-group
+     (p/ignore (token "{"))
+     (p/one-or-more #'EnumValueDefinition)
+     (p/ignore (token "}"))))))
+
+(def EnumValueDefinition
+  (p/first
+   (p/sequence-group
+    (p/optionally Description)
+    #'EnumValue
+    (p/optionally (p/as-entry :directives Directives)))))
+
+(reap/decode
+ EnumTypeDefinition
+ "enum Direction {
+  NORTH
+  EAST
+  SOUTH
+  WEST
+}
+")
