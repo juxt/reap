@@ -635,12 +635,11 @@
 (declare InputValueDefinition)
 
 (def ArgumentsDefinition
-  (p/vec
-   (p/first
-    (p/sequence-group
-     (p/ignore (token "("))
-     (p/one-or-more #'InputValueDefinition)
-     (p/ignore (token ")"))))))
+  (p/first
+   (p/sequence-group
+    (p/ignore (token "("))
+    (p/vec (p/one-or-more #'InputValueDefinition))
+    (p/ignore (token ")")))))
 
 (def InputValueDefinition
   (p/into {}
@@ -734,12 +733,11 @@
     (p/as-entry :values #'EnumValuesDefinition))))
 
 (def EnumValuesDefinition
-  (p/vec
-   (p/first
-    (p/sequence-group
-     (p/ignore (token "{"))
-     (p/one-or-more #'EnumValueDefinition)
-     (p/ignore (token "}"))))))
+  (p/first
+   (p/sequence-group
+    (p/ignore (token "{"))
+    (p/vec (p/one-or-more #'EnumValueDefinition))
+    (p/ignore (token "}")))))
 
 (def EnumValueDefinition
   (p/first
@@ -756,4 +754,33 @@
   SOUTH
   WEST
 }
+")
+
+
+;; 3.10 Input Objects
+
+(declare InputFieldsDefinition)
+
+(def InputObjectTypeDefinition
+  (p/into
+   {:type "InputObjectTypeDefinition"}
+   (p/sequence-group
+    (p/optionally Description)
+    (p/ignore (token "input"))
+    (p/as-entry :name Name)
+    (p/optionally (p/as-entry :directives Directives))
+    (p/optionally (p/as-entry :input-fields #'InputFieldsDefinition)))))
+
+(def InputFieldsDefinition
+  (p/first
+   (p/sequence-group
+    (p/ignore (token "{"))
+    (p/vec (p/one-or-more InputValueDefinition))
+    (p/ignore (token "}")))))
+
+(reap/decode
+ InputObjectTypeDefinition
+ "input Point2D {
+  x: Float
+  y: Float}
 ")
