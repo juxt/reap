@@ -104,7 +104,7 @@
 (def Definition
   (p/alternatives
    ExecutableDefinition
-   TypeSystemDefinition
+   #'TypeSystemDefinition
 ;;   TypeSystemExtension
    ))
 
@@ -510,8 +510,8 @@
 
 (def TypeSystemDefinition
   (p/alternatives
-   SchemaDefinition
-   TypeDefinition
+   #'SchemaDefinition
+   #'TypeDefinition
    ;;DirectiveDefinition
    )
   )
