@@ -523,15 +523,19 @@
 ;; 3.3 Schema
 
 (def SchemaDefinition
-  (p/sequence-group
-   (token "schema")
-   (p/optionally
+  (p/into
+   {:type "SchemaDefinition"}
+   (p/sequence-group
+    (p/ignore (token "schema"))
+    (p/optionally
+     (p/as-entry
+      :directives
+      #'Directives))
+    (p/ignore (token "{"))
     (p/as-entry
-     :directives
-     #'Directives))
-   (p/ignore (token "{"))
-   (p/vec (p/one-or-more #'RootOperationTypeDefinition))
-   (p/ignore (token "}"))))
+     :root-operation-types
+     (p/vec (p/one-or-more #'RootOperationTypeDefinition)))
+    (p/ignore (token "}")))))
 
 (def RootOperationTypeDefinition
   (p/into {}
@@ -586,8 +590,8 @@
    (p/sequence-group
     ;;(p/optionally #'Description)
     (p/ignore (token "type"))
-    (p/as-entry :type-name #'Name)
-    (p/optionally (p/as-entry :interfaces ImplementsInterfaces))
+    (p/as-entry :name #'Name)
+    (p/optionally (p/as-entry :interfaces #'ImplementsInterfaces))
     (p/optionally (p/as-entry :directives Directives))
     (p/as-entry :fields (p/optionally #'FieldsDefinition)))))
 
@@ -665,7 +669,7 @@
    (p/optionally Description)
    (p/ignore (token "interface"))
    (p/as-entry :name Name)
-   (p/optionally ImplementsInterfaces)
+   (p/optionally #'ImplementsInterfaces)
    (p/optionally Directives)
    (p/optionally FieldsDefinition)))
 
