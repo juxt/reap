@@ -109,7 +109,8 @@
    ))
 
 (def Document
-  (p/one-or-more Definition))
+  (p/complete
+   (p/one-or-more Definition)))
 
 ;; 2.3 Operations
 
