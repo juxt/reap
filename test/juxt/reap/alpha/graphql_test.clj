@@ -34,7 +34,7 @@
    (reap/decode
     g/OperationDefinition
     "  query    IntrospectionQuery
-{       }     ")))
+{  story     }     ")))
 
 (deftest int-value-test
   (is (= 2891 (reap/decode g/IntValue "   2891   "))))
