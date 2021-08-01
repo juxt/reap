@@ -346,42 +346,47 @@
 (deftest comments-test
   (is
    (=
-    [{:selection-set
-      [[:field {:name "foo", :arguments {}}]
-       [:field {:name "bar", :arguments {"a" 10}}]]}]
+    [{::g/selection-set
+      [[::g/field {::g/name "foo", ::g/arguments {}}]
+       [::g/field {::g/name "bar", ::g/arguments {"a" 10}}]]}]
     (reap/decode g/Document "{ foo # a comment \r\nbar(a: # comment \n10)  } # another comment"))))
 
 ;; 2.8 Fragments
 
 ;; Example No. 20
 
-(deftest fragments-test
+#_(deftest fragments-test
   (is
-   (= {:operation-type "query",
-       :name "withNestedFragments",
-       :selection-set
-       [[:field
-         {:name "user",
-          :arguments {"id" 4},
-          :selection-set
-          [[:field
-            {:name "friends",
-             :arguments {"first" 10},
-             :selection-set
-             [[:field {:name "id", :arguments {}}]
-              [:field {:name "name", :arguments {}}]
-              [:field {:name "profilePic", :arguments {"size" 50}}]]}]
-           [:field
-            {:name "mutualFriends",
-             :arguments {"first" 10},
-             :selection-set
-             [[:field {:name "id", :arguments {}}]
-              [:field {:name "name", :arguments {}}]
-              [:field {:name "profilePic", :arguments {"size" 50}}]]}]]}]]}
+   (= {::g/operation-type "query",
+       ::g/name "withNestedFragments",
+       ::g/selection-set
+       [[::g/field
+         {::g/name "user",
+          ::g/arguments {"id" 4},
+          ::g/selection-set
+          [[::g/field
+            {::g/name "friends",
+             ::g/arguments {"first" 10},
+             ::g/selection-set
+             [[::g/field {::g/name "id", ::g/arguments {}}]
+              [::g/field {::g/name "name", ::g/arguments {}}]
+              [::g/field {::g/name "profilePic", ::g/arguments {"size" 50}}]]}]
+           [::g/field
+            {::g/name "mutualFriends",
+             ::g/arguments {"first" 10},
+             ::g/selection-set
+             [[::g/field {::g/name "id", ::g/arguments {}}]
+              [::g/field {::g/name "name", ::g/arguments {}}]
+              [::g/field {::g/name "profilePic", ::g/arguments {"size" 50}}]]}]]}]]}
       (let [doc (reap/decode
                  g/Document
                  (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
         (gutil/deref-fragments (first doc) doc)))))
+
+(let [doc (reap/decode
+                 g/Document
+                 (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
+        (gutil/deref-fragments (first doc) doc))
 
 
 ;; 2.9.4 String Value

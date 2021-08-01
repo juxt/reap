@@ -122,25 +122,25 @@
    (p/alternatives
     (p/sequence-group
      (p/as-entry
-      :operation-type
+      ::operation-type
       #'OperationType)
      (p/optionally
       (p/as-entry
-       :name
+       ::name
        NameToken))
      (p/optionally
       (p/as-entry
-       :variable-definitions
+       ::variable-definitions
        #'VariableDefinitions))
      (p/optionally
       (p/as-entry
-       :directives
+       ::directives
        #'Directives))
      (p/as-entry
-      :selection-set
+      ::selection-set
       #'SelectionSet))
     (p/array-map
-     :selection-set
+     ::selection-set
      #'SelectionSet))))
 
 (def OperationType
@@ -162,10 +162,10 @@
      (p/one-or-more
       (p/alternatives
        (p/as-entry
-        :field
+        ::field
         #'Field)
        (p/as-entry
-        :fragment-spread
+        ::fragment-spread
         #'FragmentSpread)
        ;; TODO: InlineFragment
        )))
@@ -191,19 +191,19 @@
       :alias
       #'Alias))
     (p/as-entry
-     :name
+     ::name
      NameToken)
     (p/optionally
      (p/as-entry
-      :arguments
+      ::arguments
       #'Arguments))
     (p/optionally
      (p/as-entry
-      :directives
+      ::directives
       #'Directives))
     (p/optionally
      (p/as-entry
-      :selection-set
+      ::selection-set
       #'SelectionSet)))))
 
 
@@ -215,7 +215,7 @@
   (p/into
    {}
    (p/map
-    (juxt :name :value)
+    (juxt ::name ::value)
     (p/first
      (p/sequence-group
       (p/ignore (token "("))
@@ -231,16 +231,13 @@
   (p/into
    {}
    (p/sequence-group
-    (p/as-entry :name Name)
+    (p/as-entry ::name Name)
     (p/ignore (token ":"))
-    (p/as-entry :value #'Value)
-    ))
-  )
+    (p/as-entry ::value #'Value))))
 
 (comment
   (Argument (re/input "id:4"))
   (Argument (re/input "id: 4")))
-
 
 ;; 2.7 Field Alias
 
@@ -264,15 +261,15 @@
     (p/ignore
      (token "fragment"))
     (p/as-entry
-     :fragment-name
+     ::fragment-name
      FragmentName)
     #'TypeCondition
     (p/as-entry
-     :directives
+     ::directives
      (p/optionally
       #'Directives))
     (p/as-entry
-     :selection-set
+     ::selection-set
      SelectionSet))))
 
 (def FragmentSpread
@@ -299,7 +296,7 @@
     (p/ignore
      (token "on"))
     (p/as-entry
-     :named-type
+     ::named-type
      #'NamedType))))
 
 ;; 2.9 Input Values
@@ -525,25 +522,25 @@
 
 (def SchemaDefinition
   (p/into
-   {:type "SchemaDefinition"}
+   {::type "SchemaDefinition"}
    (p/sequence-group
     (p/ignore (token "schema"))
     (p/optionally
      (p/as-entry
-      :directives
+      ::directives
       #'Directives))
     (p/ignore (token "{"))
     (p/as-entry
-     :root-operation-types
+     ::root-operation-types
      (p/vec (p/one-or-more #'RootOperationTypeDefinition)))
     (p/ignore (token "}")))))
 
 (def RootOperationTypeDefinition
   (p/into {}
           (p/sequence-group
-           (p/as-entry :operation-type #'OperationType)
+           (p/as-entry ::operation-type #'OperationType)
            (p/ignore (token ":"))
-           (p/as-entry :named-type #'NamedType))))
+           (p/as-entry ::named-type #'NamedType))))
 
 (comment
   (reap/decode SchemaDefinition "schema {  }")
@@ -568,12 +565,12 @@
 
 (def ScalarTypeDefinition
   (p/into
-   {:type "ScalarTypeDefinition"}
+   {::type "ScalarTypeDefinition"}
    (p/sequence-group
     ;;(p/optionally #'Description)
     (p/ignore (token "scalar"))
-    (p/as-entry :name Name)
-    (p/as-entry :directives (p/optionally Directives)))))
+    (p/as-entry ::name Name)
+    (p/as-entry ::directives (p/optionally Directives)))))
 
 
 (comment ; example  42
@@ -587,14 +584,14 @@
 
 (def ObjectTypeDefinition
   (p/into
-   {:type "ObjectTypeDefinition"}
+   {::type "ObjectTypeDefinition"}
    (p/sequence-group
     ;;(p/optionally #'Description)
     (p/ignore (token "type"))
-    (p/as-entry :name #'Name)
-    (p/optionally (p/as-entry :interfaces #'ImplementsInterfaces))
-    (p/optionally (p/as-entry :directives Directives))
-    (p/as-entry :fields (p/optionally #'FieldsDefinition)))))
+    (p/as-entry ::name #'Name)
+    (p/optionally (p/as-entry ::interfaces #'ImplementsInterfaces))
+    (p/optionally (p/as-entry ::directives Directives))
+    (p/as-entry ::fields (p/optionally #'FieldsDefinition)))))
 
 (def ImplementsInterfaces
   (p/alternatives
@@ -629,11 +626,11 @@
    {}
    (p/sequence-group
     (p/optionally #'Description)
-    (p/as-entry :name Name)
-    (p/as-entry :args (p/optionally #'ArgumentsDefinition))
+    (p/as-entry ::name Name)
+    (p/as-entry ::args (p/optionally #'ArgumentsDefinition))
     (p/ignore (token ":"))
-    (p/as-entry :type Type)
-    (p/as-entry :directives (p/optionally Directives)))))
+    (p/as-entry ::type Type)
+    (p/as-entry ::directives (p/optionally Directives)))))
 
 ;; 3.6.1 Field Arguments
 
@@ -650,9 +647,9 @@
   (p/into {}
    (p/sequence-group
     (p/optionally Description)
-    (p/as-entry :name Name)
+    (p/as-entry ::name Name)
     (p/ignore (token ":"))
-    (p/as-entry :type Type)
+    (p/as-entry ::type Type)
     (p/optionally DefaultValue)
     (p/optionally Directives))))
 
@@ -669,7 +666,7 @@
   (p/sequence-group
    (p/optionally Description)
    (p/ignore (token "interface"))
-   (p/as-entry :name Name)
+   (p/as-entry ::name Name)
    (p/optionally #'ImplementsInterfaces)
    (p/optionally Directives)
    (p/optionally FieldsDefinition)))
@@ -696,13 +693,13 @@
 
 (def UnionTypeDefinition
   (p/into
-   {:type "UnionTypeDefinition"}
+   {::type "UnionTypeDefinition"}
    (p/sequence-group
     (p/optionally Description)
     (p/ignore (token "union"))
-    (p/as-entry :name Name)
-    (p/optionally (p/as-entry :directives Directives))
-    (p/optionally (p/as-entry :union-member-types #'UnionMemberTypes)))))
+    (p/as-entry ::name Name)
+    (p/optionally (p/as-entry ::directives Directives))
+    (p/optionally (p/as-entry ::union-member-types #'UnionMemberTypes)))))
 
 (def UnionMemberTypes
   (p/first
@@ -729,12 +726,12 @@
 
 (def EnumTypeDefinition
   (p/into
-   {:type "EnumTypeDefinition"}
+   {::type "EnumTypeDefinition"}
    (p/sequence-group
     (p/optionally Description)
     (p/ignore (token "enum"))
     (p/as-entry :name Name)
-    (p/optionally (p/as-entry :directives Directives))
+    (p/optionally (p/as-entry ::directives Directives))
     (p/as-entry :values #'EnumValuesDefinition))))
 
 (def EnumValuesDefinition
@@ -749,7 +746,7 @@
    (p/sequence-group
     (p/optionally Description)
     #'EnumValue
-    (p/optionally (p/as-entry :directives Directives)))))
+    (p/optionally (p/as-entry ::directives Directives)))))
 
 (comment
   (reap/decode
@@ -769,13 +766,13 @@
 
 (def InputObjectTypeDefinition
   (p/into
-   {:type "InputObjectTypeDefinition"}
+   {::type "InputObjectTypeDefinition"}
    (p/sequence-group
     (p/optionally Description)
     (p/ignore (token "input"))
-    (p/as-entry :name Name)
-    (p/optionally (p/as-entry :directives Directives))
-    (p/optionally (p/as-entry :input-fields #'InputFieldsDefinition)))))
+    (p/as-entry ::name Name)
+    (p/optionally (p/as-entry ::directives Directives))
+    (p/optionally (p/as-entry ::input-fields #'InputFieldsDefinition)))))
 
 (def InputFieldsDefinition
   (p/first
