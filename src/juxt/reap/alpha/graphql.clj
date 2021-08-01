@@ -158,17 +158,16 @@
    (p/sequence-group
     (p/ignore
      (token "{"))
-    (p/vec
-     (p/one-or-more
-      (p/alternatives
-       (p/as-entry
-        ::field
-        #'Field)
-       (p/as-entry
-        ::fragment-spread
-        #'FragmentSpread)
-       ;; TODO: InlineFragment
-       )))
+    (p/one-or-more
+     (p/alternatives
+      (p/array-map
+       ::field
+       #'Field)
+      (p/array-map
+       ::fragment-spread
+       #'FragmentSpread)
+      ;; TODO: InlineFragment
+      ))
 
     (p/ignore
      (token "}")
@@ -176,6 +175,9 @@
      #_(p/expect
         "Did you forget a closing brace?"
         (token "}"))))))
+
+(comment
+  (SelectionSet (re/input "{foo(a:10) bar ...zip}")))
 
 ;; 2.5 Fields
 
