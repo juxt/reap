@@ -400,10 +400,12 @@
 (def NamedType Name)
 
 (def ListType
-  (p/sequence-group
-   (token "[")
-   Type
-   (token "]")))
+  (p/into
+   {::type :list}
+   (p/sequence-group
+    (p/ignore (token "["))
+    (p/as-entry ::item-type Type)
+    (p/ignore (token "]")))))
 
 (def NonNullType
   (p/alternatives

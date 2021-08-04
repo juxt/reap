@@ -397,8 +397,9 @@
 ;;
 
 
-#_(reap/decode
- g/Document
- "type Query {
-  myName: String
-}")
+(deftest parse-list-type-test
+  (let [actual
+        (reap/decode
+         g/Document
+         "type Query { myName: [[String]]}")]
+    (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/item-type ::g/item-type])))))
