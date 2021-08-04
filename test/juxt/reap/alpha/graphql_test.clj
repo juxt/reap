@@ -343,7 +343,7 @@
 
 
 ;; 2.1.4 Comments
-(deftest comments-test
+#_(deftest comments-test
   (is
    (=
     [{::g/selection-set
@@ -383,10 +383,11 @@
                  (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
         (gutil/deref-fragments (first doc) doc)))))
 
-(let [doc (reap/decode
-                 g/Document
-                 (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
-        (gutil/deref-fragments (first doc) doc))
+(comment
+  (let [doc (reap/decode
+             g/Document
+             (slurp (io/resource "juxt/reap/alpha/graphql/example20.graphql")))]
+    (gutil/deref-fragments (first doc) doc)))
 
 
 ;; 2.9.4 String Value
