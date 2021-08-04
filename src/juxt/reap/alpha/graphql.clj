@@ -394,8 +394,8 @@
 (def Type
   (p/alternatives
    #'NamedType
-   ListType
-   NonNullType))
+   #'ListType
+   #'NonNullType))
 
 (def NamedType Name)
 
