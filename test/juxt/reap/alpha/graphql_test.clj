@@ -3,7 +3,7 @@
 (ns juxt.reap.alpha.graphql-test
   (:require
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest is]]
+   [clojure.test :refer [deftest is are]]
    [juxt.reap.alpha.api :as reap]
    [juxt.reap.alpha.graphql :as g]
    [juxt.reap.alpha.graphql.util :as gutil]
@@ -397,9 +397,45 @@
 ;;
 
 
-(deftest parse-list-type-test
+#_(reap/decode
+         g/Document
+         "type Query { myName: [String]!}")
+
+#_(reap/decode
+         g/ListType
+         "[String]")
+
+#_(reap/decode
+         g/NonNullType
+         "String!")
+
+#_(reap/decode
+         g/NamedType
+         "String")
+
+(deftest parse-wrapping-types-test
+  (are [expr path expected]
+      (= expected
+         (get-in (first (reap/decode
+                         g/Document
+                         (format "type Query { amt: %s }" expr)))
+                 (into [::g/fields 0 ::g/type] path)))
+    "Int" [] "Int"
+    "[Int]" [::g/type] :list
+    "[Int]" [::g/item-type] "Int"
+    "Int!" [::g/type] :non-null
+    "Int!" [::g/nullable-type] "Int";
+    "[Int]!" [::g/type] :non-null
+    "[Int]!" [::g/nullable-type ::g/type] :list
+    "[Int]!" [::g/nullable-type ::g/item-type] "Int"))
+
+(reap/decode
+ g/Document
+ (format "type Query { amt: [[[[Int!]]]]! }"))
+
+#_(deftest parse-non-null-type-test
   (let [actual
         (reap/decode
          g/Document
-         "type Query { myName: [[String]]}")]
-    (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/item-type ::g/item-type])))))
+         "type Query { myName: String! }")]
+    (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/nullable-type])))))

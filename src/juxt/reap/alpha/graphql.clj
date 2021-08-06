@@ -389,15 +389,27 @@
 
 ;; 2.11 Type References
 
-(declare ListType NonNullType)
+(declare NamedType NamedTypeNoBang ListType ListTypeNoBang NonNullType)
 
 (def Type
   (p/alternatives
-   #'NamedType
-   #'ListType
+   #'NamedTypeNoBang
+   #'ListTypeNoBang
    #'NonNullType))
 
 (def NamedType Name)
+
+(def NamedTypeNoBang
+  (p/pattern-parser
+   (re-pattern
+    (str "([_A-Za-z][_0-9A-Za-z]*)"
+         ;; We add some negative lookahead to reject if followed by a bang (!)
+         "(?!\\!)"
+         ;; but with some positive lookahead to avoid a relunctant match.
+         "(?=[^_0-9A-Za-z]|\\z)"))
+   {:group 1}))
+
+(reap/decode NamedTypeNoBang "Int")
 
 (def ListType
   (p/into
@@ -407,10 +419,81 @@
     (p/as-entry ::item-type Type)
     (p/ignore (token "]")))))
 
+(def ListTypeNoBang
+  (p/into
+   {::type :list}
+   (p/sequence-group
+    (p/ignore (token "["))
+    (p/as-entry ::item-type Type)
+    (p/ignore (p/pattern-parser (re-pattern (str "\\]"
+                                                 "(?!\\!)")))))))
 (def NonNullType
+  (p/into
+   {::type :non-null}
+   (p/sequence-group
+    (p/alternatives
+     (p/as-entry ::nullable-type (p/first (p/sequence-group NamedType (p/ignore (token "!")))))
+     (p/as-entry ::nullable-type (p/first (p/sequence-group ListType (p/ignore (token "!")))))))))
+
+(declare NewNamedType NewListType)
+
+(def NewType
   (p/alternatives
-   (p/sequence-group NamedType (token "!"))
-   (p/sequence-group ListType (token "!"))))
+   #'NewNamedType
+   #'NewListType))
+
+(def NewListType
+  (p/into
+   {}
+   (p/sequence-group
+    (p/ignore (token "["))
+    (p/as-entry ::item-type #'NewType)
+    (p/ignore (token "]"))
+    (p/optionally (p/as-entry ::required (token "!"))))))
+
+(def NewNamedType
+  (p/into
+   {}
+   (p/sequence-group
+    (p/as-entry ::named-type #'Name)
+    (p/optionally (p/as-entry ::required (token "!"))))))
+
+(def NewNewNamedType
+  (p/sequence-group
+   (token "foo")
+   (p/alternatives
+    (p/into
+       {}
+       (p/sequence-group
+        (p/as-entry ::named-type (token "Alpha"))
+        (p/as-entry ::bang (token "!"))))
+    (p/into
+     {}
+     (p/sequence-group
+      (p/as-entry ::named-type (token "Alpha")))))))
+
+#_(reap/decode NewNewNamedType "fooAlpha!")
+
+;; Thought: alternatives isn't ignore-aware?
+;; Subsequent thought: perhaps not, looks like alternatives is mutating the matcher
+
+#_(reap/decode
+ Document
+ "type Query { amt: [Int]! }")
+
+(reap/decode
+ NonNullType
+ "String!")
+
+(reap/decode
+ NonNullType
+ "[[String]]!")
+
+#_(reap/decode
+ (p/first (p/sequence-group Name (p/ignore (p/pattern-parser
+                                                 (re-pattern
+                                                  "\\!")))))
+ "String!")
 
 ;; 2.12 Directives
 
