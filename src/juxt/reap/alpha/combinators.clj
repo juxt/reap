@@ -16,7 +16,12 @@
 (defn alternatives [& parsers]
   (assert (every? some? parsers))
   (fn [matcher]
-    (cc/some (fn [p] (p matcher)) parsers)))
+    (let [mark [(.regionStart ^Matcher matcher) (.regionEnd ^Matcher matcher)]
+          reset-to-mark (fn [matcher]
+                          (.region ^Matcher matcher
+                                   (cc/first mark)
+                                   (cc/second mark)))]
+      (cc/some (fn [p] (p (reset-to-mark matcher))) parsers))))
 
 ;; RFC 5234 Section 3.3. Incremental Alternatives: Rule1 =/ Rule2
 
