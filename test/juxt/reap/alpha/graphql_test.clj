@@ -424,10 +424,10 @@
     "[Int]" [::g/type] :list
     "[Int]" [::g/item-type] "Int"
     "Int!" [::g/type] :non-null
-    "Int!" [::g/nullable-type] "Int";
+    "Int!" [::g/inner-type] "Int";
     "[Int]!" [::g/type] :non-null
-    "[Int]!" [::g/nullable-type ::g/type] :list
-    "[Int]!" [::g/nullable-type ::g/item-type] "Int"))
+    "[Int]!" [::g/inner-type ::g/type] :list
+    "[Int]!" [::g/inner-type ::g/item-type] "Int"))
 
 (reap/decode
  g/Document
@@ -438,4 +438,4 @@
         (reap/decode
          g/Document
          "type Query { myName: String! }")]
-    (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/nullable-type])))))
+    (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/inner-type])))))

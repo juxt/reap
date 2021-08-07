@@ -430,8 +430,8 @@
    {::type :non-null}
    (p/sequence-group
     (p/alternatives
-     (p/as-entry ::nullable-type (p/first (p/sequence-group NamedType (p/ignore (token "!")))))
-     (p/as-entry ::nullable-type (p/first (p/sequence-group ListType (p/ignore (token "!")))))))))
+     (p/as-entry ::inner-type (p/first (p/sequence-group NamedType (p/ignore (token "!")))))
+     (p/as-entry ::inner-type (p/first (p/sequence-group ListType (p/ignore (token "!")))))))))
 
 ;; 2.12 Directives
 
