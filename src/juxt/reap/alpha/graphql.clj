@@ -186,27 +186,44 @@
 (def Field
   (p/into
    {}
-   (p/sequence-group
-    ;; Need some lookahead to distinguish between Alias and Name
-    #_(p/optionally
+   (p/alternatives
+    ;; Field with alias
+    (p/sequence-group
      (p/as-entry
-      :alias
-      #'Alias))
-    (p/as-entry
-     ::name
-     NameToken)
-    (p/optionally
+      ::alias
+      #'Alias)
      (p/as-entry
-      ::arguments
-      #'Arguments))
-    (p/optionally
+      ::name
+      NameToken)
+     (p/optionally
+      (p/as-entry
+       ::arguments
+       #'Arguments))
+     (p/optionally
+      (p/as-entry
+       ::directives
+       #'Directives))
+     (p/optionally
+      (p/as-entry
+       ::selection-set
+       #'SelectionSet)))
+    ;; Field without alias
+    (p/sequence-group
      (p/as-entry
-      ::directives
-      #'Directives))
-    (p/optionally
-     (p/as-entry
-      ::selection-set
-      #'SelectionSet)))))
+      ::name
+      NameToken)
+     (p/optionally
+      (p/as-entry
+       ::arguments
+       #'Arguments))
+     (p/optionally
+      (p/as-entry
+       ::directives
+       #'Directives))
+     (p/optionally
+      (p/as-entry
+       ::selection-set
+       #'SelectionSet))))))
 
 
 ;; 2.6 Arguments
@@ -244,8 +261,10 @@
 ;; 2.7 Field Alias
 
 (def Alias
-  (p/sequence-group
-   NameToken (token ":")))
+  (p/first
+   (p/sequence-group
+    Name
+    (p/ignore (token ":")))))
 
 ;; 2.8 Fragments
 
@@ -281,11 +300,11 @@
     (p/ignore
      (token "..."))
     (p/as-entry
-     :fragment-name
+     ::fragment-name
      FragmentName)
     (p/optionally
      (p/as-entry
-      :directives
+      ::directives
       #'Directives)))))
 
 ;; 2.8.1 Type Conditions
