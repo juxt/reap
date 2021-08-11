@@ -727,7 +727,7 @@
     (p/as-entry ::name #'Name)
     (p/optionally (p/as-entry ::interfaces #'ImplementsInterfaces))
     (p/optionally (p/as-entry ::directives Directives))
-    (p/as-entry ::fields (p/optionally #'FieldsDefinition)))))
+    (p/as-entry ::field-definitions (p/optionally #'FieldsDefinition)))))
 
 (def ImplementsInterfaces
   (p/alternatives
@@ -763,7 +763,7 @@
    (p/sequence-group
     (p/optionally #'Description)
     (p/as-entry ::name Name)
-    (p/as-entry ::args (p/optionally #'ArgumentsDefinition))
+    (p/as-entry ::arguments-definition (p/optionally #'ArgumentsDefinition))
     (p/ignore (token ":"))
     (p/as-entry ::type Type)
     (p/as-entry ::directives (p/optionally Directives)))))
