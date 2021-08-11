@@ -439,3 +439,17 @@
          g/Document
          "type Query { myName: String! }")]
     (is (= "String" (get-in (first actual) [::g/fields 0 ::g/type ::g/inner-type])))))
+
+
+#_(deftest inline-fragment-parsing-test
+  (is
+   (reap/decode
+    g/Document
+    "query inlineFragmentTyping { profiles(handles: [10, 20]) }")))
+
+#_(reap/decode
+    g/Document
+    "query inlineFragmentTyping {
+profiles(handles: [10, 20])
+}
+")

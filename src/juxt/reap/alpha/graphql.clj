@@ -39,14 +39,14 @@
 
 ;; 2.1.6 Lexical Tokens
 
-(declare Punctuator Name IntValue #_FloatValue StringValue)
+(declare Punctuator Name IntValue FloatValue StringValue)
 
 (def Token
   (p/alternatives
    (p/array-map :punctuator Punctuator)
    (p/array-map :name Name)
    (p/array-map :int-value #'IntValue)
-   ;;(p/array-map :float-value FloatValue)
+   (p/array-map :float-value #'FloatValue)
    (p/array-map :string-value #'StringValue)))
 
 ;; 2.1.7 Ignored Tokens
@@ -187,7 +187,7 @@
   (p/into
    {}
    (p/alternatives
-    ;; Field with alias
+    ;; Field with alias, to avoid looking ahead to the colon (:)
     (p/sequence-group
      (p/as-entry
       ::alias
@@ -228,7 +228,7 @@
 
 ;; 2.6 Arguments
 
-(declare Argument)
+(declare Argument ArgumentConst)
 
 (def Arguments
   (p/into
@@ -241,10 +241,21 @@
       (p/one-or-more #'Argument)
       (p/ignore (token ")")))))))
 
+(def ArgumentsConst
+  (p/into
+   {}
+   (p/map
+    (juxt ::name ::value)
+    (p/first
+     (p/sequence-group
+      (p/ignore (token "("))
+      (p/one-or-more #'ArgumentConst)
+      (p/ignore (token ")")))))))
+
 (comment
   (Arguments (re/input "(name:4, foo:10)")))
 
-(declare Value)
+(declare Value ValueConst)
 
 (def Argument
   (p/into
@@ -253,6 +264,14 @@
     (p/as-entry ::name Name)
     (p/ignore (token ":"))
     (p/as-entry ::value #'Value))))
+
+(def ArgumentConst
+  (p/into
+   {}
+   (p/sequence-group
+    (p/as-entry ::name Name)
+    (p/ignore (token ":"))
+    (p/as-entry ::value #'ValueConst))))
 
 (comment
   (Argument (re/input "id:4"))
@@ -322,13 +341,33 @@
 
 ;; 2.9 Input Values
 
-(declare BooleanValue)
+(declare
+ BooleanValue Variable NullValue EnumValue
+ ListValue ListValueConst
+ ObjectValue ObjectValueConst)
 
 (def Value
   (p/alternatives
+   #'Variable
    #'IntValue
+   #'FloatValue
+   #'StringValue
    #'BooleanValue
-   #'StringValue))
+   #'NullValue
+   #'EnumValue
+   #'ListValue
+   #'ObjectValue))
+
+(def ValueConst
+  (p/alternatives
+   #'IntValue
+   #'FloatValue
+   #'StringValue
+   #'BooleanValue
+   #'NullValue
+   #'EnumValue
+   #'ListValueConst
+   #'ObjectValueConst))
 
 ;; TODO: ValueToken?
 
@@ -372,10 +411,63 @@
 
 (def IntValueToken (as-token IntValue))
 
+;; 2.9.2 Float Value
+
+(def FractionalPart
+  (re-pattern
+   (format "\\.%s+" Digit)))
+
+(def ExponentIndicator
+  (re-pattern "[eE]"))
+
+(def Sign
+  (re-pattern "[+-]"))
+
+(def ExponentPart
+  (re-pattern
+   (format "%s%s?%s+" ExponentIndicator Sign Digit)))
+
+(def FloatValue
+  (p/comp
+   #(BigDecimal. %)
+   (p/alternatives
+    (p/pattern-parser
+     (re-pattern
+      (format "%s(?:%s)(?:%s)" IntegerPart FractionalPart ExponentPart)))
+    (p/pattern-parser
+     (re-pattern
+      (format "%s(?:%s)" IntegerPart ExponentPart)))
+    (p/pattern-parser
+     (re-pattern
+      (format "%s(?:%s)" IntegerPart FractionalPart))))))
+
+(comment
+  (FloatValue (re/input "3.141592653589793"))
+  (FloatValue (re/input "2E10"))
+  (FloatValue (re/input "2.3E-10")))
+
+;; 2.9.3 Boolean Value
+
+;; (defined above but arguably should be defined here)
+
+;; 2.9.4 String Value
+
+;; (defined above but arguably should be defined here)
+
+;; 2.9.5 Null Value
+
+(def NullValue (token "null"))
+
 ;; 2.9.6 Enum Value
 
 (def EnumValue
   Name) ;; TODO: but not 'true', 'false' or 'null'
+
+;; 2.9.7 List Value
+
+(def ListValue)
+
+(def ListValueConst)
 
 ;; 2.10 Variables
 
@@ -384,7 +476,7 @@
 (def DefaultValue
   (p/sequence-group
    (token "=")
-   Value))
+   ValueConst))
 
 (def Variable
   (p/sequence-group
