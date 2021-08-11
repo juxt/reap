@@ -118,7 +118,7 @@
 
 (def OperationDefinition
   (p/into
-   {}
+   {::type "OperationDefinition"}
    (p/alternatives
     (p/sequence-group
      (p/as-entry
@@ -160,11 +160,11 @@
      (token "{"))
     (p/one-or-more
      (p/alternatives
-      (p/array-map
-       ::field
+      (p/into
+       {::selection-type :field}
        #'Field)
-      (p/array-map
-       ::fragment-spread
+      (p/into
+       {::selection-type :fragment-spread}
        #'FragmentSpread)
       ;; TODO: InlineFragment
       ))
@@ -277,7 +277,7 @@
 
 (def FragmentDefinition
   (p/into
-   {}
+   {::type "FragmentDefinition"}
    (p/sequence-group
     (p/ignore
      (token "fragment"))
