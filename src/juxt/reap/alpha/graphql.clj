@@ -659,7 +659,7 @@
    (p/sequence-group
     (p/ignore (token "{"))
     (p/vec
-     (p/one-or-more
+     (p/zero-or-more
       #'FieldDefinition))
     (p/ignore (token "}")))))
 
