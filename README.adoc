@@ -6,7 +6,7 @@ A Clojure library for decoding and encoding strings used by web protocols.
 
 [WARNING]
 --
-STATUS: Alpha. Ready to use but the API is likely to change in future versions.
+STATUS: Ready to use, the API is stable.
 --
 
 == Quick Start
@@ -26,8 +26,8 @@ Here's how:
 [source,clojure]
 ----
 (require
-  '[juxt.reap.alpha.decoders.rfc7231 :refer [accept]]
-  '[juxt.reap.alpha.regex :as re])
+  '[juxt.reap.decoders.rfc7231 :refer [accept]]
+  '[juxt.reap.regex :as re])
 
 (let [decoder (accept {})]
   (decoder
@@ -39,45 +39,45 @@ This will return the following sequence of items:
 
 [source,clojure]
 ----
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "text/html",
  :type "text",
  :subtype "html",
  :parameters {}}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "application/xhtml+xml",
  :type "application",
  :subtype "xhtml+xml",
  :parameters {}}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "application/xml",
  :type "application",
  :subtype "xml",
  :parameters {},
  :qvalue 0.9}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "image/webp",
  :type "image",
  :subtype "webp",
  :parameters {}}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "image/apng",
  :type "image",
  :subtype "apng",
  :parameters {}}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "*/*",
  :type "*",
  :subtype "*",
  :parameters {},
  :qvalue 0.8}
 
-#:juxt.reap.alpha.rfc7231
+#:juxt.reap.rfc7231
 {:media-range "application/signed-exchange",
  :type "application",
  :subtype "signed-exchange",

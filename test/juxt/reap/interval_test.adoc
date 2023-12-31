@@ -1,0 +1,3 @@
+= juxt.reap.interval-test
+
+This namespace tests the code in <<juxt.reap.interval>>.

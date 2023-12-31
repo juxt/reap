@@ -1,0 +1,32 @@
+= juxt.reap.interval
+
+The basic idea is to use interval algebra to compose intervals into forms that can be used efficiently in regular expressions.
+
+== Intervals
+
+For example, a range from char A to char Z (inclusive) can be specified by the following vector:
+
+[source,clojure]
+----
+[\A \Z]
+----
+
+
+== Basic interval relations
+
+== Derived interval relations
+
+disjoint?
+
+separate?
+
+encompasses?
+
+
+== Splicing
+
+== Normalization
+
+[source,clojure]
+----
+----

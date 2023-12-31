@@ -1,3 +1,3 @@
 {
- juxt.reap.alpha/interval juxt.reap.alpha.interval/->interval
+ juxt.reap/interval juxt.reap.interval/->interval
  }
