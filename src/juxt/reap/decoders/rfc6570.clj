@@ -17,14 +17,12 @@
   (rfc5234/alternatives \= \, \! \@ \|))
 
 (def operator
-  (p/pattern-parser
-   (re-pattern
-    (re/re-compose
-     "[%s]"
-     (rfc5234/merge-alternatives
-      op-level2
-      op-level3
-      op-reserve)))))
+  (re/re-compose
+   "[%s]"
+   (rfc5234/merge-alternatives
+    op-level2
+    op-level3
+    op-reserve)))
 
 (def varchar
   (re/re-compose
@@ -51,34 +49,33 @@
 
 (def modifier-level4
   (p/alternatives
-   (p/as-entry
-    :prefix prefix)
-   (p/as-entry
-    :explode
-    (p/comp #(= % "*") explode))))
+   (p/as-entry :prefix prefix)
+   (p/as-entry :explode (p/comp #(= % "*") explode))))
 
 (def varspec
   (p/into
    {}
    (p/sequence-group
-    (p/as-entry
-     :varname
-     (p/pattern-parser
-      (re-pattern varname)))
+    (p/as-entry :varname (p/pattern-parser (re-pattern varname)))
     (p/optionally modifier-level4))))
 
 (comment
   (varspec (re/input "foo:3")))
 
+(comment
+  (varspec (re/input "foo*")))
+
 (def variable-list
-  (p/cons
-   varspec
-   (p/zero-or-more
-    (p/first
-     (p/sequence-group
-      (p/ignore
-       (p/pattern-parser #"\,"))
-      varspec)))))
+  (p/comp
+   vec
+   (p/cons
+    varspec
+    (p/zero-or-more
+     (p/first
+      (p/sequence-group
+       (p/ignore
+        (p/pattern-parser #"\,"))
+       varspec))))))
 
 (comment
   (variable-list (re/input "foo:4,bar*,zip")))
@@ -93,10 +90,8 @@
      (p/optionally
       (p/as-entry
        :operator
-       operator))
-     (p/as-entry
-      :varlist
-      (p/comp vec variable-list))
+       (p/pattern-parser (re-pattern operator))))
+     (p/as-entry :varlist variable-list)
      (p/ignore
       (p/pattern-parser #"\}"))))))
 
