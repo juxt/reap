@@ -4,8 +4,7 @@
   (:require
    [juxt.reap.regex :as re]
    [juxt.reap.combinators :as p]
-   [clojure.string :as str]
-   [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR ALPHA DIGIT HEXDIG]]
+   [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]
    [juxt.reap.decoders.rfc3986 :as rfc3986]))
 
 (def op-level2
