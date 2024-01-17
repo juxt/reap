@@ -73,8 +73,7 @@
     (p/zero-or-more
      (p/first
       (p/sequence-group
-       (p/ignore
-        (p/pattern-parser #"\,"))
+       (p/ignore (p/pattern-parser #"\,"))
        varspec))))))
 
 (comment
@@ -85,15 +84,11 @@
    (p/into
     {}
     (p/sequence-group
-     (p/ignore
-      (p/pattern-parser #"\{"))
+     (p/ignore (p/pattern-parser #"\{"))
      (p/optionally
-      (p/as-entry
-       :operator
-       (p/pattern-parser (re-pattern operator))))
+      (p/as-entry :operator (p/pattern-parser (re-pattern operator))))
      (p/as-entry :varlist variable-list)
-     (p/ignore
-      (p/pattern-parser #"\}"))))))
+     (p/ignore (p/pattern-parser #"\}"))))))
 
 (comment
   (expression (re/input "{foo}")))
