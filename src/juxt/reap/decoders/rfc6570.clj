@@ -17,7 +17,14 @@
   (rfc5234/alternatives \= \, \! \@ \|))
 
 (def operator
-  (p/pattern-parser (re-pattern (re/re-compose "[%s]" (rfc5234/merge-alternatives op-level2 op-level3 op-reserve)))))
+  (p/pattern-parser
+   (re-pattern
+    (re/re-compose
+     "[%s]"
+     (rfc5234/merge-alternatives
+      op-level2
+      op-level3
+      op-reserve)))))
 
 (def varchar
   (re/re-compose
