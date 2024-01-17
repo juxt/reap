@@ -76,6 +76,8 @@
   (as-alternatives [_] "Coerce to alternatives"))
 
 (extend-protocol AlternativesCoercion
+  java.lang.Character
+  (as-alternatives [c] [c])
   clojure.lang.ISeq
   (as-alternatives [coll] coll)
   juxt.reap.interval.Interval
