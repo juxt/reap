@@ -32,4 +32,33 @@
 
     "http://example.com/file{.suffix}"
     "http://example.com/file.svg"
-    {"suffix" "svg"}))
+    {"suffix" "svg"}
+
+    ;; Level 3
+
+    "X{.var}"
+    "X.value"
+    {"var" "value"}
+
+    "X{.x,y}"
+    "X.1024.768"
+    {"x" "1024" "y" "768"}
+
+    ;; Level 4
+
+    "X{.list}"
+    "X.red,green,blue"
+    {"list" ["red" "green" "blue"]}
+
+    "X{.list*}"
+    "X.red.green.blue"
+    {"list" ["red" "green" "blue"]}
+
+    ))
+
+
+#_(let [uri-template "X{.list}"
+      uri "X.red,green,blue"]
+  (match-uri
+   (compile-uri-template uri-template)
+     uri))

@@ -155,7 +155,7 @@
                 \.
                 (re/re-compose
                  "\\.((?:[%s]|%s)*)"
-                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \.))
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \. \,))
                  rfc3986/pct-encoded)
                 )
               ;; Default
@@ -174,8 +174,14 @@
         (into {} (map (fn [k] [(:varname k) (get params (:varname k))]) varlist)))
 
       \.
-      (into {} (map (fn [k v] [(:varname k) v])
-                      varlist (str/split expansion #"\.")))
+      (let [values (str/split expansion #"\.")]
+        (into {} (map (fn [{:keys [varname explode]} v]
+                        [varname (if explode values
+                                     (let [vs (str/split v #"\,")]
+                                       (if (< (count vs) 2)
+                                         (first vs)
+                                         vs)))])
+                      varlist values)))
 
       (throw (ex-info "Unsupported operator" {:operator operator})))
 
@@ -198,11 +204,13 @@
          :vars (apply merge variables)})
       {:uri m})))
 
-(compile-uri-template "http://example.com/search{?q,lang}")
+(comment
+  (compile-uri-template "http://example.com/search{?q,lang}"))
 
-(match-uri
- (compile-uri-template "http://example.com/search?{q,lang}")
- "http://example.com/search?q=chien&lang=fr")
+(comment
+  (match-uri
+   (compile-uri-template "http://example.com/search?{q,lang}")
+   "http://example.com/search?q=chien&lang=fr"))
 
 (comment
   (match-uri
