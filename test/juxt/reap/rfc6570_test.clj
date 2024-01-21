@@ -46,6 +46,23 @@
     "Hello%20World%21"
     {"hello" "Hello World!"}
 
+    ;; Level 2
+    "{+var}"
+    "value"
+    {"var" "value"}
+
+    "{+hello}"
+    "Hello%20World!"
+    {"hello" "Hello World!"}
+
+    "{+path}/here"
+    "/foo/bar/here"
+    {"path" "/foo/bar"}
+
+    "here?ref={+path}"
+    "here?ref=/foo/bar"
+    {"path" "/foo/bar"}
+
     ;; Level 3
 
     "X{.var}"
@@ -69,9 +86,13 @@
     ))
 
 
-#_(let [uri-template "{hello}"
-      uri "Hello%20World%21"]
-  (:vars
-   (match-uri
-    (compile-uri-template uri-template)
-    uri)))
+#_(let [uri-template "{+path}/here"
+      uri "/foo/bar/here"]
+  (compile-uri-template uri-template)
+  (match-uri
+     (compile-uri-template uri-template)
+     uri)
+  #_(:vars
+     (match-uri
+      (compile-uri-template uri-template)
+      uri)))

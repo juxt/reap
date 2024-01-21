@@ -102,13 +102,18 @@
 (def ^{:type ::rfc5234/alternatives} unreserved
   (rfc5234/merge-alternatives ALPHA DIGIT #{\- \. \_ \~}))
 
-;;    reserved      = gen-delims / sub-delims
 ;;    gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+(def ^{:type ::rfc5234/alternatives} gen-delims
+  (rfc5234/merge-alternatives  #{\: \/ \? \# \[ \] \@}))
 
 ;;    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
 ;;                  / "*" / "+" / "," / ";" / "="
 (def ^{:type ::rfc5234/alternatives} sub-delims
   (rfc5234/merge-alternatives #{\!  \$  \&  \'  \(  \) \*  \+  \,  \;  \=}))
+
+;;    reserved      = gen-delims / sub-delims
+(def ^{:type ::rfc5234/alternatives} reserved
+  (rfc5234/merge-alternatives gen-delims sub-delims))
 
 (def reg-name
   (re/re-compose "(?:%s|[%s])*" pct-encoded (rfc5234/merge-alternatives unreserved sub-delims)))

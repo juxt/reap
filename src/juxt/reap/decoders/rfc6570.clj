@@ -147,11 +147,18 @@
             (format "\\Q%s\\E" component)
             (if-let [op (:operator component)]
               (case op
+                \+
+                (re/re-compose
+                 "((?:[%s]|%s)*?)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved rfc3986/reserved))
+                 rfc3986/pct-encoded)
+
                 \?
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
                  rfc3986/pct-encoded)
+
                 \.
                 (re/re-compose
                  "\\.((?:[%s]|%s)*)"
@@ -168,6 +175,9 @@
 (defn expand [{:keys [varlist operator explode] :as expression} expansion]
   (if operator
     (case operator
+      \+
+      {(:varname (first varlist)) (java.net.URLDecoder/decode expansion)}
+
       \?
       (let [params (into {} (map #(str/split % #"=")
                                  (str/split expansion #"&")))]
