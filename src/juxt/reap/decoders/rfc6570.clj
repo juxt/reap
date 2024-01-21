@@ -182,6 +182,12 @@
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \, \/))
                  rfc3986/pct-encoded)
 
+                \;
+                (re/re-compose
+                 "\\;((?:[%s]|%s)*)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \, \; \=))
+                 rfc3986/pct-encoded)
+
                 \?
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
@@ -233,6 +239,16 @@
                                       (first vs)
                                       vs)))])
                    varlist values)))
+
+      \;
+      (let [pairs (str/split expansion #"\;")]
+        (into {}
+              (filter seq
+                      (map (fn [{:keys [varname]} pair]
+                             (let [[k v] (str/split pair #"\=")]
+                               (when (= varname k)
+                                 [varname v])))
+                           varlist pairs))))
 
       \?
       (let [params (into {} (map #(str/split % #"=")
