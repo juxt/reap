@@ -47,6 +47,9 @@
     {"hello" "Hello World!"}
 
     ;; Level 2
+
+    ;; Reserved string expansion (Sec 3.2.3)
+
     "{+var}"
     "value"
     {"var" "value"}
@@ -62,6 +65,16 @@
     "here?ref={+path}"
     "here?ref=/foo/bar"
     {"path" "/foo/bar"}
+
+    ;; Fragment expansion, crosshatch-prefixed (Sec 3.2.4)
+
+    "X{#var}"
+    "X#value"
+    {"var" "value"}
+
+    "X{#hello}"
+    "X#Hello%20World!"
+    {"hello" "Hello World!"}
 
     ;; Level 3
 
@@ -86,8 +99,8 @@
     ))
 
 
-#_(let [uri-template "{+path}/here"
-      uri "/foo/bar/here"]
+#_(let [uri-template "X{#var}"
+      uri "X#value"]
   (compile-uri-template uri-template)
   (match-uri
      (compile-uri-template uri-template)

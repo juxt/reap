@@ -147,12 +147,29 @@
             (format "\\Q%s\\E" component)
             (if-let [op (:operator component)]
               (case op
+                ;; "The allowed set for a given expansion depends on
+                ;; the expression type: reserved ("+") and
+                ;; fragment ("#") expansions allow the set of
+                ;; characters in the union of ( unreserved / reserved
+                ;; / pct-encoded ) to be passed through without
+                ;; pct-encoding" -- RFC 6570 3.2.1. Variable
+                ;; Expansion
                 \+
                 (re/re-compose
                  "((?:[%s]|%s)*?)"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved rfc3986/reserved))
                  rfc3986/pct-encoded)
 
+                \#
+                (re/re-compose
+                 "((?:[%s]|%s)*?)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved rfc3986/reserved))
+                 rfc3986/pct-encoded)
+
+                ;; ", whereas all other expression types allow only
+                ;; unreserved characters to be passed through without
+                ;; pct-encoding." -- RFC 6570 3.2.1. Variable
+                ;; Expansion
                 \?
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
@@ -177,6 +194,9 @@
     (case operator
       \+
       {(:varname (first varlist)) (java.net.URLDecoder/decode expansion)}
+
+      \#
+      {(:varname (first varlist)) (java.net.URLDecoder/decode (subs expansion 1))}
 
       \?
       (let [params (into {} (map #(str/split % #"=")
