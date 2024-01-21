@@ -170,17 +170,25 @@
                 ;; unreserved characters to be passed through without
                 ;; pct-encoding." -- RFC 6570 3.2.1. Variable
                 ;; Expansion
+                \.
+                (re/re-compose
+                 "\\.((?:[%s]|%s)*)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \. \,))
+                 rfc3986/pct-encoded)
+
+                \/
+                (re/re-compose
+                 "\\/((?:[%s]|%s)*)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \, \/))
+                 rfc3986/pct-encoded)
+
                 \?
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
                  rfc3986/pct-encoded)
 
-                \.
-                (re/re-compose
-                 "\\.((?:[%s]|%s)*)"
-                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \. \,))
-                 rfc3986/pct-encoded)
+
                 )
               ;; Default
               (re/re-compose
@@ -204,15 +212,6 @@
                         varlist
                         (str/split expansion #",")))))
 
-      \?
-      (let [params (into {} (map #(str/split % #"=")
-                                 (str/split expansion #"&")))]
-        (into {}
-              (map
-               (fn [k]
-                 [(:varname k) (java.net.URLDecoder/decode (get params (:varname k)))])
-               varlist)))
-
       \.
       (let [values (str/split expansion #"\.")]
         (into {}
@@ -223,6 +222,28 @@
                                       (first vs)
                                       vs)))])
                    varlist values)))
+
+      \/
+      (let [values (str/split expansion #"\/")]
+        (into {}
+              (map (fn [{:keys [varname explode]} v]
+                     [varname (if explode values
+                                  (let [vs (str/split v #"\,")]
+                                    (if (< (count vs) 2)
+                                      (first vs)
+                                      vs)))])
+                   varlist values)))
+
+      \?
+      (let [params (into {} (map #(str/split % #"=")
+                                 (str/split expansion #"&")))]
+        (into {}
+              (map
+               (fn [k]
+                 [(:varname k) (java.net.URLDecoder/decode (get params (:varname k)))])
+               varlist)))
+
+
 
       (throw (ex-info "Unsupported operator" {:operator operator})))
 

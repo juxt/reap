@@ -119,7 +119,13 @@
     {"x" "1024" "y" "768"}
 
     ;; Path segments, slash-prefixed (Sec 3.2.6)
-    ;; TODO
+    "{/var}"
+    "/value"
+    {"var" "value"}
+
+    "{/var,x}/here"
+    "/value/1024/here"
+    {"var" "value" "x" "1024"}
 
     ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
     ;; TODO
@@ -132,6 +138,22 @@
 
     ;; Level 4
 
+    "{/var:1,var}"
+    "/v/value"
+    {"var" "value"}
+
+    "{/list}"
+    "/red,green,blue"
+    {"list" ["red" "green" "blue"]}
+
+    "{/list*}"
+    "/red/green/blue"
+    {"list" ["red" "green" "blue"]}
+
+    #_#_#_"{/list*,path:4}"
+    "/red/green/blue/%2Ffoo"
+    {"list" ["red" "green" "blue"]}
+
     "X{.list}"
     "X.red,green,blue"
     {"list" ["red" "green" "blue"]}
@@ -143,8 +165,8 @@
     ))
 
 
-#_(let [uri-template "{+path,x}/here"
-      uri "/foo/bar,1024/here"]
+#_(let [uri-template "{/var}"
+      uri "/value"]
   (compile-uri-template uri-template)
   (match-uri
      (compile-uri-template uri-template)
