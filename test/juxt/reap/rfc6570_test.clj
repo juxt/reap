@@ -14,6 +14,8 @@
       (compile-uri-template uri-template)
       uri)))
 
+    ;; Preliminaries
+
     "http://example.com/~{username}/"
     "http://example.com/~mal/"
     {"username" "mal"}
@@ -33,6 +35,16 @@
     "http://example.com/file{.suffix}"
     "http://example.com/file.svg"
     {"suffix" "svg"}
+
+    ;; Level 1 examples
+
+    "{var}"
+    "value"
+    {"var" "value"}
+
+    "{hello}"
+    "Hello%20World%21"
+    {"hello" "Hello World!"}
 
     ;; Level 3
 
@@ -57,8 +69,9 @@
     ))
 
 
-#_(let [uri-template "X{.list}"
-      uri "X.red,green,blue"]
-  (match-uri
-   (compile-uri-template uri-template)
-     uri))
+#_(let [uri-template "{hello}"
+      uri "Hello%20World%21"]
+  (:vars
+   (match-uri
+    (compile-uri-template uri-template)
+    uri)))

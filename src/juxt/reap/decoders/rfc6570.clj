@@ -171,22 +171,27 @@
       \?
       (let [params (into {} (map #(str/split % #"=")
                                  (str/split expansion #"&")))]
-        (into {} (map (fn [k] [(:varname k) (get params (:varname k))]) varlist)))
+        (into {}
+              (map
+               (fn [k]
+                 [(:varname k) (java.net.URLDecoder/decode (get params (:varname k)))])
+               varlist)))
 
       \.
       (let [values (str/split expansion #"\.")]
-        (into {} (map (fn [{:keys [varname explode]} v]
-                        [varname (if explode values
-                                     (let [vs (str/split v #"\,")]
-                                       (if (< (count vs) 2)
-                                         (first vs)
-                                         vs)))])
-                      varlist values)))
+        (into {}
+              (map (fn [{:keys [varname explode]} v]
+                     [varname (if explode values
+                                  (let [vs (str/split v #"\,")]
+                                    (if (< (count vs) 2)
+                                      (first vs)
+                                      vs)))])
+                   varlist values)))
 
       (throw (ex-info "Unsupported operator" {:operator operator})))
 
     ;; default
-    (into {} (map (fn [k v] [(:varname k) v])
+    (into {} (map (fn [k v] [(:varname k) (java.net.URLDecoder/decode v)])
                   varlist (str/split expansion #",")))))
 
 (defn match-uri
