@@ -192,11 +192,17 @@
 (defn expand [{:keys [varlist operator explode] :as expression} expansion]
   (if operator
     (case operator
-      \+
-      {(:varname (first varlist)) (java.net.URLDecoder/decode expansion)}
-
-      \#
-      {(:varname (first varlist)) (java.net.URLDecoder/decode (subs expansion 1))}
+      (\+ \#)
+      (let [expansion (case operator
+                        \+ expansion
+                        \# (subs expansion 1))
+            [v & extra-vars :as varlist] varlist]
+        (if-not extra-vars
+          {(:varname v) (java.net.URLDecoder/decode expansion)}
+          (into {} (map (fn [k p]
+                          [(:varname k) (java.net.URLDecoder/decode p)])
+                        varlist
+                        (str/split expansion #",")))))
 
       \?
       (let [params (into {} (map #(str/split % #"=")

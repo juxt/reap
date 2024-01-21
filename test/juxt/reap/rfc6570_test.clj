@@ -78,6 +78,38 @@
 
     ;; Level 3
 
+    ;; String expansion with multiple variables (Sec 3.2.2)
+
+    "map?{x,y}"
+    "map?1024,768"
+    {"x" "1024" "y" "768"}
+
+    "{x,hello,y}"
+    "1024,Hello%20World%21,768"
+    {"x" "1024" "hello" "Hello World!" "y" "768"}
+
+    ;; Reserved expansion with multiple variables (Sec 3.2.3)
+
+    "{+x,hello,y}"
+    "1024,Hello%20World!,768"
+    {"x" "1024" "hello" "Hello World!" "y" "768"}
+
+    "{+path,x}/here"
+    "/foo/bar,1024/here"
+    {"path" "/foo/bar" "x" "1024"}
+
+    ;; Fragment expansion with multiple variables (Sec 3.2.4)
+
+    "{#x,hello,y}"
+    "#1024,Hello%20World!,768"
+    {"x" "1024" "hello" "Hello World!" "y" "768"}
+
+    "{#path,x}/here"
+    "#/foo/bar,1024/here"
+    {"path" "/foo/bar" "x" "1024"}
+
+    ;; Label expansion, dot-prefixed (Sec 3.2.5)
+
     "X{.var}"
     "X.value"
     {"var" "value"}
@@ -85,6 +117,18 @@
     "X{.x,y}"
     "X.1024.768"
     {"x" "1024" "y" "768"}
+
+    ;; Path segments, slash-prefixed (Sec 3.2.6)
+    ;; TODO
+
+    ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
+    ;; TODO
+
+    ;; Form-style query, ampersand-separated (Sec 3.2.8)
+    ;; TODO
+
+    ;; Form-style query continuation (Sec 3.2.9)
+    ;; TODO
 
     ;; Level 4
 
@@ -99,8 +143,8 @@
     ))
 
 
-#_(let [uri-template "X{#var}"
-      uri "X#value"]
+#_(let [uri-template "{+path,x}/here"
+      uri "/foo/bar,1024/here"]
   (compile-uri-template uri-template)
   (match-uri
      (compile-uri-template uri-template)
