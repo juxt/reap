@@ -251,13 +251,28 @@
                            varlist pairs))))
 
       \?
-      (let [params (into {} (map #(str/split % #"=")
-                                 (str/split expansion #"&")))]
+      (let [pairs (str/split expansion #"&")
+            params (into {} (for [[k v] (map #(str/split % #"\=") pairs)]
+                              [k v]))]
         (into {}
-              (map
-               (fn [k]
-                 [(:varname k) (java.net.URLDecoder/decode (get params (:varname k)))])
-               varlist)))
+              (for [{:keys [varname]} varlist
+                    :let [v (get params varname)]
+                    :when (find params varname)]
+                [varname (some-> v java.net.URLDecoder/decode)]))
+
+
+        )
+      #_(let [pairs (str/split (subs expansion 1) #"&")
+              params (into {} pairs)]
+          {}
+          #_(into {}
+                  (filter seq
+                          (map
+                           (fn [{:keys [varname]} pair]
+                             (let [[k v] (str/split pair #"\=")]
+                               (when (= varname k)
+                                 [varname (java.net.URLDecoder/decode (get params (:varname k)))])))
+                           varlist pairs))))
 
 
 

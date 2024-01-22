@@ -3,7 +3,8 @@
 (ns juxt.reap.rfc6570-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [juxt.reap.decoders.rfc6570 :refer [match-uri compile-uri-template]]))
+   [juxt.reap.decoders.rfc6570 :refer [match-uri compile-uri-template]]
+   [clojure.string :as str]))
 
 (deftest match-uri-test
   (are [uri-template uri expected]
@@ -137,7 +138,13 @@
     {"x" "1024" "y" "768" "empty" nil}
 
     ;; Form-style query, ampersand-separated (Sec 3.2.8)
-    ;; TODO
+    "{?x,y}"
+    "?x=1024&y=768"
+    {"x" "1024" "y" "768"}
+
+    "{?x,y,empty}"
+    "?x=1024&y=768&empty"
+    {"x" "1024" "y" "768" "empty" nil}
 
     ;; Form-style query continuation (Sec 3.2.9)
     ;; TODO
@@ -171,8 +178,8 @@
     ))
 
 
-(let [uri-template "{;x,y}"
-      uri ";x=1024;y=768"]
+#_(let [uri-template "{?x,y,empty}"
+      uri "?x=1024&y=768&empty"]
   (compile-uri-template uri-template)
   (match-uri
      (compile-uri-template uri-template)
