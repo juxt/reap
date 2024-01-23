@@ -203,7 +203,7 @@
                rfc3986/pct-encoded))))
         components)))}))
 
-(defn expand [{:keys [varlist operator explode] :as expression} expansion]
+(defn expand [{:keys [varlist operator] :as expression} expansion]
   (if operator
     (case operator
       (\+ \#)
@@ -227,7 +227,7 @@
                                     (if (< (count vs) 2)
                                       (first vs)
                                       vs)))])
-                   varlist values)))
+                   varlist (drop (max 0 (- (count values) (count varlist))) values))))
 
       \/
       (let [values (str/split expansion #"\/")]
@@ -282,6 +282,7 @@
     (into {} (map (fn [k v] [(:varname k) (java.net.URLDecoder/decode v)])
                   varlist (str/split expansion #",")))))
 
+;; TODO: Promote to juxt.reap.rfc6570
 (defn match-uri
   "Given a compiled uri-template (see compile-uri-template) and a URI as
   arguments, return the extracted uri-template expansions if the URI

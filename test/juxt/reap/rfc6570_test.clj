@@ -37,6 +37,16 @@
     "http://example.com/file.svg"
     {"suffix" "svg"}
 
+    ;; If there are multiple suffixes, we want the right most one
+    "http://example.com/file{.suffix}"
+    "http://example.com/file.svg.xml"
+    {"suffix" "xml"}
+
+    ;; If there are multiple suffixes, we want the right most one
+    "http://example.com/file{.inner,outer}"
+    "http://example.com/file.v.svg.xml"
+    {"inner" "svg" "outer" "xml"}
+
     ;; Level 1 examples
 
     "{var}"
@@ -178,8 +188,8 @@
     ))
 
 
-#_(let [uri-template "{?x,y,empty}"
-      uri "?x=1024&y=768&empty"]
+(let [uri-template "file{.suffix}"
+      uri "file.svg.xml"]
   (compile-uri-template uri-template)
   (match-uri
      (compile-uri-template uri-template)
