@@ -7,7 +7,9 @@
    [juxt.reap.combinators :as p]
    [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]
    [juxt.reap.decoders.rfc3986 :as rfc3986]
-   [clojure.string :as str]))
+   [clojure.string :as str])
+  (:import
+   (java.net URLDecoder)))
 
 (def op-level2
   (rfc5234/alternatives \+ \#))
@@ -192,16 +194,38 @@
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
-                 rfc3986/pct-encoded)
+                 rfc3986/pct-encoded))
 
-
-                )
               ;; Default
               (re/re-compose
                "((?:[%s]|%s)*)"
                (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \,))
                rfc3986/pct-encoded))))
         components)))}))
+
+(defn distribute-values
+  "Return the varlist augmented with values. If there are the same
+  number of values as vars in the varlist, then each var will be
+  associated with a value. If there are any extra values, these will
+  be given to any var that has an explode modifier."
+  [varlist vals]
+  (when (> (count (filter :explode varlist)) 1)
+    (throw (ex-info "Cannot have multiple vars that have explode modifier set" {:varlist varlist})))
+  (let [extra (- (count vals) (count varlist))]
+    (loop [[var & varlist] varlist
+           vals vals
+           result []]
+      (if var
+        (let [{:keys [explode]} var
+              [h t] (split-at (cond-> 1 explode (+ extra)) vals)
+              vals (if explode
+                     (mapv #(URLDecoder/decode %) h)
+                     (let [vs (str/split (first h) #"\,")]
+                       (if (< (count vs) 2)
+                         (URLDecoder/decode (first vs))
+                         (mapv #(URLDecoder/decode %) vs))))]
+          (recur varlist t (conj result (assoc var :val vals))))
+        result))))
 
 (defn expand [{:keys [varlist operator] :as expression} expansion]
   (if operator
@@ -212,9 +236,9 @@
                         \# (subs expansion 1))
             [v & extra-vars :as varlist] varlist]
         (if-not extra-vars
-          {(:varname v) (java.net.URLDecoder/decode expansion)}
+          {(:varname v) (URLDecoder/decode expansion)}
           (into {} (map (fn [k p]
-                          [(:varname k) (java.net.URLDecoder/decode p)])
+                          [(:varname k) (URLDecoder/decode p)])
                         varlist
                         (str/split expansion #",")))))
 
@@ -230,15 +254,8 @@
                    varlist (drop (max 0 (- (count values) (count varlist))) values))))
 
       \/
-      (let [values (str/split expansion #"\/")]
-        (into {}
-              (map (fn [{:keys [varname explode]} v]
-                     [varname (if explode values
-                                  (let [vs (str/split v #"\,")]
-                                    (if (< (count vs) 2)
-                                      (first vs)
-                                      vs)))])
-                   varlist values)))
+      (let [varlist (distribute-values varlist (str/split expansion #"\/"))]
+        (zipmap (map :varname varlist) (map :val varlist)))
 
       \;
       (let [pairs (str/split expansion #"\;")]
@@ -258,28 +275,12 @@
               (for [{:keys [varname]} varlist
                     :let [v (get params varname)]
                     :when (find params varname)]
-                [varname (some-> v java.net.URLDecoder/decode)]))
-
-
-        )
-      #_(let [pairs (str/split (subs expansion 1) #"&")
-              params (into {} pairs)]
-          {}
-          #_(into {}
-                  (filter seq
-                          (map
-                           (fn [{:keys [varname]} pair]
-                             (let [[k v] (str/split pair #"\=")]
-                               (when (= varname k)
-                                 [varname (java.net.URLDecoder/decode (get params (:varname k)))])))
-                           varlist pairs))))
-
-
+                [varname (some-> v URLDecoder/decode)])))
 
       (throw (ex-info "Unsupported operator" {:operator operator})))
 
     ;; default
-    (into {} (map (fn [k v] [(:varname k) (java.net.URLDecoder/decode v)])
+    (into {} (map (fn [k v] [(:varname k) (URLDecoder/decode v)])
                   varlist (str/split expansion #",")))))
 
 ;; TODO: Promote to juxt.reap.rfc6570

@@ -173,9 +173,10 @@
     "/red/green/blue"
     {"list" ["red" "green" "blue"]}
 
-    #_#_#_"{/list*,path:4}"
+    "{/list*,path:4}"
     "/red/green/blue/%2Ffoo"
-    {"list" ["red" "green" "blue"]}
+    {"list" ["red" "green" "blue"]
+     "path" "/foo"}
 
     "X{.list}"
     "X.red,green,blue"
@@ -183,18 +184,44 @@
 
     "X{.list*}"
     "X.red.green.blue"
-    {"list" ["red" "green" "blue"]}
-
-    ))
+    {"list" ["red" "green" "blue"]}))
 
 
-(let [uri-template "file{.suffix}"
+#_(let [uri-template "file{.suffix}"
       uri "file.svg.xml"]
   (compile-uri-template uri-template)
   (match-uri
-     (compile-uri-template uri-template)
-     uri)
+   (compile-uri-template uri-template)
+   uri)
   #_(:vars
      (match-uri
       (compile-uri-template uri-template)
       uri)))
+
+
+;;[{:name :a} {:name :b :explode true} {:name :c}]
+
+
+
+#_(let [varlist [{:varname "list" :explode true}
+               {:varname "path" :prefix 4}]
+      vals (str/split "a,b,c,doggy" #",")]
+
+  (let [extra (- (count vals) (count varlist))]
+    (loop [[var & varlist] varlist
+           vals vals
+           result []]
+      (if var
+        (let [{:keys [explode]} var
+              [h t] (split-at (cond-> 1 explode (+ extra)) vals)]
+          (recur varlist t (conj result (assoc var :vals (vec h)))))
+        result))))
+
+
+#_(juxt.reap.decoders.rfc6570/expand
+ (compile-uri-template "{/list*,path:4}")
+ "/a/b/c/d")
+
+#_(match-uri
+ (compile-uri-template "{/list*,path:4}")
+ "/a/b/c/doggy")
