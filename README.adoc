@@ -221,7 +221,7 @@ expression]. Regexes provide the performance.
 
 ==== Allen's Interval Algebra (1983)
 
-https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's interval algebra]
+https://en.wikipedia.org/wiki/Allen%27s_interval_algebra[Allen's interval algebra]
 allows character intervals to be manipulated and combined, to form optimal
 ranges which optimise the performance of the regular expression.
 
