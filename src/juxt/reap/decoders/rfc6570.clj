@@ -137,7 +137,7 @@
   (uri-template (re/input "http://example.com/~{username}/{file}{.suffix}")))
 
 (comment
-  (compile-uri-template "http://example.com/search{?q,lang}"))
+  (uri-template (re/input "http://example.com/search{?q,lang}")))
 
 (defn distribute-values
   "Return the varlist augmented with values. If there are the same

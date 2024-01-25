@@ -153,3 +153,9 @@
      [(beginning x)
       (if (> (end x) (end y)) (end x) (end y))])
     (throw (ex-info "Unjoinable values/ranges" {:error ::unjoinable :x x :y y}))))
+
+(defn unroll
+  "Given a normalized collection of intervals, return a collection of
+  characters."
+  [coll]
+  (mapcat (fn [i] (map char (range (beginning i) (inc (end i))))) coll))
