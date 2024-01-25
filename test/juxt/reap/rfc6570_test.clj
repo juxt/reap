@@ -3,7 +3,7 @@
 (ns juxt.reap.rfc6570-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [juxt.reap.decoders.rfc6570 :refer [match-uri compile-uri-template]]
+   [juxt.reap.rfc6570 :refer [match-uri compile-uri-template]]
    [clojure.string :as str]))
 
 (deftest match-uri-test
