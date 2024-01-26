@@ -85,10 +85,48 @@
         "here?ref={+path}" "here?ref=/foo/bar"
 
         "X{#var}" "X#value"
-        "X{#hello}" "X#Hello%20World!"
-        )))
+        "X{#hello}" "X#Hello%20World!"))
 
-(compile-uri-template "{+hello}")
+  ;; Level 3 examples
+
+  (let [variables {"var" "value"
+                   "hello" "Hello World!"
+                   "empty" ""
+                   "path" "/foo/bar"
+                   "x" "1024"
+                   "y" "768"}]
+    (are [uri-template expected]
+        (=
+         expected
+         (make-uri
+          (compile-uri-template uri-template)
+          variables))
+
+      "map?{x,y}" "map?1024,768"
+      "{x,hello,y}" "1024,Hello%20World%21,768"
+
+      "{+x,hello,y}" "1024,Hello%20World!,768"
+      "{+path,x}/here" "/foo/bar,1024/here"
+
+      "{#x,hello,y}" "#1024,Hello%20World!,768"
+      "{#path,x}/here" "#/foo/bar,1024/here"
+
+      "X{.var}" "X.value"
+      "X{.x,y}" "X.1024.768"
+
+      "{/var}" "/value"
+      "{/var,x}/here" "/value/1024/here"
+
+      "{;x,y}" ";x=1024;y=768"
+      "{;x,y,empty}" ";x=1024;y=768;empty"
+
+      "{?x,y}" "?x=1024&y=768"
+      "{?x,y,empty}" "?x=1024&y=768&empty="
+
+      "?fixed=yes{&x}" "?fixed=yes&x=1024"
+      "{&x,y,empty}" "&x=1024&y=768&empty="
+
+        )))
 
 (deftest match-uri-test
   (are [uri-template uri expected]
@@ -269,43 +307,3 @@
       "X{.list*}"
       "X.red.green.blue"
       {"list" ["red" "green" "blue"]}))
-
-
-#_(let [uri-template "file{.suffix}"
-        uri "file.svg.xml"]
-    (compile-uri-template uri-template)
-    (match-uri
-     (compile-uri-template uri-template)
-     uri)
-    #_(:vars
-       (match-uri
-        (compile-uri-template uri-template)
-        uri)))
-
-
-;;[{:name :a} {:name :b :explode true} {:name :c}]
-
-
-
-#_(let [varlist [{:varname "list" :explode true}
-                 {:varname "path" :prefix 4}]
-        vals (str/split "a,b,c,doggy" #",")]
-
-    (let [extra (- (count vals) (count varlist))]
-      (loop [[var & varlist] varlist
-             vals vals
-             result []]
-        (if var
-          (let [{:keys [explode]} var
-                [h t] (split-at (cond-> 1 explode (+ extra)) vals)]
-            (recur varlist t (conj result (assoc var :vals (vec h)))))
-          result))))
-
-
-#_(juxt.reap.decoders.rfc6570/expand
-   (compile-uri-template "{/list*,path:4}")
-   "/a/b/c/d")
-
-#_(match-uri
-   (compile-uri-template "{/list*,path:4}")
-   "/a/b/c/doggy")

@@ -67,6 +67,12 @@
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
+                 rfc3986/pct-encoded)
+
+                \&
+                (re/re-compose
+                 "\\?((?:[%s]|%s)*)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
                  rfc3986/pct-encoded))
 
               ;; Default
@@ -77,49 +83,54 @@
         components)))}))
 
 (defn component->str [{:keys [varlist operator]} variables]
-  (if operator
-    (case operator
-      \?
-      (let [qs (str/join
-                "&"
-                (keep
-                 (fn [{:keys [varname prefix]}]
-                   (when-let [val (cond-> (get variables varname)
-                                    prefix (subs 0 prefix))]
-                     (str varname "=" (pct-encode (str val)))))
-                 varlist))]
-        (if-not (str/blank? qs) (str "?" qs) ""))
+  (letfn [(resolve-variables
+            ([encoder formatter]
+             (keep
+              (fn [{:keys [varname prefix]}]
+                (when-let [val (get variables varname)]
+                  (cond-> val
+                    true str
+                    prefix (subs 0 prefix)
+                    true encoder
+                    formatter (formatter varname))))
+              varlist))
+            ([encoder]
+             (resolve-variables encoder (fn [v varname] v))))
 
-      \#
-      (let [fragment (str/join
-                      ","
-                      (map
-                       (fn [{:keys [varname prefix]}]
-                         (cond-> (str (get variables varname))
-                           prefix (subs 0 prefix)
-                           true pct-encode-reserved))
-                       varlist))]
-        (if-not (str/blank? fragment) (str "#" fragment) ""))
+          (equals-formatter-empty [v varname] (str varname (when-not (str/blank? v) (str "=" v))))
+          (equals-formatter [v varname] (str varname "=" v))]
 
-      \+
-      (str/join
-       ","
-       (map
-        (fn [{:keys [varname prefix]}]
-          (cond-> (str (get variables varname))
-            prefix (subs 0 prefix)
-            true pct-encode-reserved))
-        varlist)))
+    (if operator
+      (case operator
+        \+
+        (str/join "," (resolve-variables pct-encode-reserved))
 
-    ;; default
-    (str/join
-     ","
-     (map
-      (fn [{:keys [varname prefix]}]
-        (cond-> (str (get variables varname))
-          prefix (subs 0 prefix)
-          true pct-encode))
-      varlist))))
+        \#
+        (let [fragment (str/join "," (resolve-variables pct-encode-reserved))]
+          (if-not (str/blank? fragment) (str "#" fragment) ""))
+
+        \.
+        (let [s (str/join "." (resolve-variables pct-encode))]
+          (if-not (str/blank? s) (str "." s) ""))
+
+        \/
+        (let [s (str/join "/" (resolve-variables pct-encode))]
+          (if-not (str/blank? s) (str "/" s) ""))
+
+        \;
+        (let [s (str/join ";" (resolve-variables pct-encode-reserved equals-formatter-empty))]
+          (if-not (str/blank? s) (str ";" s) ""))
+
+        \?
+        (let [qs (str/join "&" (resolve-variables pct-encode equals-formatter))]
+          (if-not (str/blank? qs) (str "?" qs) ""))
+
+        \&
+        (let [qs (str/join "&" (resolve-variables pct-encode equals-formatter))]
+          (if-not (str/blank? qs) (str "&" qs) "")))
+
+      ;; default
+      (str/join "," (resolve-variables pct-encode)))))
 
 (defn make-uri [uri-template variables]
   (->
