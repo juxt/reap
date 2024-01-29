@@ -13,45 +13,45 @@
         (compile-uri-template uri-template)
         variables))
 
-      "http://example.com/~{username}/"
-      {"username" "fred"}
-      "http://example.com/~fred/"
+    "http://example.com/~{username}/"
+    {"username" "fred"}
+    "http://example.com/~fred/"
 
-      "http://example.com/~{username:2}/"
-      {"username" "fred"}
-      "http://example.com/~fr/"
+    "http://example.com/~{username:2}/"
+    {"username" "fred"}
+    "http://example.com/~fr/"
 
-      "http://example.com/dictionary/{term:1}/{term}"
-      {"term" "cat"}
-      "http://example.com/dictionary/c/cat"
+    "http://example.com/dictionary/{term:1}/{term}"
+    {"term" "cat"}
+    "http://example.com/dictionary/c/cat"
 
-      "http://example.com/dictionary/{term:1}/{term}"
-      {"term" "dog"}
-      "http://example.com/dictionary/d/dog"
+    "http://example.com/dictionary/{term:1}/{term}"
+    {"term" "dog"}
+    "http://example.com/dictionary/d/dog"
 
-      "http://example.com/search{?q,lang}"
-      {"q" "cat" "lang" "en"}
-      "http://example.com/search?q=cat&lang=en"
+    "http://example.com/search{?q,lang}"
+    {"q" "cat" "lang" "en"}
+    "http://example.com/search?q=cat&lang=en"
 
-      "http://example.com/search{?q,lang}"
-      {"q" "chien" "lang" "fr"}
-      "http://example.com/search?q=chien&lang=fr"
+    "http://example.com/search{?q,lang}"
+    {"q" "chien" "lang" "fr"}
+    "http://example.com/search?q=chien&lang=fr"
 
-      "http://www.example.com/foo{?query,number}"
-      {"query" "mycelium" "number" 100}
-      "http://www.example.com/foo?query=mycelium&number=100"
+    "http://www.example.com/foo{?query,number}"
+    {"query" "mycelium" "number" 100}
+    "http://www.example.com/foo?query=mycelium&number=100"
 
-      ;; "Alternatively, if 'query' is undefined, then the expansion would be..."
+    ;; "Alternatively, if 'query' is undefined, then the expansion would be..."
 
-      "http://www.example.com/foo{?query,number}"
-      {"number" 100}
-      "http://www.example.com/foo?number=100"
+    "http://www.example.com/foo{?query,number}"
+    {"number" 100}
+    "http://www.example.com/foo?number=100"
 
-      ;; "or if both variables are undefined, then it would be"
+    ;; "or if both variables are undefined, then it would be"
 
-      "http://www.example.com/foo{?query,number}"
-      {}
-      "http://www.example.com/foo")
+    "http://www.example.com/foo{?query,number}"
+    {}
+    "http://www.example.com/foo")
 
   ;; Level 1 examples
 
@@ -64,8 +64,8 @@
          (make-uri
           (compile-uri-template uri-template)
           variables))
-        "{var}" "value"
-        "{hello}" "Hello%20World%21"))
+      "{var}" "value"
+      "{hello}" "Hello%20World%21"))
 
   ;; Level 2 examples
 
@@ -79,13 +79,13 @@
           (compile-uri-template uri-template)
           variables))
 
-        "{+var}" "value"
-        "{+hello}" "Hello%20World!"
-        "{+path}/here" "/foo/bar/here"
-        "here?ref={+path}" "here?ref=/foo/bar"
+      "{+var}" "value"
+      "{+hello}" "Hello%20World!"
+      "{+path}/here" "/foo/bar/here"
+      "here?ref={+path}" "here?ref=/foo/bar"
 
-        "X{#var}" "X#value"
-        "X{#hello}" "X#Hello%20World!"))
+      "X{#var}" "X#value"
+      "X{#hello}" "X#Hello%20World!"))
 
   ;; Level 3 examples
 
@@ -126,7 +126,89 @@
       "?fixed=yes{&x}" "?fixed=yes&x=1024"
       "{&x,y,empty}" "&x=1024&y=768&empty="
 
-        )))
+      ))
+
+  ;; Level 4 examples
+
+  (let [variables {"var" "value"
+                   "hello" "Hello World!"
+                   "path" "/foo/bar"
+                   "list" '("red" "green" "blue")
+                   "keys" {"semi" ";" "dot" "." "comma" ","}}]
+
+    (are [uri-template expected]
+        (=
+         expected
+         (make-uri
+          (compile-uri-template uri-template)
+          variables))
+
+      ;; String expansion with value modifiers
+      "{var:3}" "val"
+      "{var:30}" "value"
+      "{list}" "red,green,blue"
+      "{list*}" "red,green,blue"
+      "{keys}" "semi,%3B,dot,.,comma,%2C"
+      "{keys*}" "semi=%3B,dot=.,comma=%2C"
+
+      ;; Reserved expansion with value modifiers       (Sec 3.2.3)
+
+      "{+path:6}/here" "/foo/b/here"
+      "{+list}" "red,green,blue"
+      "{+list*}" "red,green,blue"
+      "{+keys}" "semi,;,dot,.,comma,,"
+      "{+keys*}" "semi=;,dot=.,comma=,"
+
+      ;; Fragment expansion with value modifiers       (Sec 3.2.4)
+
+      "{#path:6}/here" "#/foo/b/here"
+      "{#list}" "#red,green,blue"
+      "{#list*}" "#red,green,blue"
+      "{#keys}" "#semi,;,dot,.,comma,,"
+      "{#keys*}" "#semi=;,dot=.,comma=,"
+
+      ;; Label expansion, dot-prefixed                 (Sec 3.2.5)
+
+      "X{.var:3}" "X.val"
+      "X{.list}" "X.red,green,blue"
+      "X{.list*}" "X.red.green.blue"
+      "X{.keys}" "X.semi,%3B,dot,.,comma,%2C"
+      "X{.keys*}" "X.semi=%3B.dot=..comma=%2C"
+
+      ;; Path segments, slash-prefixed                 (Sec 3.2.6)
+
+      "{/var:1,var}" "/v/value"
+      "{/list}" "/red,green,blue"
+      "{/list*}" "/red/green/blue"
+      "{/list*,path:4}" "/red/green/blue/%2Ffoo"
+      "{/keys}" "/semi,%3B,dot,.,comma,%2C"
+      "{/keys*}" "/semi=%3B/dot=./comma=%2C"
+
+      ;; Path-style parameters, semicolon-prefixed     (Sec 3.2.7)
+
+      "{;hello:5}" ";hello=Hello"
+      "{;list}" ";list=red,green,blue"
+      "{;list*}" ";list=red;list=green;list=blue"
+      "{;keys}" ";keys=semi,%3B,dot,.,comma,%2C"
+      "{;keys*}" ";semi=%3B;dot=.;comma=%2C"
+
+      ;; Form-style query, ampersand-separated         (Sec 3.2.8)
+
+      "{?var:3}" "?var=val"
+      "{?list}" "?list=red,green,blue"
+      "{?list*}" "?list=red&list=green&list=blue"
+      "{?keys}" "?keys=semi,%3B,dot,.,comma,%2C"
+      "{?keys*}" "?semi=%3B&dot=.&comma=%2C"
+
+      ;; Form-style query continuation                 (Sec 3.2.9)
+
+      "{&var:3}" "&var=val"
+      "{&list}" "&list=red,green,blue"
+      "{&list*}" "&list=red&list=green&list=blue"
+      "{&keys}" "&keys=semi,%3B,dot,.,comma,%2C"
+      "{&keys*}" "&semi=%3B&dot=.&comma=%2C"
+
+      )))
 
 (deftest match-uri-test
   (are [uri-template uri expected]

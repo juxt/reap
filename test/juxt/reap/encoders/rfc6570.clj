@@ -16,7 +16,7 @@
          (for [c s]
            (if (contains? unreserved c)
              c
-             (format "%%%x" (int c))))))
+             (format "%%%X" (int c))))))
 
 (def reserved
   (set
