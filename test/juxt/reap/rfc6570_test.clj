@@ -335,7 +335,25 @@
 
         )
 
-    ;; TODO: 3.2.4.  Fragment Expansion: {#var}
+    ;; 3.2.4.  Fragment Expansion: {#var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{#var}" "#value"
+        "{#hello}" "#Hello%20World!"
+        "{#half}" "#50%25"
+        "foo{#empty}" "foo#"
+        "foo{#undef}" "foo"
+        "{#x,hello,y}" "#1024,Hello%20World!,768"
+        "{#path,x}/here" "#/foo/bar,1024/here"
+        "{#path:6}/here" "#/foo/b/here"
+        "{#list}" "#red,green,blue"
+        "{#list*}" "#red,green,blue"
+        "{#keys}" "#semi,;,dot,.,comma,,"
+        "{#keys*}" "#semi=;,dot=.,comma=,")
+
+
     ;; TODO: 3.2.5.  Label Expansion with Dot-Prefix: {.var}
     ;; TODO: 3.2.6.  Path Segment Expansion: {/var}
     ;; TODO: 3.2.7.  Path-Style Parameter Expansion: {;var}

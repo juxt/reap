@@ -82,98 +82,99 @@
                rfc3986/pct-encoded))))
         components)))}))
 
+(defn var->str [{:keys [varname prefix explode]} operator variables]
+  (when-let [val (get variables varname)]
+    (cond
+      (map? val)
+      (str
+       (when-not explode
+         (case operator
+           (\; \? \&) (str varname "=")
+           nil))
+
+       (str/join
+        (if explode
+          (case operator
+            (\. \/ \;) operator
+            (\? \&) "&"
+            ",")
+          ",")
+
+        (for [[k v] val]
+          (let [prefixed-val-str
+                (cond-> v
+                  (and prefix (< prefix (count v)))
+                  (subs 0 prefix))]
+            (str k
+                 (if explode "=" ",")
+                 ((case operator
+                    (\+ \#) pct-encode-reserved
+                    (\. \/ \? \& \;) pct-encode
+                    pct-encode) prefixed-val-str))))))
+
+      (sequential? val)
+      (str
+       (when (and (contains? #{\; \? \&} operator) (not explode))
+         (str varname "="))
+
+       (str/join
+        (if explode
+          (case operator
+            (\. \/ \;) operator
+            (\? \&) "&"
+            ",")
+          ",")
+        (for [v val]
+          (let [prefixed-val-str
+                (cond-> v
+                  (and prefix (< prefix (count v)))
+                  (subs 0 prefix))]
+            (str
+             (when (and explode (contains? #{\; \? \&} operator))
+               (str varname "="))
+
+             ((case operator
+                ;; TODO: shouldn't semi-colon be pct-encode?
+                (\+ \# \;) pct-encode-reserved
+                (\. \/ \? \&) pct-encode
+                pct-encode) prefixed-val-str))))))
+
+      :else
+      (let [val (str val)
+            prefixed-val-str
+            (cond-> val
+              (and prefix (< prefix (count val)))
+              (subs 0 prefix))]
+        (str
+         (cond
+           (and explode (= operator \;))
+           (str varname
+                (when-not (str/blank? prefixed-val-str) "="))
+           (contains? #{\? \& \;} operator)
+           (str varname (if (and (contains? #{\;} operator)
+                                 (str/blank? prefixed-val-str))
+                          "" "="))
+           :else nil)
+
+         ((case operator
+            ;; TODO: shouldn't semi-colon be pct-encode?
+            (\+ \# \;) pct-encode-reserved
+            (\. \/ \? \&) pct-encode
+            pct-encode) prefixed-val-str))))))
+
 (defn component->str [{:keys [varlist operator]} variables]
-  (let [s
+  (let [vals (keep (fn [v] (var->str v operator variables)) varlist)
+        s
         (str/join
          (case operator
            (\+) ","
            (\? \&) "&"
            (\/ \; \.) operator
            ",")
-         (keep
-          (fn [{:keys [varname prefix explode]}]
-            (when-let [val (get variables varname)]
-              (cond
-                (map? val)
-                (str
-                 (when-not explode
-                   (case operator
-                     (\; \? \&) (str varname "=")
-                     nil))
+         vals)]
 
-                 (str/join
-                  (if explode
-                    (case operator
-                      (\. \/ \;) operator
-                      (\? \&) "&"
-                      ",")
-                    ",")
-
-                  (for [[k v] val]
-                    (let [prefixed-val-str
-                          (cond-> v
-                            (and prefix (< prefix (count v)))
-                            (subs 0 prefix))]
-                      (str k
-                           (if explode "=" ",")
-                           ((case operator
-                              (\+ \#) pct-encode-reserved
-                              (\. \/ \? \& \;) pct-encode
-                              pct-encode) prefixed-val-str))))))
-
-                (sequential? val)
-                (str
-                 (when (and (contains? #{\; \? \&} operator) (not explode))
-                   (str varname "="))
-
-                 (str/join
-                  (if explode
-                    (case operator
-                      (\. \/ \;) operator
-                      (\? \&) "&"
-                      ",")
-                    ",")
-                  (for [v val]
-                    (let [prefixed-val-str
-                          (cond-> v
-                            (and prefix (< prefix (count v)))
-                            (subs 0 prefix))]
-                      (str
-                       (when (and explode (contains? #{\; \? \&} operator))
-                         (str varname "="))
-
-                       ((case operator
-                          ;; TODO: shouldn't semi-colon be pct-encode?
-                          (\+ \# \;) pct-encode-reserved
-                          (\. \/ \? \&) pct-encode
-                          pct-encode) prefixed-val-str))))))
-
-                :else
-                (let [val (str val)
-                      prefixed-val-str
-                      (cond-> val
-                        (and prefix (< prefix (count val)))
-                        (subs 0 prefix))]
-                  (str
-                   (cond
-                     (and explode (= operator \;))
-                     (str varname
-                          (when-not (str/blank? prefixed-val-str) "="))
-                     (contains? #{\? \& \;} operator)
-                     (str varname (if (and (contains? #{\;} operator)
-                                           (str/blank? prefixed-val-str))
-                                    "" "="))
-                     :else nil)
-
-                   ((case operator
-                      ;; TODO: shouldn't semi-colon be pct-encode?
-                      (\+ \# \;) pct-encode-reserved
-                      (\. \/ \? \&) pct-encode
-                      pct-encode) prefixed-val-str))))))
-
-          varlist))]
     (case operator
-      (\? \# \. \/ \; \&) (if-not (str/blank? s) (str operator s) s)
+      (\? \# \. \/ \; \&) (if-not (empty? vals) (str operator s) s)
       s)))
 
 (defn make-uri [uri-template variables]
