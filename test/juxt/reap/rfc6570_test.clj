@@ -374,7 +374,26 @@
         "X{.empty_keys*}" "X"
         )
 
-    ;; TODO: 3.2.6.  Path Segment Expansion: {/var}
+    ;; 3.2.6.  Path Segment Expansion: {/var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{/who}"             "/fred"
+        "{/who,who}"         "/fred/fred"
+        "{/half,who}"        "/50%25/fred"
+        "{/who,dub}"         "/fred/me%2Ftoo"
+        "{/var}"             "/value"
+        "{/var,empty}"       "/value/"
+        "{/var,undef}"       "/value"
+        "{/var,x}/here"      "/value/1024/here"
+        "{/var:1,var}"       "/v/value"
+        "{/list}"            "/red,green,blue"
+        "{/list*}"           "/red/green/blue"
+        "{/list*,path:4}"    "/red/green/blue/%2Ffoo"
+        "{/keys}"            "/semi,%3B,dot,.,comma,%2C"
+        "{/keys*}"           "/semi=%3B/dot=./comma=%2C")
+
     ;; TODO: 3.2.7.  Path-Style Parameter Expansion: {;var}
     ;; TODO: 3.2.8.  Form-Style Query Expansion: {?var}
     ;; TODO: 3.2.9.  Form-Style Query Continuation: {&var}
