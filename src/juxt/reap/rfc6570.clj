@@ -113,31 +113,32 @@
                     pct-encode) prefixed-val-str))))))
 
       (sequential? val)
-      (str
-       (when (and (contains? #{\; \? \&} operator) (not explode))
-         (str varname "="))
+      (when-not (empty? val)
+        (str
+         (when (and (contains? #{\; \? \&} operator) (not explode))
+           (str varname "="))
 
-       (str/join
-        (if explode
-          (case operator
-            (\. \/ \;) operator
-            (\? \&) "&"
+         (str/join
+          (if explode
+            (case operator
+              (\. \/ \;) operator
+              (\? \&) "&"
+              ",")
             ",")
-          ",")
-        (for [v val]
-          (let [prefixed-val-str
-                (cond-> v
-                  (and prefix (< prefix (count v)))
-                  (subs 0 prefix))]
-            (str
-             (when (and explode (contains? #{\; \? \&} operator))
-               (str varname "="))
+          (for [v val]
+            (let [prefixed-val-str
+                  (cond-> v
+                    (and prefix (< prefix (count v)))
+                    (subs 0 prefix))]
+              (str
+               (when (and explode (contains? #{\; \? \&} operator))
+                 (str varname "="))
 
-             ((case operator
-                ;; TODO: shouldn't semi-colon be pct-encode?
-                (\+ \# \;) pct-encode-reserved
-                (\. \/ \? \&) pct-encode
-                pct-encode) prefixed-val-str))))))
+               ((case operator
+                  ;; TODO: shouldn't semi-colon be pct-encode?
+                  (\+ \# \;) pct-encode-reserved
+                  (\. \/ \? \&) pct-encode
+                  pct-encode) prefixed-val-str)))))))
 
       :else
       (let [val (str val)

@@ -3,7 +3,7 @@
 (ns juxt.reap.rfc6570-test
   (:require
    [clojure.test :refer [deftest is are testing]]
-   [juxt.reap.rfc6570 :refer [make-uri match-uri compile-uri-template]]))
+   [juxt.reap.rfc6570 :refer [make-uri match-uri compile-uri-template component->str var->str]]))
 
 (deftest make-uri-test
   (are [uri-template variables expected]
@@ -353,15 +353,32 @@
         "{#keys}" "#semi,;,dot,.,comma,,"
         "{#keys*}" "#semi=;,dot=.,comma=,")
 
+    ;; 3.2.5.  Label Expansion with Dot-Prefix: {.var}
 
-    ;; TODO: 3.2.5.  Label Expansion with Dot-Prefix: {.var}
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{.who}" ".fred"
+        "{.who,who}" ".fred.fred"
+        "{.half,who}" ".50%25.fred"
+        "www{.dom*}" "www.example.com"
+        "X{.var}" "X.value"
+        "X{.empty}" "X."
+        "X{.undef}" "X"
+        "X{.var:3}" "X.val"
+        "X{.list}" "X.red,green,blue"
+        "X{.list*}" "X.red.green.blue"
+        "X{.keys}" "X.semi,%3B,dot,.,comma,%2C"
+        "X{.keys*}" "X.semi=%3B.dot=..comma=%2C"
+        "X{.empty_keys}" "X"
+        "X{.empty_keys*}" "X"
+        )
+
     ;; TODO: 3.2.6.  Path Segment Expansion: {/var}
     ;; TODO: 3.2.7.  Path-Style Parameter Expansion: {;var}
     ;; TODO: 3.2.8.  Form-Style Query Expansion: {?var}
     ;; TODO: 3.2.9.  Form-Style Query Continuation: {&var}
-
     ))
-
 
 (deftest match-uri-test
   (are [uri-template uri expected]
