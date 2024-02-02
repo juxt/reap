@@ -253,60 +253,35 @@
 
       ;; Level 1 examples
 
-      "{var}"
-      "value"
-      {"var" "value"}
-
-      "{hello}"
-      "Hello%20World%21"
-      {"hello" "Hello World!"}
+      "{var}" "value" {"var" "value"}
+      "{hello}" "Hello%20World%21" {"hello" "Hello World!"}
 
       ;; Level 2
 
       ;; Reserved string expansion (Sec 3.2.3)
 
-      "{+var}"
-      "value"
-      {"var" "value"}
-
-      "{+hello}"
-      "Hello%20World!"
-      {"hello" "Hello World!"}
-
-      "{+path}/here"
-      "/foo/bar/here"
-      {"path" "/foo/bar"}
-
-      "here?ref={+path}"
-      "here?ref=/foo/bar"
-      {"path" "/foo/bar"}
+      "{+var}" "value" {"var" "value"}
+      "{+hello}" "Hello%20World!" {"hello" "Hello World!"}
+      "{+path}/here" "/foo/bar/here" {"path" "/foo/bar"}
+      "here?ref={+path}" "here?ref=/foo/bar" {"path" "/foo/bar"}
 
       ;; Fragment expansion, crosshatch-prefixed (Sec 3.2.4)
 
-      "X{#var}"
-      "X#value"
-      {"var" "value"}
-
-      "X{#hello}"
-      "X#Hello%20World!"
-      {"hello" "Hello World!"}
+      "X{#var}" "X#value" {"var" "value"}
+      "X{#hello}" "X#Hello%20World!" {"hello" "Hello World!"}
 
       ;; Level 3
 
       ;; String expansion with multiple variables (Sec 3.2.2)
 
-      "map?{x,y}"
-      "map?1024,768"
-      {"x" "1024" "y" "768"}
+      "map?{x,y}" "map?1024,768" {"x" "1024" "y" "768"}
 
-      "{x,hello,y}"
-      "1024,Hello%20World%21,768"
+      "{x,hello,y}" "1024,Hello%20World%21,768"
       {"x" "1024" "hello" "Hello World!" "y" "768"}
 
       ;; Reserved expansion with multiple variables (Sec 3.2.3)
 
-      "{+x,hello,y}"
-      "1024,Hello%20World!,768"
+      "{+x,hello,y}" "1024,Hello%20World!,768"
       {"x" "1024" "hello" "Hello World!" "y" "768"}
 
       "{+path,x}/here"
