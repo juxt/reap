@@ -203,7 +203,7 @@
                                  [varname (or v "")])))
                            varlist pairs))))
 
-      \?
+      (\? \&)
       (let [pairs (str/split expansion #"&")
             params (into {} (for [[k v] (map #(str/split % #"\=") pairs)]
                               [k v]))]

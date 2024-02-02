@@ -343,15 +343,12 @@
         (select-keys variables ["x" "y" "empty"])
 
         ;; Form-style query continuation (Sec 3.2.9)
-        #_#_#_
+
         "?fixed=yes{&x}" "?fixed=yes&x=1024"
         (select-keys variables ["x"])
 
-        #_#_#_
         "{&x,y,empty}" "&x=1024&y=768&empty="
-        (select-keys variables ["x" "y" "empty"])
-
-        ))
+        (select-keys variables ["x" "y" "empty"])))
 
   ;; Level 4
   (let [variables {"var" "value"
