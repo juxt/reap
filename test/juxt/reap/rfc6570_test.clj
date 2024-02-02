@@ -331,9 +331,7 @@
         "{+list}" "red,green,blue"
         "{+list*}" "red,green,blue"
         "{+keys}" "semi,;,dot,.,comma,,"
-        "{+keys*}" "semi=;,dot=.,comma=,"
-
-        )
+        "{+keys*}" "semi=;,dot=.,comma=,")
 
     ;; 3.2.4.  Fragment Expansion: {#var}
 
@@ -371,8 +369,7 @@
         "X{.keys}" "X.semi,%3B,dot,.,comma,%2C"
         "X{.keys*}" "X.semi=%3B.dot=..comma=%2C"
         "X{.empty_keys}" "X"
-        "X{.empty_keys*}" "X"
-        )
+        "X{.empty_keys*}" "X")
 
     ;; 3.2.6.  Path Segment Expansion: {/var}
 
@@ -394,10 +391,55 @@
         "{/keys}"            "/semi,%3B,dot,.,comma,%2C"
         "{/keys*}"           "/semi=%3B/dot=./comma=%2C")
 
-    ;; TODO: 3.2.7.  Path-Style Parameter Expansion: {;var}
-    ;; TODO: 3.2.8.  Form-Style Query Expansion: {?var}
-    ;; TODO: 3.2.9.  Form-Style Query Continuation: {&var}
-    ))
+    ;; 3.2.7.  Path-Style Parameter Expansion: {;var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+        "{;who}" ";who=fred"
+        "{;half}" ";half=50%25"
+        "{;empty}" ";empty"
+        "{;v,empty,who}" ";v=6;empty;who=fred"
+        "{;v,bar,who}" ";v=6;who=fred"
+        "{;x,y}" ";x=1024;y=768"
+        "{;x,y,empty}" ";x=1024;y=768;empty"
+        "{;x,y,undef}" ";x=1024;y=768"
+        "{;hello:5}" ";hello=Hello"
+        "{;list}" ";list=red,green,blue"
+        "{;list*}" ";list=red;list=green;list=blue"
+        "{;keys}" ";keys=semi,%3B,dot,.,comma,%2C"
+        "{;keys*}" ";semi=%3B;dot=.;comma=%2C")
+
+    ;; 3.2.8.  Form-Style Query Expansion: {?var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{?who}"             "?who=fred"
+        "{?half}"            "?half=50%25"
+        "{?x,y}"             "?x=1024&y=768"
+        "{?x,y,empty}"       "?x=1024&y=768&empty="
+        "{?x,y,undef}"       "?x=1024&y=768"
+        "{?var:3}"           "?var=val"
+        "{?list}"            "?list=red,green,blue"
+        "{?list*}"           "?list=red&list=green&list=blue"
+        "{?keys}"            "?keys=semi,%3B,dot,.,comma,%2C"
+        "{?keys*}"           "?semi=%3B&dot=.&comma=%2C")
+
+    ;; 3.2.9.  Form-Style Query Continuation: {&var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{&who}" "&who=fred"
+        "{&half}" "&half=50%25"
+        "?fixed=yes{&x}" "?fixed=yes&x=1024"
+        "{&x,y,empty}" "&x=1024&y=768&empty="
+        "{&x,y,undef}" "&x=1024&y=768"
+        "{&var:3}" "&var=val"
+        "{&list}" "&list=red,green,blue"
+        "{&list*}" "&list=red&list=green&list=blue"
+        "{&keys}" "&keys=semi,%3B,dot,.,comma,%2C"
+        "{&keys*}" "&semi=%3B&dot=.&comma=%2C")))
 
 (deftest match-uri-test
   (are [uri-template uri expected]
