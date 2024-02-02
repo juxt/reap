@@ -270,6 +270,8 @@
       "X{#var}" "X#value" {"var" "value"}
       "X{#hello}" "X#Hello%20World!" {"hello" "Hello World!"})
 
+
+  ;; Level 3 examples
   (let [variables {"var" "value"
                    "hello" "Hello World!"
                    "empty" ""
@@ -287,53 +289,49 @@
 
       ;; String expansion with multiple variables (Sec 3.2.2)
 
-        "map?{x,y}" "map?1024,768" (select-keys variables ["x" "y"])
-        "{x,hello,y}" "1024,Hello%20World%21,768" (select-keys variables ["x" "hello" "y"])
+        "map?{x,y}" "map?1024,768"
+        (select-keys variables ["x" "y"])
+
+        "{x,hello,y}" "1024,Hello%20World%21,768"
+        (select-keys variables ["x" "hello" "y"])
 
         ;; Reserved expansion with multiple variables (Sec 3.2.3)
 
         "{+x,hello,y}" "1024,Hello%20World!,768"
         (select-keys variables ["x" "hello" "y"])
 
-        "{+path,x}/here"
-        "/foo/bar,1024/here"
+        "{+path,x}/here" "/foo/bar,1024/here"
         (select-keys variables ["path" "x"])
 
         ;; Fragment expansion with multiple variables (Sec 3.2.4)
 
-        "{#x,hello,y}"
-        "#1024,Hello%20World!,768"
+        "{#x,hello,y}" "#1024,Hello%20World!,768"
         (select-keys variables ["x" "hello" "y"])
 
-        "{#path,x}/here"
-        "#/foo/bar,1024/here"
+        "{#path,x}/here" "#/foo/bar,1024/here"
         (select-keys variables ["path" "x"])
 
         ;; Label expansion, dot-prefixed (Sec 3.2.5)
 
-        "X{.var}"
-        "X.value"
+        "X{.var}" "X.value"
         (select-keys variables ["var"])
 
-        "X{.x,y}"
-        "X.1024.768"
+        "X{.x,y}" "X.1024.768"
         (select-keys variables ["x" "y"])
 
         ;; Path segments, slash-prefixed (Sec 3.2.6)
         "{/var}" "/value"
         (select-keys variables ["var"])
 
-        "{/var,x}/here"
-        "/value/1024/here"
+        "{/var,x}/here" "/value/1024/here"
         (select-keys variables ["var" "x"])
 
         ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
-        "{;x,y}"
-        ";x=1024;y=768"
+
+        "{;x,y}" ";x=1024;y=768"
         (select-keys variables ["x" "y"])
 
-        "{;x,y,empty}"
-        ";x=1024;y=768;empty"
+        "{;x,y,empty}" ";x=1024;y=768;empty"
         (select-keys variables ["x" "y" "empty"])
 
         ;; Form-style query, ampersand-separated (Sec 3.2.8)
@@ -341,12 +339,17 @@
         "?x=1024&y=768"
         (select-keys variables ["x" "y"])
 
-        "{?x,y,empty}"
-        "?x=1024&y=768&empty"
+        "{?x,y,empty}" "?x=1024&y=768&empty"
         (select-keys variables ["x" "y" "empty"])
 
         ;; Form-style query continuation (Sec 3.2.9)
-        ;; TODO
+        #_#_#_
+        "?fixed=yes{&x}" "?fixed=yes&x=1024"
+        (select-keys variables ["x"])
+
+        #_#_#_
+        "{&x,y,empty}" "&x=1024&y=768&empty="
+        (select-keys variables ["x" "y" "empty"])
 
         ))
 
