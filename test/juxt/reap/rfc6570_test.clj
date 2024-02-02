@@ -210,6 +210,114 @@
 
       )))
 
+;; See RFC 6570 Section 3 (Expansion)
+(deftest variable-expansion-test
+  (let [variables
+        {"count" ["one" "two" "three"]
+         "dom" ["example" "com"]
+         "dub" "me/too"
+         "hello" "Hello World!"
+         "half" "50%"
+         "var" "value"
+         "who" "fred"
+         "base" "http://example.com/home/"
+         "path" "/foo/bar"
+         "list" ["red", "green", "blue"]
+         "keys" {"semi" ";" "dot" "." "comma" ","}
+         "v" "6"
+         "x" "1024"
+         "y" "768"
+         "empty" ""
+         "empty_keys" []
+         "undef" nil}]
+
+    ;; "A variable that is undefined (Section 2.3) has no value and is
+    ;; ignored by the expansion process.  If all of the variables in an
+    ;; expression are undefined, then the expression's expansion is the
+    ;; empty string."
+    (is (= "" (make-uri (compile-uri-template "{a,b,c}") variables)))
+    (is (= "" (make-uri (compile-uri-template "{?a,b,c}") variables)))
+    (is (= "" (make-uri (compile-uri-template "{/a,b,c}") variables)))
+    (is (= "" (make-uri (compile-uri-template "{+a") variables)))
+
+    (is (= "one,two,three"
+           (make-uri
+            (compile-uri-template "{count}")
+            variables)))
+
+    (is (= "one,two,three"
+           (make-uri
+            (compile-uri-template "{count*}")
+            variables)))
+
+    (is (= "/one,two,three"
+           (make-uri
+            (compile-uri-template "{/count}")
+            variables)))
+
+    (is (= "/one/two/three"
+           (make-uri
+            (compile-uri-template "{/count*}")
+            variables)))
+
+    (is (= ";count=one,two,three"
+           (make-uri
+            (compile-uri-template "{;count}")
+            variables)))
+
+    (is (= ";count=one;count=two;count=three"
+           (make-uri
+            (compile-uri-template "{;count*}")
+            variables)))
+
+    (is (= "?count=one,two,three"
+           (make-uri
+            (compile-uri-template "{?count}")
+            variables)))
+
+    (is (= "?count=one&count=two&count=three"
+           (make-uri
+            (compile-uri-template "{?count*}")
+            variables)))
+
+    (is (= "&count=one&count=two&count=three"
+           (make-uri
+            (compile-uri-template "{&count*}")
+            variables)))
+
+    ;; 3.2.2.  Simple String Expansion: {var}
+
+    (are [template expansion]
+        (= expansion (make-uri (compile-uri-template template) variables))
+
+        "{var}" "value"
+        "{hello}" "Hello%20World%21"
+        "{half}" "50%25"
+        "O{empty}X" "OX"
+        "O{undef}X" "OX"
+        "{x,y}" "1024,768"
+        "{x,hello,y}" "1024,Hello%20World%21,768"
+        "?{x,empty}" "?1024,"
+        "?{x,undef}" "?1024"
+        "?{undef,y}" "?768"
+        "{var:3}" "val"
+        "{var:30}" "value"
+        "{list}" "red,green,blue"
+        "{list*}" "red,green,blue"
+        "{keys}" "semi,%3B,dot,.,comma,%2C"
+        "{keys*}" "semi=%3B,dot=.,comma=%2C")
+
+    ;; TODO: 3.2.3.  Reserved Expansion: {+var}
+    ;; TODO: 3.2.4.  Fragment Expansion: {#var}
+    ;; TODO: 3.2.5.  Label Expansion with Dot-Prefix: {.var}
+    ;; TODO: 3.2.6.  Path Segment Expansion: {/var}
+    ;; TODO: 3.2.7.  Path-Style Parameter Expansion: {;var}
+    ;; TODO: 3.2.8.  Form-Style Query Expansion: {?var}
+    ;; TODO: 3.2.9.  Form-Style Query Continuation: {&var}
+
+    ))
+
+
 (deftest match-uri-test
   (are [uri-template uri expected]
       (=
