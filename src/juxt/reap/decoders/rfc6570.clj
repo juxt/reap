@@ -200,7 +200,7 @@
                       (map (fn [{:keys [varname]} pair]
                              (let [[k v] (str/split pair #"\=")]
                                (when (= varname k)
-                                 [varname v])))
+                                 [varname (or v "")])))
                            varlist pairs))))
 
       \?
@@ -209,8 +209,8 @@
                               [k v]))]
         (into {}
               (for [{:keys [varname]} varlist
-                    :let [v (get params varname)]
-                    :when (find params varname)]
+                    :when (find params varname)
+                    :let [v (or (get params varname) "")]]
                 [varname (some-> v URLDecoder/decode)])))
 
       (throw (ex-info "Unsupported operator" {:operator operator})))

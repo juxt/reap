@@ -268,99 +268,125 @@
       ;; Fragment expansion, crosshatch-prefixed (Sec 3.2.4)
 
       "X{#var}" "X#value" {"var" "value"}
-      "X{#hello}" "X#Hello%20World!" {"hello" "Hello World!"}
+      "X{#hello}" "X#Hello%20World!" {"hello" "Hello World!"})
 
-      ;; Level 3
+  (let [variables {"var" "value"
+                   "hello" "Hello World!"
+                   "empty" ""
+                   "path" "/foo/bar"
+                   "x" "1024"
+                   "y" "768"}]
+
+    (are [uri-template uri expected]
+        (=
+         expected
+         (:vars
+          (match-uri
+           (compile-uri-template uri-template)
+           uri)))
 
       ;; String expansion with multiple variables (Sec 3.2.2)
 
-      "map?{x,y}" "map?1024,768" {"x" "1024" "y" "768"}
+        "map?{x,y}" "map?1024,768" (select-keys variables ["x" "y"])
+        "{x,hello,y}" "1024,Hello%20World%21,768" (select-keys variables ["x" "hello" "y"])
 
-      "{x,hello,y}" "1024,Hello%20World%21,768"
-      {"x" "1024" "hello" "Hello World!" "y" "768"}
+        ;; Reserved expansion with multiple variables (Sec 3.2.3)
 
-      ;; Reserved expansion with multiple variables (Sec 3.2.3)
+        "{+x,hello,y}" "1024,Hello%20World!,768"
+        (select-keys variables ["x" "hello" "y"])
 
-      "{+x,hello,y}" "1024,Hello%20World!,768"
-      {"x" "1024" "hello" "Hello World!" "y" "768"}
+        "{+path,x}/here"
+        "/foo/bar,1024/here"
+        (select-keys variables ["path" "x"])
 
-      "{+path,x}/here"
-      "/foo/bar,1024/here"
-      {"path" "/foo/bar" "x" "1024"}
+        ;; Fragment expansion with multiple variables (Sec 3.2.4)
 
-      ;; Fragment expansion with multiple variables (Sec 3.2.4)
+        "{#x,hello,y}"
+        "#1024,Hello%20World!,768"
+        (select-keys variables ["x" "hello" "y"])
 
-      "{#x,hello,y}"
-      "#1024,Hello%20World!,768"
-      {"x" "1024" "hello" "Hello World!" "y" "768"}
+        "{#path,x}/here"
+        "#/foo/bar,1024/here"
+        (select-keys variables ["path" "x"])
 
-      "{#path,x}/here"
-      "#/foo/bar,1024/here"
-      {"path" "/foo/bar" "x" "1024"}
+        ;; Label expansion, dot-prefixed (Sec 3.2.5)
 
-      ;; Label expansion, dot-prefixed (Sec 3.2.5)
+        "X{.var}"
+        "X.value"
+        (select-keys variables ["var"])
 
-      "X{.var}"
-      "X.value"
-      {"var" "value"}
+        "X{.x,y}"
+        "X.1024.768"
+        (select-keys variables ["x" "y"])
 
-      "X{.x,y}"
-      "X.1024.768"
-      {"x" "1024" "y" "768"}
+        ;; Path segments, slash-prefixed (Sec 3.2.6)
+        "{/var}" "/value"
+        (select-keys variables ["var"])
 
-      ;; Path segments, slash-prefixed (Sec 3.2.6)
-      "{/var}"
-      "/value"
-      {"var" "value"}
+        "{/var,x}/here"
+        "/value/1024/here"
+        (select-keys variables ["var" "x"])
 
-      "{/var,x}/here"
-      "/value/1024/here"
-      {"var" "value" "x" "1024"}
+        ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
+        "{;x,y}"
+        ";x=1024;y=768"
+        (select-keys variables ["x" "y"])
 
-      ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
-      "{;x,y}"
-      ";x=1024;y=768"
-      {"x" "1024" "y" "768"}
+        "{;x,y,empty}"
+        ";x=1024;y=768;empty"
+        (select-keys variables ["x" "y" "empty"])
 
-      "{;x,y,empty}"
-      ";x=1024;y=768;empty"
-      {"x" "1024" "y" "768" "empty" nil}
+        ;; Form-style query, ampersand-separated (Sec 3.2.8)
+        "{?x,y}"
+        "?x=1024&y=768"
+        (select-keys variables ["x" "y"])
 
-      ;; Form-style query, ampersand-separated (Sec 3.2.8)
-      "{?x,y}"
-      "?x=1024&y=768"
-      {"x" "1024" "y" "768"}
+        "{?x,y,empty}"
+        "?x=1024&y=768&empty"
+        (select-keys variables ["x" "y" "empty"])
 
-      "{?x,y,empty}"
-      "?x=1024&y=768&empty"
-      {"x" "1024" "y" "768" "empty" nil}
+        ;; Form-style query continuation (Sec 3.2.9)
+        ;; TODO
 
-      ;; Form-style query continuation (Sec 3.2.9)
-      ;; TODO
+        ))
 
-      ;; Level 4
+  ;; Level 4
+  (let [variables {"var" "value"
+                   "hello" "Hello World!"
+                   "path" "/foo/bar"
+                   "list" ["red" "green" "blue"]
+                   "keys" {"semi" ";" "dot" "." "comma" ","}}]
+    (are [uri-template uri expected]
+        (=
+         expected
+         (:vars
+          (match-uri
+           (compile-uri-template uri-template)
+           uri)))
 
-      "{/var:1,var}"
-      "/v/value"
-      {"var" "value"}
+        "{/var:1,var}"
+        "/v/value"
+        (select-keys variables ["var"])
 
-      "{/list}"
-      "/red,green,blue"
-      {"list" ["red" "green" "blue"]}
+        "{/list}"
+        "/red,green,blue"
+        (select-keys variables ["list"])
 
-      "{/list*}"
-      "/red/green/blue"
-      {"list" ["red" "green" "blue"]}
+        "{/list*}"
+        "/red/green/blue"
+        (select-keys variables ["list"])
 
-      "{/list*,path:4}"
-      "/red/green/blue/%2Ffoo"
-      {"list" ["red" "green" "blue"]
-       "path" "/foo"}
+        "{/list*,path:4}"
+        "/red/green/blue/%2Ffoo"
+        {"list" ["red" "green" "blue"]
+         "path" "/foo"}
 
-      "X{.list}"
-      "X.red,green,blue"
-      {"list" ["red" "green" "blue"]}
+        "X{.list}"
+        "X.red,green,blue"
+        (select-keys variables ["list"])
 
-      "X{.list*}"
-      "X.red.green.blue"
-      {"list" ["red" "green" "blue"]}))
+        "X{.list*}"
+        "X.red.green.blue"
+        (select-keys variables ["list"])
+
+        )))
