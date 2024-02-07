@@ -47,8 +47,8 @@
                 ;; Expansion
                 \.
                 (re/re-compose
-                 "\\.((?:[%s]|%s)*)"
-                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \. \,))
+                 "((?:\\.(?:[%s]|%s)*)*)"
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \. \, \=))
                  rfc3986/pct-encoded)
 
                 \/
@@ -66,7 +66,7 @@
                 \?
                 (re/re-compose
                  "\\?((?:[%s]|%s)*)"
-                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \& \,}))
                  rfc3986/pct-encoded)
 
                 \&
@@ -78,7 +78,7 @@
               ;; Default
               (re/re-compose
                "((?:[%s]|%s)*)"
-               (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \,))
+               (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved \, \=))
                rfc3986/pct-encoded))))
         components)))}))
 
@@ -193,16 +193,17 @@
   "Given a compiled uri-template (see compile-uri-template) and a URI as
   arguments, return the extracted uri-template expansions if the URI
   matches the uri-template."
-  [{:keys [components pattern] :as compiled-uri-template} uri]
+  [{:keys [components pattern] :as compiled-uri-template} var-types uri]
   (when-let [m (re-matches pattern uri)]
     (if (sequential? m)
       (let [variables
             (map expand
                  (remove string? components)
+                 (repeat var-types)
                  (rest m))]
-        {:uri (first m)
-         :vars (apply merge variables)})
-      {:uri m})))
+        (apply merge variables))
+      ;; Case where there are no variables
+      {})))
 
 (comment
   (match-uri
