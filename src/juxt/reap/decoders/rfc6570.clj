@@ -262,32 +262,30 @@
                           (update acc k (fnil conj [])
                                   (or v ""))))
                       {} pairs)]
-          (into {}
-                (filter seq
-                        (map (fn [{:keys [varname explode]}]
-                               (let [val (get params varname)
-                                     var-type (get var-types varname)
-                                     ]
-                                 [varname
-                                  (if-not explode
-                                    (case var-type
-                                      :string (URLDecoder/decode (or (first val) ""))
-                                      :integer (Long/parseLong (URLDecoder/decode (first val)))
-                                      :empty ""
-                                      :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
-                                      :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
-                                                      [k (URLDecoder/decode v)]
-                                                      )))
-                                    ;; explode
-                                    (case var-type
-                                      :string (URLDecoder/decode (or (first val) ""))
-                                      :integer (Long/parseLong (URLDecoder/decode (first val)))
-                                      :empty ""
-                                      :list (mapv #(URLDecoder/decode %) val)
-                                      :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))
-
-                                      ))]))
-                             varlist))))
+          (reduce
+           (fn [acc {:keys [varname explode]}]
+             (let [val (get params varname)
+                   var-type (get var-types varname)]
+               (assoc acc varname
+                      (if-not explode
+                        (case var-type
+                          :string (URLDecoder/decode (or (first val) ""))
+                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :empty ""
+                          :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
+                          :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
+                                          [k (URLDecoder/decode v)]
+                                          )))
+                        ;; explode
+                        (case var-type
+                          :string (URLDecoder/decode (or (first val) ""))
+                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :empty ""
+                          :list (mapv #(URLDecoder/decode %) val)
+                          :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))
+                          )))))
+           {}
+           varlist))
 
         (\? \&)
         (let [pairs (str/split expansion #"&")
@@ -295,31 +293,56 @@
                       (fn [acc pair]
                         (let [[k v] (str/split pair #"\=")]
                           (update acc k (fnil conj [])
-                                  (URLDecoder/decode (or v "")))))
+                                  (or v ""))))
                       {} pairs)]
 
           (reduce
            (fn [acc {:keys [varname explode]}]
-             (let [var-type (get var-types varname)]
-               (if explode
-                 (assoc
-                  acc varname
-                  ;; "The expansion process for exploded variables is
-                  ;; dependent on both the operator being used and
-                  ;; whether the composite value is to be treated as a
-                  ;; list of values or as an associative array of (name,
-                  ;; value) pairs."
-                  (case var-type
-                    :map (update-vals params first)
-                    :list (get params varname)
-                    (throw (ex-info "No var-type for varname" {:varname varname}))))
-
-                 ;; non explode
-                 (if-let [[_ v] (find params varname)]
-                   (assoc acc varname v)
-                   acc))))
+             (let [val (get params varname)
+                   var-type (get var-types varname)]
+               (assoc acc varname
+                      ;; "The expansion process for exploded variables is
+                      ;; dependent on both the operator being used and
+                      ;; whether the composite value is to be treated as a
+                      ;; list of values or as an associative array of (name,
+                      ;; value) pairs."
+                      (if-not explode
+                        (case var-type
+                          :string (URLDecoder/decode (or (first val) ""))
+                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :empty ""
+                          :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
+                          :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
+                                          [k (URLDecoder/decode v)]
+                                          )))
+                        ;; explode
+                        (case var-type
+                          :string (URLDecoder/decode (or (first val) ""))
+                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :empty ""
+                          :list (mapv #(URLDecoder/decode %) val)
+                          :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))
+                          )))))
            {}
-           varlist))
+           varlist)
+
+          #_(reduce
+             (fn [acc {:keys [varname explode]}]
+               (let [var-type (get var-types varname)]
+                 (if explode
+                   (assoc
+                    acc varname
+                    (case var-type
+                      :map (update-vals params first)
+                      :list (get params varname)
+                      (throw (ex-info "No var-type for varname" {:varname varname}))))
+
+                   ;; non explode
+                   (if-let [[_ v] (find params varname)]
+                     (assoc acc varname (first v))
+                     acc))))
+             {}
+             varlist))
 
         (throw (ex-info "Unsupported operator" {:operator operator})))
 

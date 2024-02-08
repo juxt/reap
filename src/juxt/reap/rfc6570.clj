@@ -72,7 +72,7 @@
                 \&
                 (re/re-compose
                  "\\&((?:[%s]|%s)*)"
-                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \&}))
+                 (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \& \,}))
                  rfc3986/pct-encoded))
 
               ;; Default

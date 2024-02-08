@@ -791,8 +791,7 @@
         (match-uri
          (compile-uri-template "{+keys*}")
          var-types
-         "semi=;,dot=.")))
-      )
+         "semi=;,dot=."))))
 
     (testing "Fragment Expansion: {#var}"
 
@@ -892,9 +891,7 @@
         (match-uri
          (compile-uri-template "{#keys*}")
          var-types
-         "#semi=;,dot=.")))
-
-      )
+         "#semi=;,dot=."))))
 
     (testing "Label Expansion with Dot-Prefix: {.var}"
 
@@ -1214,27 +1211,191 @@
         (match-uri
          (compile-uri-template "{;keys*}")
          var-types
-         ";semi=%3B;dot=.;comma=%2C")))
+         ";semi=%3B;dot=.;comma=%2C"))))
 
-      )))
+    (testing "Form-Style Query Expansion: {?var}"
+
+      (is
+       (=
+        (select-keys variables ["who"])
+        (match-uri
+         (compile-uri-template "{?who}")
+         var-types
+         "?who=fred")))
+
+      (is
+       (=
+        (select-keys variables ["half"])
+        (match-uri
+         (compile-uri-template "{?half}")
+         var-types
+         "?half=50%25")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y"])
+        (match-uri
+         (compile-uri-template "{?x,y}")
+         var-types
+         "?x=1024&y=768")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y" "empty"])
+        (match-uri
+         (compile-uri-template "{?x,y,empty}")
+         var-types
+         "?x=1024&y=768&empty=")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y"])
+        (match-uri
+         (compile-uri-template "{?x,y,undef}")
+         var-types
+         "?x=1024&y=768")))
+
+      (is
+       (=
+        (-> (select-keys variables ["var"])
+            (update "var" subs 0 3))
+        (match-uri
+         (compile-uri-template "{?var:3}")
+         var-types
+         "?var=val")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{?list}")
+         var-types
+         "?list=red,green,blue")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{?list*}")
+         var-types
+         "?list=red&list=green&list=blue")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{?keys}")
+         var-types
+         "?keys=semi,%3B,dot,.,comma,%2C")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{?keys*}")
+         var-types
+         "?semi=%3B&dot=.&comma=%2C"))))
+
+    (testing "Form-Style Query Continuation: {&var}"
+
+      (is
+       (=
+        (select-keys variables ["who"])
+        (match-uri
+         (compile-uri-template "{&who}")
+         var-types
+         "&who=fred")))
+
+      (is
+       (=
+        (select-keys variables ["half"])
+        (match-uri
+         (compile-uri-template "{&half}")
+         var-types
+         "&half=50%25")))
+
+      (is
+       (=
+        (select-keys variables ["x"])
+        (match-uri
+         (compile-uri-template "?fixed=yes{&x}")
+         var-types
+         "?fixed=yes&x=1024")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y" "empty"])
+        (match-uri
+         (compile-uri-template "{&x,y,empty}")
+         var-types
+         "&x=1024&y=768&empty=")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y"])
+        (match-uri
+         (compile-uri-template "{&x,y,undef}")
+         var-types
+         "&x=1024&y=768")))
+
+      (is
+       (=
+        (-> (select-keys variables ["var"])
+            (update "var" subs 0 3))
+        (match-uri
+         (compile-uri-template "{&var:3}")
+         var-types
+         "&var=val")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{&list}")
+         var-types
+         "&list=red,green,blue")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{&list*}")
+         var-types
+         "&list=red&list=green&list=blue")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{&keys}")
+         var-types
+         "&keys=semi,%3B,dot,.,comma,%2C")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{&keys*}")
+         var-types
+         "&semi=%3B&dot=.&comma=%2C"))))))
 
 #_(def var-types
-  {"count" :list
-   "dom" :list
-   "dub" :string
-   "hello" :string
-   "half" :string
-   "var" :string
-   "who" :string
-   "base" :string
-   "path" :string
-   "list" :list
-   "keys" :map
-   "v" :integer
-   "x" :integer
-   "y" :integer
-   "empty" :empty
-   "empty_keys" :list})
+    {"count" :list
+     "dom" :list
+     "dub" :string
+     "hello" :string
+     "half" :string
+     "var" :string
+     "who" :string
+     "base" :string
+     "path" :string
+     "list" :list
+     "keys" :map
+     "v" :integer
+     "x" :integer
+     "y" :integer
+     "empty" :empty
+     "empty_keys" :list})
 
 (comment
   (compile-uri-template "https://bank.com/accounts/{/accno}/transactions{.format}")
