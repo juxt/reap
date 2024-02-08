@@ -209,31 +209,28 @@ decades and have been heavily optimised in that time.
 
 ==== Lisp (1958)
 
-Clojure is used as the implementation language to facilitate faster
-research and prototyping. If this project proves useful/stable it
-might be a good idea to port to Java and provide a Clojure wrapper.
+Clojure is used as the implementation language to facilitate faster research and prototyping.
+If this project proves useful/stable it might be a good idea to port to Java and provide a Clojure wrapper.
 
 ==== Regular Expressions (1950s)
 
-Everything in *reap* is ultimately compiled into a
-https://en.wikipedia.org/wiki/Regular_expressions[regular
-expression]. Regexes provide the performance.
+*reap* uses https://en.wikipedia.org/wiki/Regular_expressions[regular expressions] to parse terminals.
 
 ==== Allen's Interval Algebra (1983)
 
-https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's interval algebra]
-allows character intervals to be manipulated and combined, to form optimal
-ranges which optimise the performance of the regular expression.
+https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's interval algebra] allows character intervals to be manipulated and combined, to form optimal ranges which optimise the performance of the regular expression.
 
 ==== Parser Combinators (1989)
 
-https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators]
-are used to combine parsers built from regular expressions.
+https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators] are used to combine parsers built from regular expressions.
+
+==== Parsing Expression Grammars (2004)
+
+*reap* is an implementation of a https://en.wikipedia.org/wiki/Parsing_expression_grammar[Parsing expression grammar (PEG)], using Clojure functions for non-terminals.
 
 == User Guide
 
-Functions marked with the metadata tag `:juxt.reap/codec` take an 'options' argument.
-and return a map of entries.
+Functions marked with the metadata tag `:juxt.reap/codec` take an 'options' argument and return a map of entries.
 
 `:juxt.reap/decode`:: A single-arity parser function, taking a
 `java.util.regex.Matcher` as the only argument and returning a Clojure map or
@@ -270,11 +267,13 @@ https://github.com/Engelberg/instaparse/blob/master/docs/ABNF.md[Instaparse: ABN
 
 https://cse.unl.edu/~choueiry/Documents/Allen-CACM1983.pdf[Maintaining Knowledge about Temporal Intervals, James F. Allen]
 
+https://bford.info/pub/lang/peg.pdf[Parsing Expression Grammars: A Recognition-Based Syntactic Foundation]
+
 == License
 
 The MIT License (MIT)
 
-Copyright © 2020-2023 JUXT LTD.
+Copyright © 2020-2024 JUXT LTD.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -292,4 +291,3 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
