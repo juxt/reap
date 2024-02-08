@@ -192,16 +192,26 @@ parsing code might skip a few details.
 
 === Alternatives
 
-There are a number of excellent tools for generating text parsers,
-from venerable ones such as flex/bison to more modern ones including
-https://www.antlr.org/[Antlr] and
-https://github.com/Engelberg/instaparse[Instaparse].
+There are a number of excellent tools for generating text parsers, from venerable ones such as flex/bison to more modern ones including https://www.antlr.org/[Antlr].
 
-Unfortunately, these tools tend to be designed more for parsing
-languages than strings of characters. I haven't found one which has
-built-in support for even some Internet RFCs. They also tend to be
-less efficient than Regular Expressions, which have been around for
-decades and have been heavily optimised in that time.
+In the Clojure eco-system, we have https://github.com/aphyr/clj-antlr[clj-antlr] and https://github.com/Engelberg/instaparse[Instaparse]. Note, however, that Antlr and Instaparse are tools for building parsers for Context Free Grammars (CFGs) rather than Parsing Expression Grammars (PEGs).
+The difference is that PEGs remove the ambiguity of CFGs.
+
+[quote, Bryan Ford, https://bford.info/pub/lang/peg.pdf]
+____
+Chomsky’s generative system of grammars, from which the ubiqui-
+tous context-free grammars (CFGs) and regular expressions (REs)
+arise, was originally designed as a formal tool for modelling and
+analyzing natural (human) languages. Due to their elegance and
+expressive power, computer scientists adopted generative grammars
+for describing machine-oriented languages as well. The ability of
+a CFG to express ambiguous syntax is an important and powerful
+tool for natural languages. Unfortunately, this power gets in the
+way when we use CFGs for machine-oriented languages that are
+intended to be precise and unambiguous. Ambiguity in CFGs is
+difficult to avoid even when we want to, and it makes general CFG
+parsing an inherently super-linear-time problem.
+____
 
 === Ingredients
 
