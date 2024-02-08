@@ -990,9 +990,7 @@
         (match-uri
          (compile-uri-template "X{.empty_keys*}")
          var-types
-         "X")))
-
-      )
+         "X"))))
 
     (testing "Path Segment Expansion: {/var}"
 
@@ -1110,11 +1108,45 @@
           (match-uri
            (compile-uri-template "{/keys*}")
            var-types
-           "/semi=%3B/dot=./comma=%2C"))))
+           "/semi=%3B/dot=./comma=%2C")))))
+
+    (testing "Path-Style Parameter Expansion: {;var}"
+
+      (is
+       (=
+        (select-keys variables ["who"])
+        (match-uri
+         (compile-uri-template "{;who}")
+         var-types
+         ";who=fred")))
+
+      (is
+       (=
+        (select-keys variables ["half"])
+        (match-uri
+         (compile-uri-template "{;half}")
+         var-types
+         ";half=50%25")))
+
+      (is
+       (=
+        (select-keys variables ["empty"])
+        (match-uri
+         (compile-uri-template "{;empty}")
+         var-types
+         ";empty")))
+
+      (is
+       (=
+        (select-keys variables ["v" "empty" "who"])
+        (match-uri
+         (compile-uri-template "{;v,empty,who}")
+         var-types
+         ";v=6;empty;who=fred")))
 
       )))
 
-#_(def var-types
+(def var-types
   {"count" :list
    "dom" :list
    "dub" :string

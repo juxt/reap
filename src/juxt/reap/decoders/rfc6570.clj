@@ -173,7 +173,8 @@
                        :map (into {} (for [el h]
                                        (let [[k v] (str/split el #"=")]
                                          [k (URLDecoder/decode v)])
-                                       ))))]
+                                       ))
+                       :empty ""))]
           (recur varlist t (conj result (assoc var :val vals))))
         result))))
 
@@ -258,9 +259,14 @@
           (into {}
                 (filter seq
                         (map (fn [{:keys [varname]} pair]
-                               (let [[k v] (str/split pair #"\=")]
+                               (let [var-type (get var-types varname)
+                                     [k v] (str/split pair #"\=")]
                                  (when (= varname k)
-                                   [varname (or v "")])))
+                                   [varname
+                                    (case var-type
+                                      :string (URLDecoder/decode (or v ""))
+                                      :integer (Long/parseLong (URLDecoder/decode (or v "")))
+                                      :empty "")])))
                              varlist pairs))))
 
         (\? \&)
@@ -269,7 +275,7 @@
                       (fn [acc pair]
                         (let [[k v] (str/split pair #"\=")]
                           (update acc k (fnil conj [])
-                                  (or (URLDecoder/decode v) ""))))
+                                  (URLDecoder/decode (or v "")))))
                       {} pairs)]
 
           (reduce
