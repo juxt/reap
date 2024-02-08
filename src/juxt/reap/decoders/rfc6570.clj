@@ -201,7 +201,7 @@
                  (let [var-type (get var-types varname)]
 
                    (case var-type
-                     :integer (Integer/parseInt (URLDecoder/decode expansion))
+                     :integer (Long/parseLong (URLDecoder/decode expansion))
                      :list (mapv #(URLDecoder/decode %) (str/split expansion #","))
                      :map (into {}
                                 (if explode
@@ -217,7 +217,7 @@
                              (let [var-type (get var-types (:varname k))
                                    dv (URLDecoder/decode p)]
                                (case var-type
-                                 :integer (Integer/parseInt dv)
+                                 :integer (Long/parseLong dv)
                                  dv)
                                )])
                           varlist
@@ -232,14 +232,14 @@
                           (if explode
                             (case var-type
                               :string (URLDecoder/decode (first values))
-                              :integer (Integer/parseInt (URLDecoder/decode (first values)))
+                              :integer (Long/parseLong (URLDecoder/decode (first values)))
                               :list (mapv #(URLDecoder/decode %) values)
                               :map (into {}
                                          (for [[k v] (map #(str/split % #"=") values)]
                                            [k (URLDecoder/decode v)])))
                             (case var-type
                                 :string (URLDecoder/decode value)
-                                :integer (Integer/parseInt (URLDecoder/decode value))
+                                :integer (Long/parseLong (URLDecoder/decode value))
                                 :list (if value
                                         (mapv #(URLDecoder/decode %) (str/split value #"\,"))
                                         [])
@@ -316,7 +316,7 @@
                         dv (URLDecoder/decode v)]
                     [varname
                      (case var-type
-                       :integer (Integer/parseInt dv)
+                       :integer (Long/parseLong dv)
                        :list (str/split expansion #",")
                        :map (into {}
                                   (if explode
