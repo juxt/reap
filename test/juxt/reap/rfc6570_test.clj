@@ -442,191 +442,6 @@
         "{&keys}" "&keys=semi,%3B,dot,.,comma,%2C"
         "{&keys*}" "&semi=%3B&dot=.&comma=%2C")))
 
-#_(deftest match-uri-test
-  (are [uri-template uri expected]
-      (=
-       expected
-       (:vars
-        (match-uri
-         (compile-uri-template uri-template)
-         uri)))
-
-    ;; Preliminaries
-
-      "http://example.com/~{username}/"
-      "http://example.com/~mal/"
-      {"username" "mal"}
-
-      "http://example.com/~{username,id}/"
-      "http://example.com/~mal,01/"
-      {"username" "mal" "id" "01"}
-
-      "http://example.com/dictionary/{term:1}/{term}"
-      "http://example.com/dictionary/c/cat"
-      {"term" "cat"}
-
-      "http://example.com/search{?q,lang}"
-      "http://example.com/search?q=chien&lang=fr"
-      {"q" "chien" "lang" "fr"}
-
-      "http://example.com/file{.suffix}"
-      "http://example.com/file.svg"
-      {"suffix" "svg"}
-
-      ;; If there are multiple suffixes, we want the right most one
-      "http://example.com/file{.suffix}"
-      "http://example.com/file.svg.xml"
-      {"suffix" "xml"}
-
-      ;; If there are multiple suffixes, we want the right most one
-      "http://example.com/file{.inner,outer}"
-      "http://example.com/file.v.svg.xml"
-      {"inner" "svg" "outer" "xml"}
-
-      ;; Level 1 examples
-
-      "{var}" "value" {"var" "value"}
-      "{hello}" "Hello%20World%21" {"hello" "Hello World!"}
-
-      ;; Level 2
-
-      ;; Reserved string expansion (Sec 3.2.3)
-
-      "{+var}" "value" {"var" "value"}
-      "{+hello}" "Hello%20World!" {"hello" "Hello World!"}
-      "{+path}/here" "/foo/bar/here" {"path" "/foo/bar"}
-      "here?ref={+path}" "here?ref=/foo/bar" {"path" "/foo/bar"}
-
-      ;; Fragment expansion, crosshatch-prefixed (Sec 3.2.4)
-
-      "X{#var}" "X#value" {"var" "value"}
-      "X{#hello}" "X#Hello%20World!" {"hello" "Hello World!"})
-
-
-  ;; Level 3 examples
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"
-                   "empty" ""
-                   "path" "/foo/bar"
-                   "x" "1024"
-                   "y" "768"}]
-
-    (are [uri-template uri expected]
-        (=
-         expected
-         (:vars
-          (match-uri
-           (compile-uri-template uri-template)
-           uri)))
-
-      ;; String expansion with multiple variables (Sec 3.2.2)
-
-        "map?{x,y}" "map?1024,768"
-        (select-keys variables ["x" "y"])
-
-        "{x,hello,y}" "1024,Hello%20World%21,768"
-        (select-keys variables ["x" "hello" "y"])
-
-        ;; Reserved expansion with multiple variables (Sec 3.2.3)
-
-        "{+x,hello,y}" "1024,Hello%20World!,768"
-        (select-keys variables ["x" "hello" "y"])
-
-        "{+path,x}/here" "/foo/bar,1024/here"
-        (select-keys variables ["path" "x"])
-
-        ;; Fragment expansion with multiple variables (Sec 3.2.4)
-
-        "{#x,hello,y}" "#1024,Hello%20World!,768"
-        (select-keys variables ["x" "hello" "y"])
-
-        "{#path,x}/here" "#/foo/bar,1024/here"
-        (select-keys variables ["path" "x"])
-
-        ;; Label expansion, dot-prefixed (Sec 3.2.5)
-
-        "X{.var}" "X.value"
-        (select-keys variables ["var"])
-
-        "X{.x,y}" "X.1024.768"
-        (select-keys variables ["x" "y"])
-
-        ;; Path segments, slash-prefixed (Sec 3.2.6)
-        "{/var}" "/value"
-        (select-keys variables ["var"])
-
-        "{/var,x}/here" "/value/1024/here"
-        (select-keys variables ["var" "x"])
-
-        ;; Path-style parameters, semicolon-prefixed (Sec 3.2.7)
-
-        "{;x,y}" ";x=1024;y=768"
-        (select-keys variables ["x" "y"])
-
-        "{;x,y,empty}" ";x=1024;y=768;empty"
-        (select-keys variables ["x" "y" "empty"])
-
-        ;; Form-style query, ampersand-separated (Sec 3.2.8)
-        "{?x,y}"
-        "?x=1024&y=768"
-        (select-keys variables ["x" "y"])
-
-        "{?x,y,empty}" "?x=1024&y=768&empty"
-        (select-keys variables ["x" "y" "empty"])
-
-        ;; Form-style query continuation (Sec 3.2.9)
-
-        "?fixed=yes{&x}" "?fixed=yes&x=1024"
-        (select-keys variables ["x"])
-
-        "{&x,y,empty}" "&x=1024&y=768&empty="
-        (select-keys variables ["x" "y" "empty"])))
-
-  ;; Level 4
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"
-                   "path" "/foo/bar"
-                   "list" ["red" "green" "blue"]
-                   "keys" {"semi" ";" "dot" "." "comma" ","}}]
-    (are [uri-template uri expected]
-        (=
-         expected
-         (:vars
-          (match-uri
-           (compile-uri-template uri-template)
-           uri)))
-
-        "{/var:1,var}"
-        "/v/value"
-        [(get variables "var")]
-
-        "{/list}"
-        "/red,green,blue"
-        (select-keys variables ["list"])
-
-        "{/list*}"
-        "/red/green/blue"
-        (select-keys variables ["list"])
-
-        "{/list*,path:4}"
-        "/red/green/blue/%2Ffoo"
-        {"list" ["red" "green" "blue"]
-         "path" "/foo"}
-
-        "X{.list}"
-        "X.red,green,blue"
-        (select-keys variables ["list"])
-
-        "X{.list*}"
-        "X.red.green.blue"
-        (select-keys variables ["list"])
-
-        "{?list}"
-        "?list=red,green,blue"
-        {}
-
-        )))
-
 ;; Section 2.4.2
 (deftest composite-values-test
   (is (=
@@ -829,10 +644,7 @@
         (match-uri
          (compile-uri-template "{keys*}")
          var-types
-         "semi=%3B,dot=.,comma=%2C")))
-
-      )
-
+         "semi=%3B,dot=.,comma=%2C"))))
 
     (testing "Reserved Expansion: {+var}"
       (is
@@ -1180,9 +992,129 @@
          var-types
          "X")))
 
+      )
+
+    (testing "Path Segment Expansion: {/var}"
+
+      (is
+       (=
+        (select-keys variables ["who"])
+        (match-uri
+         (compile-uri-template "{/who}")
+         var-types
+         "/fred")))
+
+      (is
+       (=
+        (select-keys variables ["who"])
+        (match-uri
+         (compile-uri-template "{/who,who}")
+         var-types
+         "/fred/fred")))
+
+      (is
+       (=
+        (select-keys variables ["half" "who"])
+        (match-uri
+         (compile-uri-template "{/half,who}")
+         var-types
+         "/50%25/fred")))
+
+      (is
+       (=
+        (select-keys variables ["who" "dub"])
+        (match-uri
+         (compile-uri-template "{/who,dub}")
+         var-types
+         "/fred/me%2Ftoo")))
+
+      (is
+       (=
+        (select-keys variables ["var"])
+        (match-uri
+         (compile-uri-template "{/var}")
+         var-types
+         "/value")))
+
+      (is
+       (=
+        (select-keys variables ["var" "empty"])
+        (match-uri
+         (compile-uri-template "{/var,empty}")
+         var-types
+         "/value/")))
+
+      (is
+       (=
+        (select-keys variables ["var"])
+        (match-uri
+         (compile-uri-template "{/var,undef}")
+         var-types
+         "/value")))
+
+      (is
+       (=
+        (select-keys variables ["var" "x"])
+        (match-uri
+         (compile-uri-template "{/var,x}/here")
+         var-types
+         "/value/1024/here")))
+
+      (is
+       (=
+        (select-keys variables ["var"])
+        (match-uri
+         (compile-uri-template "{/var:1,var}")
+         var-types
+         "/v/value")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{/list}")
+         var-types
+         "/red,green,blue")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{/list*}")
+         var-types
+         "/red/green/blue")))
+
+      (is
+       (=
+        (->
+         (select-keys variables ["list" "path"])
+         (update "path" subs 0 4))
+        (match-uri
+         (compile-uri-template "{/list*,path:4}")
+         var-types
+         "/red/green/blue/%2Ffoo")))
+
+      (testing "keys"
+        (is
+         (=
+          (select-keys variables ["keys"])
+          (match-uri
+           (compile-uri-template "{/keys}")
+           var-types
+           "/semi,%3B,dot,.,comma,%2C"))))
+
+      (testing "keys explode"
+        (is
+         (=
+          (select-keys variables ["keys"])
+          (match-uri
+           (compile-uri-template "{/keys*}")
+           var-types
+           "/semi=%3B/dot=./comma=%2C"))))
+
       )))
 
-(def var-types
+#_(def var-types
   {"count" :list
    "dom" :list
    "dub" :string
@@ -1199,38 +1131,6 @@
    "y" :integer
    "empty" :empty
    "empty_keys" :list})
-
-#_(match-uri
- (compile-uri-template "X{.keys*}")
- var-types
- "X.semi=%3B.comma=%2C")
-
-
-
-#_(compile-uri-template "X{.empty_keys}")
-
-#_(compile-uri-template "X{.empty_keys}")
-
-#_(re-matches
- (:pattern
-  (compile-uri-template "X{.empty_keys}"))
- "X.a.b")
-
-#_(match-uri
- (compile-uri-template "X{.empty_keys}")
- var-types
- "X")
-
-
-#_(let [variables {"year" ["1965" "2000" "2012"]
-                 "dom" ["example" "com"]}
-      uri-template (compile-uri-template "www{.dom*}")]
-  (match-uri
-         uri-template
-         {"dom" :list}
-         "www.example.com")
-  #_(= {"dom" ["example" "com"]}
-     ))
 
 (comment
   (compile-uri-template "https://bank.com/accounts/{/accno}/transactions{.format}")

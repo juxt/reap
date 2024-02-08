@@ -144,7 +144,7 @@
   number of values as vars in the varlist, then each var will be
   associated with a value. If there are any extra values, these will
   be given to any var that has an explode modifier."
-  [varlist vals]
+  [varlist vals var-types]
   (when (> (count (filter :explode varlist)) 1)
     (throw (ex-info "Cannot have multiple vars that have explode modifier set" {:varlist varlist})))
   (let [extra (- (count vals) (count varlist))]
@@ -152,14 +152,28 @@
            vals vals
            result []]
       (if var
-        (let [{:keys [explode]} var
+        (let [{:keys [varname explode]} var
               [h t] (split-at (cond-> 1 explode (+ extra)) vals)
-              vals (if explode
-                     (mapv #(URLDecoder/decode %) h)
-                     (let [vs (str/split (first h) #"\,")]
-                       (if (< (count vs) 2)
-                         (URLDecoder/decode (first vs))
-                         (mapv #(URLDecoder/decode %) vs))))]
+              var-type (get var-types varname)
+              vals (if-not explode
+
+                     (let [vs (str/split (or (first h) "") #"\,")]
+                       (case var-type
+                         :string (URLDecoder/decode (first vs))
+                         :integer (Long/parseLong (URLDecoder/decode (first vs)))
+                         :list (map #(URLDecoder/decode %) vs)
+                         :map (into {} (for [[k v] (partition 2 vs)]
+                                         [k (URLDecoder/decode v)]))
+                         :empty ""))
+
+                     (case var-type
+                       :string (str/join "/" h)
+                       :integer (str/join "/" h)
+                       :list (map #(URLDecoder/decode %) h)
+                       :map (into {} (for [el h]
+                                       (let [[k v] (str/split el #"=")]
+                                         [k (URLDecoder/decode v)])
+                                       ))))]
           (recur varlist t (conj result (assoc var :val vals))))
         result))))
 
@@ -236,7 +250,7 @@
                      (concat values (repeat nil)))))
 
         \/
-        (let [varlist (distribute-values varlist (str/split expansion #"\/"))]
+        (let [varlist (distribute-values varlist (str/split expansion #"\/") var-types)]
           (zipmap (map :varname varlist) (map :val varlist)))
 
         \;
