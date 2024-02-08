@@ -238,15 +238,15 @@
                                          (for [[k v] (map #(str/split % #"=") values)]
                                            [k (URLDecoder/decode v)])))
                             (case var-type
-                                :string (URLDecoder/decode value)
-                                :integer (Long/parseLong (URLDecoder/decode value))
-                                :list (if value
-                                        (mapv #(URLDecoder/decode %) (str/split value #"\,"))
-                                        [])
-                                :map (into {}
-                                           (for [[k v] (partition 2 (str/split value #","))]
-                                             [k (URLDecoder/decode v)]))
-                                ))]))
+                              :string (URLDecoder/decode value)
+                              :integer (Long/parseLong (URLDecoder/decode value))
+                              :list (if value
+                                      (mapv #(URLDecoder/decode %) (str/split value #"\,"))
+                                      [])
+                              :map (into {}
+                                         (for [[k v] (partition 2 (str/split value #","))]
+                                           [k (URLDecoder/decode v)]))
+                              ))]))
                      varlist
                      (concat values (repeat nil)))))
 
@@ -255,19 +255,39 @@
           (zipmap (map :varname varlist) (map :val varlist)))
 
         \;
-        (let [pairs (str/split expansion #"\;")]
+        (let [pairs (str/split expansion #"\;")
+              params (reduce
+                      (fn [acc pair]
+                        (let [[k v] (str/split pair #"\=")]
+                          (update acc k (fnil conj [])
+                                  (or v ""))))
+                      {} pairs)]
           (into {}
                 (filter seq
-                        (map (fn [{:keys [varname]} pair]
-                               (let [var-type (get var-types varname)
-                                     [k v] (str/split pair #"\=")]
-                                 (when (= varname k)
-                                   [varname
+                        (map (fn [{:keys [varname explode]}]
+                               (let [val (get params varname)
+                                     var-type (get var-types varname)
+                                     ]
+                                 [varname
+                                  (if-not explode
                                     (case var-type
-                                      :string (URLDecoder/decode (or v ""))
-                                      :integer (Long/parseLong (URLDecoder/decode (or v "")))
-                                      :empty "")])))
-                             varlist pairs))))
+                                      :string (URLDecoder/decode (or (first val) ""))
+                                      :integer (Long/parseLong (URLDecoder/decode (first val)))
+                                      :empty ""
+                                      :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
+                                      :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
+                                                      [k (URLDecoder/decode v)]
+                                                      )))
+                                    ;; explode
+                                    (case var-type
+                                      :string (URLDecoder/decode (or (first val) ""))
+                                      :integer (Long/parseLong (URLDecoder/decode (first val)))
+                                      :empty ""
+                                      :list (mapv #(URLDecoder/decode %) val)
+                                      :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))
+
+                                      ))]))
+                             varlist))))
 
         (\? \&)
         (let [pairs (str/split expansion #"&")

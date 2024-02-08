@@ -1144,9 +1144,81 @@
          var-types
          ";v=6;empty;who=fred")))
 
+      (is
+       (=
+        (select-keys variables ["v" "bar" "who"])
+        (match-uri
+         (compile-uri-template "{;v,bar,who}")
+         var-types
+         ";v=6;who=fred")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y"])
+        (match-uri
+         (compile-uri-template "{;x,y}")
+         var-types
+         ";x=1024;y=768")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y" "empty"])
+        (match-uri
+         (compile-uri-template "{;x,y,empty}")
+         var-types
+         ";x=1024;y=768;empty")))
+
+      (is
+       (=
+        (select-keys variables ["x" "y"])
+        (match-uri
+         (compile-uri-template "{;x,y,undef}")
+         var-types
+         ";x=1024;y=768")))
+
+      (is
+       (=
+        (update (select-keys variables ["hello"]) "hello" subs 0 5)
+        (match-uri
+         (compile-uri-template "{;hello:5}")
+         var-types
+         ";hello=Hello")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{;list}")
+         var-types
+         ";list=red,green,blue")))
+
+      (is
+       (=
+        (select-keys variables ["list"])
+        (match-uri
+         (compile-uri-template "{;list*}")
+         var-types
+         ";list=red;list=green;list=blue")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{;keys}")
+         var-types
+         ";keys=semi,%3B,dot,.,comma,%2C")))
+
+      (is
+       (=
+        (select-keys variables ["keys"])
+        (match-uri
+         (compile-uri-template "{;keys*}")
+         var-types
+         ";semi=%3B;dot=.;comma=%2C")))
+
       )))
 
-(def var-types
+#_(def var-types
   {"count" :list
    "dom" :list
    "dub" :string
