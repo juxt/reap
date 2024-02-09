@@ -161,7 +161,7 @@
                        (case var-type
                          :string (URLDecoder/decode (first vs))
                          :integer (Long/parseLong (URLDecoder/decode (first vs)))
-                         :list (map #(URLDecoder/decode %) vs)
+                         :list (mapv #(URLDecoder/decode %) vs)
                          :map (into {} (for [[k v] (partition 2 vs)]
                                          [k (URLDecoder/decode v)]))
                          :empty ""))
@@ -169,7 +169,7 @@
                      (case var-type
                        :string (str/join "/" h)
                        :integer (str/join "/" h)
-                       :list (map #(URLDecoder/decode %) h)
+                       :list (mapv #(URLDecoder/decode %) h)
                        :map (into {} (for [el h]
                                        (let [[k v] (str/split el #"=")]
                                          [k (URLDecoder/decode v)])
