@@ -143,8 +143,10 @@
 
 (defn variable-type [var-types varname]
   (or
-   (get var-types (keyword varname))
-   (get var-types varname)
+   (when-let [t (get var-types (keyword varname))]
+     [(keyword varname) t])
+   (when-let [t (get var-types varname)]
+     [varname t])
    (throw
     (ex-info
      (format "var-type not found for '%s'" varname)
@@ -166,35 +168,40 @@
       (if var
         (let [{:keys [varname explode]} var
               [h t] (split-at (cond-> 1 explode (+ extra)) vals)
-              var-type (get var-types varname)
-              vals (if-not explode
+              [varname-k var-type] (variable-type var-types varname)
+              vals [varname-k
+                    (if-not explode
 
-                     (let [vs (str/split (or (first h) "") #"\,")]
-                       (case var-type
-                         :string (URLDecoder/decode (first vs))
-                         :integer (Long/parseLong (URLDecoder/decode (first vs)))
-                         :list (mapv #(URLDecoder/decode %) vs)
-                         :map (into {} (for [[k v] (partition 2 vs)]
-                                         [k (URLDecoder/decode v)]))
-                         :empty ""))
+                      (let [vs (str/split (or (first h) "") #"\,")]
+                        (case var-type
+                          :string (URLDecoder/decode (first vs))
+                          :integer (Long/parseLong (URLDecoder/decode (first vs)))
+                          :list (mapv #(URLDecoder/decode %) vs)
+                          :map (into {} (for [[k v] (partition 2 vs)]
+                                          [k (URLDecoder/decode v)]))
+                          :empty ""))
 
-                     (case var-type
-                       :string (str/join "/" h)
-                       :integer (str/join "/" h)
-                       :list (mapv #(URLDecoder/decode %) h)
-                       :map (into {} (for [el h]
-                                       (let [[k v] (str/split el #"=")]
-                                         [k (URLDecoder/decode v)])
-                                       ))
-                       :empty ""))]
-          (recur varlist t (conj result (assoc var :val vals))))
+                      (case var-type
+                        :string (str/join "/" h)
+                        :integer (str/join "/" h)
+                        :list (mapv #(URLDecoder/decode %) h)
+                        :map (into {} (for [el h]
+                                        (let [[k v] (str/split el #"=")]
+                                          [k (URLDecoder/decode v)])
+                                        ))
+                        :empty ""))]]
+          (recur varlist t (conj result vals)))
         result))))
 
 (defn expand [{:keys [varlist operator] :as expression} var-types expansion]
   (let [varlist
         ;; We first filter the varlist to only include varnames that
         ;; we have type definitions for.
-        (filter #(contains? var-types (:varname %)) varlist)
+        (filter #(or
+                  (contains? var-types (:varname %))
+                  (contains? var-types (keyword (:varname %)))
+                  (contains? var-types (str (:varname %)))
+                  ) varlist)
         variable-type (fn [varname] (variable-type var-types varname))]
     (if operator
       (case operator
@@ -209,30 +216,29 @@
 
           (if-not extra-vars
             (if v
-              (let [{:keys [varname explode]} v]
-                {varname
-                 (let [var-type (variable-type varname)]
-
-                   (case var-type
-                     :integer (Long/parseLong (URLDecoder/decode expansion))
-                     :list (mapv #(URLDecoder/decode %) (str/split expansion #","))
-                     :map (into {}
-                                (if explode
-                                  (for [pair (str/split expansion #",")]
-                                    (let [[k v] (str/split pair #"=")]
-                                      [k (URLDecoder/decode v)]))
-                                  (for [[k v] (partition 2 (str/split expansion #","))]
-                                    [k (URLDecoder/decode v)])))
-                     (URLDecoder/decode expansion)))})
+              (let [{:keys [varname explode]} v
+                    [varname-k var-type] (variable-type varname)]
+                {varname-k
+                 (case var-type
+                   :integer (Long/parseLong (URLDecoder/decode expansion))
+                   :list (mapv #(URLDecoder/decode %) (str/split expansion #","))
+                   :map (into {}
+                              (if explode
+                                (for [pair (str/split expansion #",")]
+                                  (let [[k v] (str/split pair #"=")]
+                                    [k (URLDecoder/decode v)]))
+                                (for [[k v] (partition 2 (str/split expansion #","))]
+                                  [k (URLDecoder/decode v)])))
+                   (URLDecoder/decode expansion))})
               {})
             (into {} (map (fn [k p]
-                            [(:varname k)
-                             (let [var-type (variable-type (:varname k))
-                                   dv (URLDecoder/decode p)]
-                               (case var-type
-                                 :integer (Long/parseLong dv)
-                                 dv)
-                               )])
+                            (let [[varname-k var-type] (variable-type (:varname k))]
+                              [varname-k
+                               (let [dv (URLDecoder/decode p)]
+                                 (case var-type
+                                   :integer (Long/parseLong dv)
+                                   dv)
+                                 )]))
                           varlist
                           (str/split expansion #",")))))
 
@@ -240,8 +246,8 @@
         (let [values (next (str/split expansion #"\."))]
           (into {}
                 (map (fn [{:keys [varname explode]} value]
-                       (let [var-type (variable-type varname)]
-                         [varname
+                       (let [[varname-k var-type] (variable-type varname)]
+                         [varname-k
                           (if explode
                             (case var-type
                               :string (URLDecoder/decode (first values))
@@ -264,8 +270,7 @@
                      (concat values (repeat nil)))))
 
         \/
-        (let [varlist (distribute-values varlist (str/split expansion #"\/") var-types)]
-          (zipmap (map :varname varlist) (map :val varlist)))
+        (into {} (distribute-values varlist (str/split expansion #"\/") var-types))
 
         (\; \? \&)
         (let [pairs (str/split expansion (case operator \; #";" (\? \&) #"&"))
@@ -278,8 +283,8 @@
           (reduce
            (fn [acc {:keys [varname explode]}]
              (let [val (get params varname)
-                   var-type (variable-type varname)]
-               (assoc acc varname
+                   [varname-k var-type] (variable-type varname)]
+               (assoc acc varname-k
                       (if-not explode
                         (case var-type
                           :string (URLDecoder/decode (or (first val) ""))
@@ -311,9 +316,10 @@
             ;; associate with empty variables.
             -1)
            (map (fn [{:keys [varname explode]} v]
-                  (let [dv (URLDecoder/decode v)]
-                    [varname
-                     (case (variable-type varname)
+                  (let [dv (URLDecoder/decode v)
+                        [varname-k var-type] (variable-type varname)]
+                    [varname-k
+                     (case var-type
                        :integer (Long/parseLong dv)
                        :list (str/split expansion #",")
                        :map (into {}
