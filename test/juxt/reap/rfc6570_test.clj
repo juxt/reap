@@ -1380,18 +1380,31 @@
 
 (deftest readme-test
   (let [uri-template
-        (compile-uri-template "https://{environment}bank.com{/ctx*}/accounts/{accno}/transactions{.format}{?from,to}{#fragment}")]
-    (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"
-           (make-uri
-            uri-template
-            {:accno "12345678"
-             :ctx ["europe" "uk"]
-             :format "csv"
-             :from "20201010"
-             :to "20201110"})))
+        (compile-uri-template "https://{env}bank.com{/ctx*}/accounts/{accno}/transactions{.format}{?from,to}{#fragment}")]
 
-    (testing "example"
-      (is (= {:environment "",
+    (testing "make-uri"
+      (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"
+             (make-uri
+              uri-template
+              {:accno "12345678"
+               :ctx ["europe" "uk"]
+               :format "csv"
+               :from "20201010"
+               :to "20201110"}))))
+
+    (testing "make-uri with fragment"
+      (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110#a,b"
+             (make-uri
+              uri-template
+              {:accno "12345678"
+               :ctx ["europe" "uk"]
+               :format "csv"
+               :from "20201010"
+               :to "20201110"
+               :fragment ["a" "b"]}))))
+
+    (testing "match-uri example"
+      (is (= {:env "",
               :ctx ["europe" "uk"],
               :accno "12345678",
               :format "csv",
@@ -1400,7 +1413,7 @@
               :fragment nil}
              (match-uri
               uri-template
-              {:environment :string
+              {:env :string
                :fragment :string
                :accno :string
                :ctx :list
@@ -1409,8 +1422,8 @@
                :to :string}
               "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"))))
 
-    (testing "with fragment"
-      (is (= {:environment "",
+    (testing "match-uri with fragment"
+      (is (= {:env "",
               :ctx ["europe" "uk"],
               :accno "12345678",
               :format "csv",
@@ -1419,7 +1432,7 @@
               :fragment ["a" "b"]}
              (match-uri
               uri-template
-              {:environment :string
+              {:env :string
                :fragment :list
                :accno :string
                :ctx :list
@@ -1428,8 +1441,8 @@
                :to :string}
               "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110#a,b"))))
 
-    (testing "without query"
-      (is (= {:environment "",
+    (testing "match-uri without query"
+      (is (= {:env "",
               :ctx ["europe" "uk"],
               :accno "12345678",
               :format "csv",
@@ -1438,7 +1451,7 @@
               :fragment nil}
              (match-uri
               uri-template
-              {:environment :string
+              {:env :string
                :fragment :list
                :accno :string
                :ctx :list
