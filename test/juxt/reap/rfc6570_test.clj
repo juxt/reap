@@ -15,37 +15,37 @@
         variables))
 
     "http://example.com/~{username}/"
-    {"username" "fred"}
+    {:username "fred"}
     "http://example.com/~fred/"
 
     "http://example.com/~{username:2}/"
-    {"username" "fred"}
+    {:username "fred"}
     "http://example.com/~fr/"
 
     "http://example.com/dictionary/{term:1}/{term}"
-    {"term" "cat"}
+    {:term "cat"}
     "http://example.com/dictionary/c/cat"
 
     "http://example.com/dictionary/{term:1}/{term}"
-    {"term" "dog"}
+    {:term "dog"}
     "http://example.com/dictionary/d/dog"
 
     "http://example.com/search{?q,lang}"
-    {"q" "cat" "lang" "en"}
+    {:q "cat" :lang "en"}
     "http://example.com/search?q=cat&lang=en"
 
     "http://example.com/search{?q,lang}"
-    {"q" "chien" "lang" "fr"}
+    {:q "chien" :lang "fr"}
     "http://example.com/search?q=chien&lang=fr"
 
     "http://www.example.com/foo{?query,number}"
-    {"query" "mycelium" "number" 100}
+    {:query "mycelium" :number 100}
     "http://www.example.com/foo?query=mycelium&number=100"
 
     ;; "Alternatively, if 'query' is undefined, then the expansion would be..."
 
     "http://www.example.com/foo{?query,number}"
-    {"number" 100}
+    {:number 100}
     "http://www.example.com/foo?number=100"
 
     ;; "or if both variables are undefined, then it would be"
@@ -56,8 +56,8 @@
 
   ;; Level 1 examples
 
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"}]
+  (let [variables {:var "value"
+                   :hello "Hello World!"}]
 
     (are [uri-template expected]
         (=
@@ -70,9 +70,9 @@
 
   ;; Level 2 examples
 
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"
-                   "path" "/foo/bar"}]
+  (let [variables {:var "value"
+                   :hello "Hello World!"
+                   :path "/foo/bar"}]
     (are [uri-template expected]
         (=
          expected
@@ -90,12 +90,12 @@
 
   ;; Level 3 examples
 
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"
-                   "empty" ""
-                   "path" "/foo/bar"
-                   "x" "1024"
-                   "y" "768"}]
+  (let [variables {:var "value"
+                   :hello "Hello World!"
+                   :empty ""
+                   :path "/foo/bar"
+                   :x "1024"
+                   :y "768"}]
     (are [uri-template expected]
         (=
          expected
@@ -131,11 +131,11 @@
 
   ;; Level 4 examples
 
-  (let [variables {"var" "value"
-                   "hello" "Hello World!"
-                   "path" "/foo/bar"
-                   "list" '("red" "green" "blue")
-                   "keys" {"semi" ";" "dot" "." "comma" ","}}]
+  (let [variables {:var "value"
+                   :hello "Hello World!"
+                   :path "/foo/bar"
+                   :list '("red" "green" "blue")
+                   :keys {"semi" ";" "dot" "." "comma" ","}}]
 
     (are [uri-template expected]
         (=
@@ -214,23 +214,23 @@
 ;; See RFC 6570 Section 3 (Expansion)
 (deftest variable-expansion-test
   (let [variables
-        {"count" ["one" "two" "three"]
-         "dom" ["example" "com"]
-         "dub" "me/too"
-         "hello" "Hello World!"
-         "half" "50%"
-         "var" "value"
-         "who" "fred"
-         "base" "http://example.com/home/"
-         "path" "/foo/bar"
-         "list" ["red", "green", "blue"]
-         "keys" {"semi" ";" "dot" "." "comma" ","}
-         "v" 6
-         "x" 1024
-         "y" 768
-         "empty" ""
-         "empty_keys" []
-         "undef" nil}]
+        {:count ["one" "two" "three"]
+         :dom ["example" "com"]
+         :dub "me/too"
+         :hello "Hello World!"
+         :half "50%"
+         :var "value"
+         :who "fred"
+         :base "http://example.com/home/"
+         :path "/foo/bar"
+         :list ["red", "green", "blue"]
+         :keys {"semi" ";" "dot" "." "comma" ","}
+         :v 6
+         :x 1024
+         :y 768
+         :empty ""
+         :empty_keys []
+         :undef nil}]
 
     ;; "A variable that is undefined (Section 2.3) has no value and is
     ;; ignored by the expansion process.  If all of the variables in an
@@ -1379,7 +1379,7 @@
          var-types
          "&semi=%3B&dot=.&comma=%2C"))))))
 
-#_(def var-types
+(def var-types
     {"count" :list
      "dom" :list
      "dub" :string
@@ -1400,9 +1400,20 @@
 (comment
   (compile-uri-template "https://bank.com/accounts/{/accno}/transactions{.format}")
 
+  (re-matches
+   (:pattern (compile-uri-template "https://bank.com/accounts{/accno}/transactions"))
+   "https://bank.com/accounts/12345678/transactions")
+
   (match-uri
-   (compile-uri-template "https://bank.com/accounts{/accno}/transactions{.format}{?from,to}")
-   "https://bank.com/accounts/12345678/transactions.csv?from=A&to=B")
+   (compile-uri-template "https://bank.com/accounts{/accno}/transactions")
+   {:accno :string}
+   "https://bank.com/accounts/12345678/transactions")
+
+  (match-uri
+   (compile-uri-template "https://bank.com/accounts{/accno}/transactions")
+   {:accno :string
+    :format :string}
+   "https://bank.com/accounts/12345678/transactions")
 
   (let [uri-template
         (compile-uri-template "https://bank.com/accounts/{accno}/transactions{.format}{?from,to}")]
@@ -1419,12 +1430,62 @@
   (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}")
 
   (match-uri
-   (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}")
+   (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tags*}")
+   {}
+   #_{:dirs :list
+      :article :string
+      :format :string
+      :tag :list
+      }
    "https://bank.com/articles/a/b/c/me.html?tag=a&tag=b&tag=c")
 
-  (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}")
+  (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}"))
 
+
+
+
+
+#_(match-uri
+ (compile-uri-template "{/list*,path:4}")
+ var-types
+ "/red/green/blue/%2Ffoo")
+
+#_(match-uri
+ (compile-uri-template "https://bank.com/articles{/dirs*,path:4}{.suffix}")
+ {"dirs" :list
+  "path" :string
+  "suffix" :list
+  ;;  "tags" :map
+  "format" :string}
+ "https://bank.com/articles/red/green/blue/foo.html?tag=a&tag=b&tag=c")
+
+(comment
   (re-matches
-   #"\Qhttps://bank.com/articles\E\/((?:[[\x2C-9][A-Z]\x5F[a-z]\x7E]|%[0-9A-F]{2})*)\.((?:[[\x2C-\x2E][0-9][A-Z]\x5F[a-z]\x7E]|%[0-9A-F]{2})*)\?((?:[\x26[\x2D-\x2E][0-9]\x3D[A-Z]\x5F[a-z]\x7E]|%[0-9A-F]{2})*)"
-   "https://bank.com/articles/a/b/c/me.html?tag=a&tag=b&tag=c")
-  )
+   (:pattern
+    (compile-uri-template "articles{.suffix}{?tags*}"))
+   "articles.html?tag=red&tag=green")
+
+  (match-uri
+   (compile-uri-template "articles{.suffix}{?tags*}")
+   {"suffix" :string
+    "tags" :map}
+   "articles.html?tag=red&tag=green")
+
+
+  (match-uri
+   (compile-uri-template "{?tag*}")
+   {"suffix" :string
+    "tag" :string}
+   "?tag=red&tag=green")
+
+  (match-uri
+   (compile-uri-template "{?keys*}")
+   var-types
+   "?semi=%3B&dot=.&comma=%2C"))
+
+(comment
+  (let [pattern
+        (:pattern
+         (compile-uri-template "https://bank.com/articles{/dir,path:4}{.suffix}"))]
+    {:pattern pattern
+     :matches (re-matches pattern "https://bank.com/articles/red/foo.html")}))

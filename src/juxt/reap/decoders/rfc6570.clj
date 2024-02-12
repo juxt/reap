@@ -139,6 +139,18 @@
 (comment
   (uri-template (re/input "http://example.com/search{?q,lang}")))
 
+;; Matching URIs --------------------------------
+
+(defn variable-type [var-types varname]
+  (or
+   (get var-types (keyword varname))
+   (get var-types varname)
+   (throw
+    (ex-info
+     (format "var-type not found for '%s'" varname)
+     {:var-types var-types
+      :varname varname}))))
+
 (defn distribute-values
   "Return the varlist augmented with values. If there are the same
   number of values as vars in the varlist, then each var will be
@@ -182,7 +194,8 @@
   (let [varlist
         ;; We first filter the varlist to only include varnames that
         ;; we have type definitions for.
-        (filter #(contains? var-types (:varname %)) varlist)]
+        (filter #(contains? var-types (:varname %)) varlist)
+        variable-type (fn [varname] (variable-type var-types varname))]
     (if operator
       (case operator
         (\+ \#)
@@ -198,7 +211,7 @@
             (if v
               (let [{:keys [varname explode]} v]
                 {varname
-                 (let [var-type (get var-types varname)]
+                 (let [var-type (variable-type varname)]
 
                    (case var-type
                      :integer (Long/parseLong (URLDecoder/decode expansion))
@@ -214,7 +227,7 @@
               {})
             (into {} (map (fn [k p]
                             [(:varname k)
-                             (let [var-type (get var-types (:varname k))
+                             (let [var-type (variable-type (:varname k))
                                    dv (URLDecoder/decode p)]
                                (case var-type
                                  :integer (Long/parseLong dv)
@@ -227,7 +240,7 @@
         (let [values (next (str/split expansion #"\."))]
           (into {}
                 (map (fn [{:keys [varname explode]} value]
-                       (let [var-type (get var-types varname)]
+                       (let [var-type (variable-type varname)]
                          [varname
                           (if explode
                             (case var-type
@@ -265,7 +278,7 @@
           (reduce
            (fn [acc {:keys [varname explode]}]
              (let [val (get params varname)
-                   var-type (get var-types varname)]
+                   var-type (variable-type varname)]
                (assoc acc varname
                       (if-not explode
                         (case var-type
@@ -298,10 +311,9 @@
             ;; associate with empty variables.
             -1)
            (map (fn [{:keys [varname explode]} v]
-                  (let [var-type (get var-types varname)
-                        dv (URLDecoder/decode v)]
+                  (let [dv (URLDecoder/decode v)]
                     [varname
-                     (case var-type
+                     (case (variable-type varname)
                        :integer (Long/parseLong dv)
                        :list (str/split expansion #",")
                        :map (into {}

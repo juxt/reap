@@ -83,7 +83,9 @@
         components)))}))
 
 (defn var->str [{:keys [varname prefix explode]} operator variables]
-  (when-let [val (get variables varname)]
+  (when-let [val (or
+                  (get variables (keyword varname))
+                  (get variables varname))]
     (cond
       (map? val)
       (str
