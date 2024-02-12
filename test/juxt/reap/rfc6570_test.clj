@@ -1380,7 +1380,7 @@
 
 (deftest readme-test
   (let [uri-template
-        (compile-uri-template "https://{env}bank.com{/ctx*}/accounts/{accno}/transactions{.format}{?from,to}{#fragment}")]
+        (compile-uri-template "https://{env}bank.com{/ctx*}/accounts/{accno}/transactions{.format}{?from,to}{#frag}")]
 
     (testing "make-uri"
       (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"
@@ -1401,7 +1401,7 @@
                :format "csv"
                :from "20201010"
                :to "20201110"
-               :fragment ["a" "b"]}))))
+               :frag ["a" "b"]}))))
 
     (testing "match-uri example"
       (is (= {:env "",
@@ -1410,11 +1410,11 @@
               :format "csv",
               :from "20201010",
               :to "20201110",
-              :fragment nil}
+              :frag nil}
              (match-uri
               uri-template
               {:env :string
-               :fragment :string
+               :frag :string
                :accno :string
                :ctx :list
                :format :string
@@ -1429,11 +1429,11 @@
               :format "csv",
               :from "20201010",
               :to "20201110",
-              :fragment ["a" "b"]}
+              :frag ["a" "b"]}
              (match-uri
               uri-template
               {:env :string
-               :fragment :list
+               :frag :list
                :accno :string
                :ctx :list
                :format :string
@@ -1448,11 +1448,11 @@
               :format "csv",
               :from nil
               :to nil
-              :fragment nil}
+              :frag nil}
              (match-uri
               uri-template
               {:env :string
-               :fragment :list
+               :frag :list
                :accno :string
                :ctx :list
                :format :string
