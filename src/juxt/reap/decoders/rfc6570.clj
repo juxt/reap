@@ -209,7 +209,7 @@
         (let [expansion
               (cond
                 (= operator \+) expansion
-                (and (= operator \#) (str/starts-with? expansion "#"))
+                (and (= operator \#) expansion (str/starts-with? expansion "#"))
                 (subs expansion 1)
                 :else expansion)
               [v & extra-vars :as varlist] varlist]
@@ -229,7 +229,7 @@
                                     [k (URLDecoder/decode v)]))
                                 (for [[k v] (partition 2 (str/split expansion #","))]
                                   [k (URLDecoder/decode v)])))
-                   (URLDecoder/decode expansion))})
+                   (cond-> expansion (string? expansion) (URLDecoder/decode)))})
               {})
             (into {} (map (fn [k p]
                             (let [[varname-k var-type] (variable-type (:varname k))]

@@ -229,7 +229,7 @@
          :x 1024
          :y 768
          :empty ""
-         :empty_keys []
+         "empty_keys" []
          :undef nil}]
 
     ;; "A variable that is undefined (Section 2.3) has no value and is
@@ -1379,113 +1379,41 @@
          var-types
          "&semi=%3B&dot=.&comma=%2C"))))))
 
-(def var-types
-    {:count :list
-     :dom :list
-     :dub :string
-     :hello :string
-     :half :string
-     :var :string
-     :who :string
-     :base :string
-     :path :string
-     :list :list
-     :keys :map
-     :v :integer
-     :x :integer
-     :y :integer
-     :empty :empty
-     "empty_keys" :list})
-
-(comment
-  (compile-uri-template "https://bank.com/accounts/{/accno}/transactions{.format}")
-
-  (re-matches
-   (:pattern (compile-uri-template "https://bank.com/accounts{/accno}/transactions"))
-   "https://bank.com/accounts/12345678/transactions")
-
-  (match-uri
-   (compile-uri-template "https://bank.com/accounts{/accno}/transactions")
-   {:accno :string}
-   "https://bank.com/accounts/12345678/transactions")
-
-  (match-uri
-   (compile-uri-template "https://bank.com/accounts{/accno}/transactions")
-   {:accno :string
-    :format :string}
-   "https://bank.com/accounts/12345678/transactions")
-
+(deftest readme-test
   (let [uri-template
-        (compile-uri-template "https://bank.com/accounts/{accno}/transactions{.format}{?from,to}")]
+        (compile-uri-template "https://{environment}bank.com{/ctx*,accno}/transactions{.format}{?from,to}{#fragment}")]
 
-    {:uri (make-uri uri-template
-                    {"accno" "12345678"
-                     "format" "csv"
-                     "from" "20201010"
-                     "to" "20201110"})
-     :matched (match-uri uri-template
-                         "https://bank.com/accounts/12345678/transactions.csv?from=20201010&to=20201110"
-                         )})
+    (is (= "https://bank.com/accounts/12345678/transactions.csv?from=20201010&to=20201110"
+           (make-uri uri-template
+                     {:accno "12345678"
+                      :ctx "accounts"
+                      :format "csv"
+                      :from "20201010"
+                      :to "20201110"})))
 
-  (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}")
+    (is (= "https://test.env1.bank.com/accounts/12345678/transactions.csv?from=20201010&to=20201110"
+           (make-uri uri-template
+                     {:environment "test.env1."
+                      :accno "12345678"
+                      :ctx "accounts"
+                      :format "csv"
+                      :from "20201010"
+                      :to "20201110"})))
 
-  (match-uri
-   (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tags*}")
-   {}
-   #_{:dirs :list
-      :article :string
-      :format :string
-      :tag :list
-      }
-   "https://bank.com/articles/a/b/c/me.html?tag=a&tag=b&tag=c")
-
-  (compile-uri-template "https://bank.com/articles{/dirs*,article}{.format}{?tag*}"))
-
-
-
-
-
-#_(match-uri
- (compile-uri-template "{/list*,path:4}")
- var-types
- "/red/green/blue/%2Ffoo")
-
-#_(match-uri
- (compile-uri-template "https://bank.com/articles{/dirs*,path:4}{.suffix}")
- {"dirs" :list
-  "path" :string
-  "suffix" :list
-  ;;  "tags" :map
-  "format" :string}
- "https://bank.com/articles/red/green/blue/foo.html?tag=a&tag=b&tag=c")
-
-(comment
-  (re-matches
-   (:pattern
-    (compile-uri-template "articles{.suffix}{?tags*}"))
-   "articles.html?tag=red&tag=green")
-
-  (match-uri
-   (compile-uri-template "articles{.suffix}{?tags*}")
-   {"suffix" :string
-    "tags" :map}
-   "articles.html?tag=red&tag=green")
-
-
-  (match-uri
-   (compile-uri-template "{?tag*}")
-   {"suffix" :string
-    "tag" :string}
-   "?tag=red&tag=green")
-
-  (match-uri
-   (compile-uri-template "{?keys*}")
-   var-types
-   "?semi=%3B&dot=.&comma=%2C"))
-
-(comment
-  (let [pattern
-        (:pattern
-         (compile-uri-template "https://bank.com/articles{/dir,path:4}{.suffix}"))]
-    {:pattern pattern
-     :matches (re-matches pattern "https://bank.com/articles/red/foo.html")}))
+    (is (= {:environment ""
+            :ctx ["test" "accounts"]
+            :accno "12345678"
+            :format "csv"
+            :from "20201010"
+            :to "20201110"
+            :fragment nil}
+           (match-uri uri-template
+                      {:environment :string
+                       :fragment :string
+                       :accno :string
+                       :ctx :list
+                       :format :string
+                       :from :string
+                       :to :string}
+                      "https://bank.com/test/accounts/12345678/transactions.csv?from=20201010&to=20201110"
+                      )))))

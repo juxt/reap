@@ -37,7 +37,7 @@
 
                 \#
                 (re/re-compose
-                 "((?:[%s]|%s)*?)"
+                 "(?:\\#((?:[%s]|%s)*?))?"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved rfc3986/reserved))
                  rfc3986/pct-encoded)
 
@@ -65,7 +65,7 @@
 
                 \?
                 (re/re-compose
-                 "\\?((?:[%s]|%s)*?)"
+                 "(?:\\?((?:[%s]|%s)*?))?"
                  (re/re-str (rfc5234/merge-alternatives rfc3986/unreserved #{\= \& \,}))
                  rfc3986/pct-encoded)
 
