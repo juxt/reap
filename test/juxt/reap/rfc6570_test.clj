@@ -1404,12 +1404,12 @@
                :frag ["a" "b"]}))))
 
     (testing "match-uri example"
-      (is (= {:env "",
-              :ctx ["europe" "uk"],
-              :accno "12345678",
-              :format "csv",
-              :from "20201010",
-              :to "20201110",
+      (is (= {:env ""
+              :ctx ["europe" "uk"]
+              :accno "12345678"
+              :format "csv"
+              :from "20201010"
+              :to "20201110"
               :frag nil}
              (match-uri
               uri-template
@@ -1442,10 +1442,10 @@
               "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110#a,b"))))
 
     (testing "match-uri without query"
-      (is (= {:env "",
-              :ctx ["europe" "uk"],
-              :accno "12345678",
-              :format "csv",
+      (is (= {:env ""
+              :ctx ["europe" "uk"]
+              :accno "12345678"
+              :format "csv"
               :from nil
               :to nil
               :frag nil}
