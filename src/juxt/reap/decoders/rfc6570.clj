@@ -273,7 +273,7 @@
         (into {} (distribute-values varlist (str/split expansion #"\/") var-types))
 
         (\; \? \&)
-        (let [pairs (str/split expansion (case operator \; #";" (\? \&) #"&"))
+        (let [pairs (when expansion (str/split expansion (case operator \; #";" (\? \&) #"&")))
               params (reduce
                       (fn [acc pair]
                         (let [[k v] (str/split pair #"\=")]
@@ -287,8 +287,8 @@
                (assoc acc varname-k
                       (if-not explode
                         (case var-type
-                          :string (URLDecoder/decode (or (first val) ""))
-                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :string (some-> (first val) URLDecoder/decode)
+                          :integer (some-> (first val) URLDecoder/decode Long/parseLong)
                           :empty ""
                           :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
                           :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
@@ -296,8 +296,8 @@
                                           )))
                         ;; explode
                         (case var-type
-                          :string (URLDecoder/decode (or (first val) ""))
-                          :integer (Long/parseLong (URLDecoder/decode (first val)))
+                          :string (some-> (first val) URLDecoder/decode)
+                          :integer (some-> (first val) URLDecoder/decode Long/parseLong)
                           :empty ""
                           :list (mapv #(URLDecoder/decode %) val)
                           :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))

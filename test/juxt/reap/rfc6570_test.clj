@@ -1400,20 +1400,38 @@
                       :from "20201010"
                       :to "20201110"})))
 
-    (is (= {:environment ""
-            :ctx ["test" "accounts"]
-            :accno "12345678"
-            :format "csv"
-            :from "20201010"
-            :to "20201110"
-            :fragment nil}
-           (match-uri uri-template
-                      {:environment :string
-                       :fragment :string
-                       :accno :string
-                       :ctx :list
-                       :format :string
-                       :from :string
-                       :to :string}
-                      "https://bank.com/test/accounts/12345678/transactions.csv?from=20201010&to=20201110"
-                      )))))
+    (testing "Missing fragment"
+      (is (= {:environment ""
+              :ctx ["test" "accounts"]
+              :accno "12345678"
+              :format "csv"
+              :from "20201010"
+              :to "20201110"
+              :fragment nil}
+             (match-uri uri-template
+                        {:environment :string
+                         :fragment :string
+                         :accno :string
+                         :ctx :list
+                         :format :string
+                         :from :string
+                         :to :string}
+                        "https://bank.com/test/accounts/12345678/transactions.csv?from=20201010&to=20201110"))))
+
+    (testing "Missing query string"
+      (is (= {:environment ""
+              :ctx ["test" "accounts"]
+              :accno "12345678"
+              :format "csv"
+              :from nil
+              :to nil
+              :fragment nil}
+             (match-uri uri-template
+                        {:environment :string
+                         :fragment :string
+                         :accno :string
+                         :ctx :list
+                         :format :string
+                         :from :string
+                         :to :string}
+                        "https://bank.com/test/accounts/12345678/transactions.csv"))))))
