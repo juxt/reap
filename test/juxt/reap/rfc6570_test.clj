@@ -1386,8 +1386,8 @@
       (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"
              (make-uri
               uri-template
-              {:accno "12345678"
-               :ctx ["europe" "uk"]
+              {:ctx ["europe" "uk"]
+               :accno "12345678"
                :format "csv"
                :from "20201010"
                :to "20201110"}))))
@@ -1396,8 +1396,8 @@
       (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110#a,b"
              (make-uri
               uri-template
-              {:accno "12345678"
-               :ctx ["europe" "uk"]
+              {:ctx ["europe" "uk"]
+               :accno "12345678"
                :format "csv"
                :from "20201010"
                :to "20201110"
