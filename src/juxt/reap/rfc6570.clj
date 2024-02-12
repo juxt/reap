@@ -107,7 +107,7 @@
                 (cond-> v
                   (and prefix (< prefix (count v)))
                   (subs 0 prefix))]
-            (str k
+            (str (name k)
                  (if explode "=" ",")
                  ((case operator
                     (\+ \#) pct-encode-reserved

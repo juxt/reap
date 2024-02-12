@@ -178,7 +178,7 @@
                           :integer (Long/parseLong (URLDecoder/decode (first vs)))
                           :list (mapv #(URLDecoder/decode %) vs)
                           :map (into {} (for [[k v] (partition 2 vs)]
-                                          [k (URLDecoder/decode v)]))
+                                          [(keyword k) (URLDecoder/decode v)]))
                           :empty ""))
 
                       (case var-type
@@ -187,7 +187,7 @@
                         :list (mapv #(URLDecoder/decode %) h)
                         :map (into {} (for [el h]
                                         (let [[k v] (str/split el #"=")]
-                                          [k (URLDecoder/decode v)])
+                                          [(keyword k) (URLDecoder/decode v)])
                                         ))
                         :empty ""))]]
           (recur varlist t (conj result vals)))
@@ -226,9 +226,9 @@
                               (if explode
                                 (for [pair (str/split expansion #",")]
                                   (let [[k v] (str/split pair #"=")]
-                                    [k (URLDecoder/decode v)]))
+                                    [(keyword k) (URLDecoder/decode v)]))
                                 (for [[k v] (partition 2 (str/split expansion #","))]
-                                  [k (URLDecoder/decode v)])))
+                                  [(keyword k) (URLDecoder/decode v)])))
                    (cond-> expansion (string? expansion) (URLDecoder/decode)))})
               {})
             (into {} (map (fn [k p]
@@ -255,7 +255,7 @@
                               :list (mapv #(URLDecoder/decode %) values)
                               :map (into {}
                                          (for [[k v] (map #(str/split % #"=") values)]
-                                           [k (URLDecoder/decode v)])))
+                                           [(keyword k) (URLDecoder/decode v)])))
                             (case var-type
                               :string (URLDecoder/decode value)
                               :integer (Long/parseLong (URLDecoder/decode value))
@@ -264,7 +264,7 @@
                                       [])
                               :map (into {}
                                          (for [[k v] (partition 2 (str/split value #","))]
-                                           [k (URLDecoder/decode v)]))
+                                           [(keyword k) (URLDecoder/decode v)]))
                               ))]))
                      varlist
                      (concat values (repeat nil)))))
@@ -292,7 +292,7 @@
                           :empty ""
                           :list (mapv #(URLDecoder/decode %) (str/split (first val) #","))
                           :map (into {} (for [[k v] (partition 2 (str/split (first val) #","))]
-                                          [k (URLDecoder/decode v)]
+                                          [(keyword k) (URLDecoder/decode v)]
                                           )))
                         ;; explode
                         (case var-type
@@ -300,7 +300,7 @@
                           :integer (some-> (first val) URLDecoder/decode Long/parseLong)
                           :empty ""
                           :list (mapv #(URLDecoder/decode %) val)
-                          :map (into {} (for [[k v] params] [k (URLDecoder/decode (first v))]))
+                          :map (into {} (for [[k v] params] [(keyword k) (URLDecoder/decode (first v))]))
                           )))))
            {}
            varlist))
@@ -326,9 +326,9 @@
                                   (if explode
                                     (for [pair (str/split expansion #",")]
                                       (let [[k v] (str/split pair #"=")]
-                                        [k (URLDecoder/decode v)]))
+                                        [(keyword k) (URLDecoder/decode v)]))
                                     (for [[k v] (partition 2 (str/split expansion #","))]
-                                      [k (URLDecoder/decode v)])))
+                                      [(keyword k) (URLDecoder/decode v)])))
                        dv)]))
                 varlist)
            (into {})))))

@@ -135,7 +135,7 @@
                    :hello "Hello World!"
                    :path "/foo/bar"
                    :list '("red" "green" "blue")
-                   :keys {"semi" ";" "dot" "." "comma" ","}}]
+                   :keys {:semi ";" :dot "." :comma ","}}]
 
     (are [uri-template expected]
         (=
@@ -224,7 +224,7 @@
          :base "http://example.com/home/"
          :path "/foo/bar"
          :list ["red", "green", "blue"]
-         :keys {"semi" ";" "dot" "." "comma" ","}
+         :keys {:semi ";" :dot "." :comma ","}
          :v 6
          :x 1024
          :y 768
@@ -451,7 +451,7 @@
         {"address" {"city" "Newport Beach"
                     "state" "CA"}})))
 
-  (is (= {"address" {"city" "Newport Beach" "state" "CA"}}
+  (is (= {"address" {:city "Newport Beach" :state "CA"}}
          (match-uri
           (compile-uri-template "/mapper{?address*}")
           {"address" :map}
@@ -491,7 +491,7 @@
          :base "http://example.com/home/"
          :path "/foo/bar"
          :list ["red", "green", "blue"]
-         :keys {"semi" ";" "dot" "." "comma" ","}
+         :keys {:semi ";" :dot "." :comma ","}
          :v 6
          :x 1024
          :y 768
@@ -778,7 +778,7 @@
 
       (is
        (=
-        {:keys {"semi" ";", "dot" "."}}
+        {:keys {:semi ";", :dot "."}}
         (match-uri
          (compile-uri-template "{+keys}")
          var-types
@@ -787,7 +787,7 @@
       ;; Comma can't be supported due to parsing ambiguity
       (is
        (=
-        {:keys {"semi" ";", "dot" "."}}
+        {:keys {:semi ";", :dot "."}}
         (match-uri
          (compile-uri-template "{+keys*}")
          var-types
@@ -878,7 +878,7 @@
       ;; We must remove the comma because we can't distinguish it
       (is
        (=
-        (update (select-keys variables [:keys]) :keys select-keys ["semi" "dot"])
+        (update (select-keys variables [:keys]) :keys select-keys [:semi :dot])
         (match-uri
          (compile-uri-template "{#keys}")
          var-types
@@ -887,7 +887,7 @@
       ;; We must remove the comma because we can't distinguish it
       (is
        (=
-        (update (select-keys variables [:keys]) :keys select-keys ["semi" "dot"])
+        (update (select-keys variables [:keys]) :keys select-keys [:semi :dot])
         (match-uri
          (compile-uri-template "{#keys*}")
          var-types
@@ -956,7 +956,7 @@
         (-> (select-keys variables [:keys])
             ;; We remove the "dot" entry because it's ambiguous to
             ;; parse out
-            (update :keys dissoc "dot"))
+            (update :keys dissoc :dot))
         (match-uri
          (compile-uri-template "X{.keys}")
          var-types
@@ -967,7 +967,7 @@
         (-> (select-keys variables [:keys])
             ;; We remove the "dot" entry because it's ambiguous to
             ;; parse out
-            (update :keys dissoc "dot"))
+            (update :keys dissoc :dot))
         (match-uri
          (compile-uri-template "X{.keys*}")
          var-types
