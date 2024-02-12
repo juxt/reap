@@ -1380,57 +1380,69 @@
 
 (deftest readme-test
   (let [uri-template
-        (compile-uri-template "https://{environment}bank.com{/ctx*,accno}/transactions{.format}{?from,to}{#fragment}")]
+        (compile-uri-template "https://{environment}bank.com{/ctx*}/accounts/{accno}/transactions{.format}{?from,to}{#fragment}")]
+    (is (= "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"
+           (make-uri
+            uri-template
+            {:accno "12345678"
+             :ctx ["europe" "uk"]
+             :format "csv"
+             :from "20201010"
+             :to "20201110"})))
 
-    (is (= "https://bank.com/accounts/12345678/transactions.csv?from=20201010&to=20201110"
-           (make-uri uri-template
-                     {:accno "12345678"
-                      :ctx "accounts"
-                      :format "csv"
-                      :from "20201010"
-                      :to "20201110"})))
-
-    (is (= "https://test.env1.bank.com/accounts/12345678/transactions.csv?from=20201010&to=20201110"
-           (make-uri uri-template
-                     {:environment "test.env1."
-                      :accno "12345678"
-                      :ctx "accounts"
-                      :format "csv"
-                      :from "20201010"
-                      :to "20201110"})))
-
-    (testing "Missing fragment"
-      (is (= {:environment ""
-              :ctx ["test" "accounts"]
-              :accno "12345678"
-              :format "csv"
-              :from "20201010"
-              :to "20201110"
+    (testing "example"
+      (is (= {:environment "",
+              :ctx ["europe" "uk"],
+              :accno "12345678",
+              :format "csv",
+              :from "20201010",
+              :to "20201110",
               :fragment nil}
-             (match-uri uri-template
-                        {:environment :string
-                         :fragment :string
-                         :accno :string
-                         :ctx :list
-                         :format :string
-                         :from :string
-                         :to :string}
-                        "https://bank.com/test/accounts/12345678/transactions.csv?from=20201010&to=20201110"))))
+             (match-uri
+              uri-template
+              {:environment :string
+               :fragment :string
+               :accno :string
+               :ctx :list
+               :format :string
+               :from :string
+               :to :string}
+              "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110"))))
 
-    (testing "Missing query string"
-      (is (= {:environment ""
-              :ctx ["test" "accounts"]
-              :accno "12345678"
-              :format "csv"
+    (testing "with fragment"
+      (is (= {:environment "",
+              :ctx ["europe" "uk"],
+              :accno "12345678",
+              :format "csv",
+              :from "20201010",
+              :to "20201110",
+              :fragment ["a" "b"]}
+             (match-uri
+              uri-template
+              {:environment :string
+               :fragment :list
+               :accno :string
+               :ctx :list
+               :format :string
+               :from :string
+               :to :string}
+              "https://bank.com/europe/uk/accounts/12345678/transactions.csv?from=20201010&to=20201110#a,b"))))
+
+    (testing "without query"
+      (is (= {:environment "",
+              :ctx ["europe" "uk"],
+              :accno "12345678",
+              :format "csv",
               :from nil
               :to nil
               :fragment nil}
-             (match-uri uri-template
-                        {:environment :string
-                         :fragment :string
-                         :accno :string
-                         :ctx :list
-                         :format :string
-                         :from :string
-                         :to :string}
-                        "https://bank.com/test/accounts/12345678/transactions.csv"))))))
+             (match-uri
+              uri-template
+              {:environment :string
+               :fragment :list
+               :accno :string
+               :ctx :list
+               :format :string
+               :from :string
+               :to :string}
+              "https://bank.com/europe/uk/accounts/12345678/transactions.csv"))))))

@@ -220,8 +220,10 @@
                     [varname-k variable-type] (variable-type varname)]
                 {varname-k
                  (case variable-type
-                   :integer (Long/parseLong (URLDecoder/decode expansion))
-                   :list (mapv #(URLDecoder/decode %) (str/split expansion #","))
+                   :integer (some-> expansion (URLDecoder/decode) (Long/parseLong))
+                   :list (some->> (some-> expansion (str/split #","))
+                                  (remove str/blank?)
+                                  (mapv #(URLDecoder/decode %)))
                    :map (into {}
                               (if explode
                                 (for [pair (str/split expansion #",")]
