@@ -497,7 +497,7 @@
          :empty ""
          "empty_keys" []
          :undef nil}
-        var-types
+        variable-types
         {"count" :list
          :dom :list
          :dub :string
@@ -522,7 +522,7 @@
         {:var (:var variables)}
         (match-uri
          (compile-uri-template "{var}")
-         var-types
+         variable-types
          "value")))
 
       (is
@@ -530,7 +530,7 @@
         {:hello (:hello variables)}
         (match-uri
          (compile-uri-template "{hello}")
-         var-types
+         variable-types
          "Hello%20World%21")))
 
       (is
@@ -538,7 +538,7 @@
         {:half "50%"}
         (match-uri
          (compile-uri-template "{half}")
-         var-types
+         variable-types
          "50%25")))
 
       (is
@@ -546,7 +546,7 @@
         {:empty ""}
         (match-uri
          (compile-uri-template "O{empty}X")
-         var-types
+         variable-types
          "OX")))
 
       (is
@@ -554,7 +554,7 @@
         {}
         (match-uri
          (compile-uri-template "O{undef}X")
-         var-types
+         variable-types
          "OX")))
 
       (is
@@ -562,7 +562,7 @@
         {:x 1024 :y 768}
         (match-uri
          (compile-uri-template "{x,y}")
-         var-types
+         variable-types
          "1024,768")))
 
       (is
@@ -570,7 +570,7 @@
         {:x 1024 :hello "Hello World!" :y 768}
         (match-uri
          (compile-uri-template "{x,hello,y}")
-         var-types
+         variable-types
          "1024,Hello%20World%21,768")))
 
       (is
@@ -578,7 +578,7 @@
         {:x 1024, :empty ""}
         (match-uri
          (compile-uri-template "?{x,empty}")
-         var-types
+         variable-types
          "?1024,")))
 
       (is
@@ -586,7 +586,7 @@
         {:x 1024}
         (match-uri
          (compile-uri-template "?{x,undef}")
-         var-types
+         variable-types
          "?1024")))
 
       (is
@@ -594,7 +594,7 @@
         {:y 768}
         (match-uri
          (compile-uri-template "?{undef,y}")
-         var-types
+         variable-types
          "?768")))
 
       (is
@@ -602,7 +602,7 @@
         {:var "val"}
         (match-uri
          (compile-uri-template "{var:3}")
-         var-types
+         variable-types
          "val")))
 
       (is
@@ -610,7 +610,7 @@
         {:var "value"}
         (match-uri
          (compile-uri-template "{var:30}")
-         var-types
+         variable-types
          "value")))
 
       (is
@@ -618,7 +618,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{list}")
-         var-types
+         variable-types
          "red,green,blue")))
 
       (is
@@ -626,7 +626,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{list*}")
-         var-types
+         variable-types
          "red,green,blue")))
 
       (is
@@ -634,7 +634,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{keys}")
-         var-types
+         variable-types
          "semi,%3B,dot,.,comma,%2C")))
 
       (is
@@ -642,7 +642,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{keys*}")
-         var-types
+         variable-types
          "semi=%3B,dot=.,comma=%2C"))))
 
     (testing "Reserved Expansion: {+var}"
@@ -651,7 +651,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "{+var}")
-         var-types
+         variable-types
          "value")))
 
       (is
@@ -659,7 +659,7 @@
         (select-keys variables [:hello])
         (match-uri
          (compile-uri-template "{+hello}")
-         var-types
+         variable-types
          "Hello%20World!")))
 
       (is
@@ -667,7 +667,7 @@
         (select-keys variables [:hello])
         (match-uri
          (compile-uri-template "{+hello}")
-         var-types
+         variable-types
          "Hello%20World!")))
 
       (is
@@ -675,7 +675,7 @@
         (select-keys variables [:half])
         (match-uri
          (compile-uri-template "{+half}")
-         var-types
+         variable-types
          "50%25")))
 
       (is
@@ -683,7 +683,7 @@
         (select-keys variables [:base])
         (match-uri
          (compile-uri-template "{base}index")
-         var-types
+         variable-types
          "http%3A%2F%2Fexample.com%2Fhome%2Findex")))
 
       (is
@@ -691,7 +691,7 @@
         (select-keys variables [:base])
         (match-uri
          (compile-uri-template "{+base}index")
-         var-types
+         variable-types
          "http://example.com/home/index")))
 
       (is
@@ -699,7 +699,7 @@
         (select-keys variables [:empty])
         (match-uri
          (compile-uri-template "O{+empty}X")
-         var-types
+         variable-types
          "OX")))
 
       (is
@@ -707,7 +707,7 @@
         {}
         (match-uri
          (compile-uri-template "O{+undef}X")
-         var-types
+         variable-types
          "OX")))
 
       (is
@@ -715,7 +715,7 @@
         (select-keys variables [:path])
         (match-uri
          (compile-uri-template "{+path}/here")
-         var-types
+         variable-types
          "/foo/bar/here")))
 
       (is
@@ -723,7 +723,7 @@
         (select-keys variables [:path])
         (match-uri
          (compile-uri-template "here?ref={+path}")
-         var-types
+         variable-types
          "here?ref=/foo/bar")))
 
       ;; This is possible to make but not to match
@@ -732,7 +732,7 @@
           (select-keys variables ["path" "var"])
           (match-uri
            (compile-uri-template "up{+path}{var}/here")
-           var-types
+           variable-types
            "up/foo/barvalue/here")))
 
       (is
@@ -740,7 +740,7 @@
         (select-keys variables [:x :y :hello])
         (match-uri
          (compile-uri-template "{+x,hello,y}")
-         var-types
+         variable-types
          "1024,Hello%20World!,768")))
 
       (is
@@ -748,7 +748,7 @@
         (select-keys variables [:path :x])
         (match-uri
          (compile-uri-template "{+path,x}/here")
-         var-types
+         variable-types
          "/foo/bar,1024/here")))
 
       (is
@@ -756,7 +756,7 @@
         {:path "/foo/b"}
         (match-uri
          (compile-uri-template "{+path:6}/here")
-         var-types
+         variable-types
          "/foo/b/here")))
 
       (is
@@ -764,7 +764,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{+list}")
-         var-types
+         variable-types
          "red,green,blue")))
 
       (is
@@ -772,7 +772,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{+list*}")
-         var-types
+         variable-types
          "red,green,blue")))
 
       (is
@@ -780,7 +780,7 @@
         {:keys {:semi ";", :dot "."}}
         (match-uri
          (compile-uri-template "{+keys}")
-         var-types
+         variable-types
          "semi,;,dot,.")))
 
       ;; Comma can't be supported due to parsing ambiguity
@@ -789,7 +789,7 @@
         {:keys {:semi ";", :dot "."}}
         (match-uri
          (compile-uri-template "{+keys*}")
-         var-types
+         variable-types
          "semi=;,dot=."))))
 
     (testing "Fragment Expansion: {#var}"
@@ -799,7 +799,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "{#var}")
-         var-types
+         variable-types
          "#value")))
 
       (is
@@ -807,7 +807,7 @@
         (select-keys variables [:hello])
         (match-uri
          (compile-uri-template "{#hello}")
-         var-types
+         variable-types
          "#Hello%20World!")))
 
       (is
@@ -815,7 +815,7 @@
         (select-keys variables [:half])
         (match-uri
          (compile-uri-template "{#half}")
-         var-types
+         variable-types
          "#50%25")))
 
       (is
@@ -823,7 +823,7 @@
         (select-keys variables [:empty])
         (match-uri
          (compile-uri-template "foo{#empty}")
-         var-types
+         variable-types
          "foo#")))
 
       (is
@@ -831,7 +831,7 @@
         {}
         (match-uri
          (compile-uri-template "foo{#undef}")
-         var-types
+         variable-types
          "foo")))
 
       (is
@@ -839,7 +839,7 @@
         (select-keys variables [:x :hello :y])
         (match-uri
          (compile-uri-template "{#x,hello,y}")
-         var-types
+         variable-types
          "#1024,Hello%20World!,768")))
 
       (is
@@ -847,7 +847,7 @@
         (select-keys variables [:path :x])
         (match-uri
          (compile-uri-template "{#path,x}/here")
-         var-types
+         variable-types
          "#/foo/bar,1024/here")))
 
       (is
@@ -855,7 +855,7 @@
         (update (select-keys variables [:path]) :path subs 0 6)
         (match-uri
          (compile-uri-template "{#path:6}/here")
-         var-types
+         variable-types
          "#/foo/b/here")))
 
       (is
@@ -863,7 +863,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{#list}")
-         var-types
+         variable-types
          "#red,green,blue")))
 
       (is
@@ -871,7 +871,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{#list*}")
-         var-types
+         variable-types
          "#red,green,blue")))
 
       ;; We must remove the comma because we can't distinguish it
@@ -880,7 +880,7 @@
         (update (select-keys variables [:keys]) :keys select-keys [:semi :dot])
         (match-uri
          (compile-uri-template "{#keys}")
-         var-types
+         variable-types
          "#semi,;,dot,.")))
 
       ;; We must remove the comma because we can't distinguish it
@@ -889,7 +889,7 @@
         (update (select-keys variables [:keys]) :keys select-keys [:semi :dot])
         (match-uri
          (compile-uri-template "{#keys*}")
-         var-types
+         variable-types
          "#semi=;,dot=."))))
 
     (testing "Label Expansion with Dot-Prefix: {.var}"
@@ -899,7 +899,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{.who}")
-         var-types
+         variable-types
          ".fred")))
 
       (is
@@ -907,7 +907,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{.who,who}")
-         var-types
+         variable-types
          ".fred.fred")))
 
       (is
@@ -915,7 +915,7 @@
         (select-keys variables [:half :who])
         (match-uri
          (compile-uri-template "{.half,who}")
-         var-types
+         variable-types
          ".50%25.fred")))
 
       (is
@@ -923,7 +923,7 @@
         (select-keys variables [:dom])
         (match-uri
          (compile-uri-template "www{.dom*}")
-         var-types
+         variable-types
          "www.example.com")))
 
       (is
@@ -931,7 +931,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "X{.var}")
-         var-types
+         variable-types
          "X.value")))
 
       (is
@@ -939,7 +939,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "X{.list}")
-         var-types
+         variable-types
          "X.red,green,blue")))
 
       (is
@@ -947,7 +947,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "X{.list*}")
-         var-types
+         variable-types
          "X.red.green.blue")))
 
       (is
@@ -958,7 +958,7 @@
             (update :keys dissoc :dot))
         (match-uri
          (compile-uri-template "X{.keys}")
-         var-types
+         variable-types
          "X.semi,%3B,comma,%2C")))
 
       (is
@@ -969,7 +969,7 @@
             (update :keys dissoc :dot))
         (match-uri
          (compile-uri-template "X{.keys*}")
-         var-types
+         variable-types
          "X.semi=%3B.comma=%2C")))
 
       (is
@@ -977,7 +977,7 @@
         (select-keys variables ["empty_keys"])
         (match-uri
          (compile-uri-template "X{.empty_keys}")
-         var-types
+         variable-types
          "X")))
 
       (is
@@ -985,7 +985,7 @@
         (select-keys variables ["empty_keys"])
         (match-uri
          (compile-uri-template "X{.empty_keys*}")
-         var-types
+         variable-types
          "X"))))
 
     (testing "Path Segment Expansion: {/var}"
@@ -995,7 +995,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{/who}")
-         var-types
+         variable-types
          "/fred")))
 
       (is
@@ -1003,7 +1003,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{/who,who}")
-         var-types
+         variable-types
          "/fred/fred")))
 
       (is
@@ -1011,7 +1011,7 @@
         (select-keys variables [:half :who])
         (match-uri
          (compile-uri-template "{/half,who}")
-         var-types
+         variable-types
          "/50%25/fred")))
 
       (is
@@ -1019,7 +1019,7 @@
         (select-keys variables [:who :dub])
         (match-uri
          (compile-uri-template "{/who,dub}")
-         var-types
+         variable-types
          "/fred/me%2Ftoo")))
 
       (is
@@ -1027,7 +1027,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "{/var}")
-         var-types
+         variable-types
          "/value")))
 
       (is
@@ -1035,7 +1035,7 @@
         (select-keys variables [:var :empty])
         (match-uri
          (compile-uri-template "{/var,empty}")
-         var-types
+         variable-types
          "/value/")))
 
       (is
@@ -1043,7 +1043,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "{/var,undef}")
-         var-types
+         variable-types
          "/value")))
 
       (is
@@ -1051,7 +1051,7 @@
         (select-keys variables [:var :x])
         (match-uri
          (compile-uri-template "{/var,x}/here")
-         var-types
+         variable-types
          "/value/1024/here")))
 
       (is
@@ -1059,7 +1059,7 @@
         (select-keys variables [:var])
         (match-uri
          (compile-uri-template "{/var:1,var}")
-         var-types
+         variable-types
          "/v/value")))
 
       (is
@@ -1067,7 +1067,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{/list}")
-         var-types
+         variable-types
          "/red,green,blue")))
 
       (is
@@ -1075,7 +1075,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{/list*}")
-         var-types
+         variable-types
          "/red/green/blue")))
 
       (is
@@ -1085,7 +1085,7 @@
          (update :path subs 0 4))
         (match-uri
          (compile-uri-template "{/list*,path:4}")
-         var-types
+         variable-types
          "/red/green/blue/%2Ffoo")))
 
       (testing "keys"
@@ -1094,7 +1094,7 @@
           (select-keys variables [:keys])
           (match-uri
            (compile-uri-template "{/keys}")
-           var-types
+           variable-types
            "/semi,%3B,dot,.,comma,%2C"))))
 
       (testing "keys explode"
@@ -1103,7 +1103,7 @@
           (select-keys variables [:keys])
           (match-uri
            (compile-uri-template "{/keys*}")
-           var-types
+           variable-types
            "/semi=%3B/dot=./comma=%2C")))))
 
     (testing "Path-Style Parameter Expansion: {;var}"
@@ -1113,7 +1113,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{;who}")
-         var-types
+         variable-types
          ";who=fred")))
 
       (is
@@ -1121,7 +1121,7 @@
         (select-keys variables [:half])
         (match-uri
          (compile-uri-template "{;half}")
-         var-types
+         variable-types
          ";half=50%25")))
 
       (is
@@ -1129,7 +1129,7 @@
         (select-keys variables [:empty])
         (match-uri
          (compile-uri-template "{;empty}")
-         var-types
+         variable-types
          ";empty")))
 
       (is
@@ -1137,7 +1137,7 @@
         (select-keys variables [:v :empty :who])
         (match-uri
          (compile-uri-template "{;v,empty,who}")
-         var-types
+         variable-types
          ";v=6;empty;who=fred")))
 
       (is
@@ -1145,7 +1145,7 @@
         (select-keys variables [:v :bar :who])
         (match-uri
          (compile-uri-template "{;v,bar,who}")
-         var-types
+         variable-types
          ";v=6;who=fred")))
 
       (is
@@ -1153,7 +1153,7 @@
         (select-keys variables [:x :y])
         (match-uri
          (compile-uri-template "{;x,y}")
-         var-types
+         variable-types
          ";x=1024;y=768")))
 
       (is
@@ -1161,7 +1161,7 @@
         (select-keys variables [:x :y :empty])
         (match-uri
          (compile-uri-template "{;x,y,empty}")
-         var-types
+         variable-types
          ";x=1024;y=768;empty")))
 
       (is
@@ -1169,7 +1169,7 @@
         (select-keys variables [:x :y])
         (match-uri
          (compile-uri-template "{;x,y,undef}")
-         var-types
+         variable-types
          ";x=1024;y=768")))
 
       (is
@@ -1177,7 +1177,7 @@
         (update (select-keys variables [:hello]) :hello subs 0 5)
         (match-uri
          (compile-uri-template "{;hello:5}")
-         var-types
+         variable-types
          ";hello=Hello")))
 
       (is
@@ -1185,7 +1185,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{;list}")
-         var-types
+         variable-types
          ";list=red,green,blue")))
 
       (is
@@ -1193,7 +1193,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{;list*}")
-         var-types
+         variable-types
          ";list=red;list=green;list=blue")))
 
       (is
@@ -1201,7 +1201,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{;keys}")
-         var-types
+         variable-types
          ";keys=semi,%3B,dot,.,comma,%2C")))
 
       (is
@@ -1209,7 +1209,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{;keys*}")
-         var-types
+         variable-types
          ";semi=%3B;dot=.;comma=%2C"))))
 
     (testing "Form-Style Query Expansion: {?var}"
@@ -1219,7 +1219,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{?who}")
-         var-types
+         variable-types
          "?who=fred")))
 
       (is
@@ -1227,7 +1227,7 @@
         (select-keys variables [:half])
         (match-uri
          (compile-uri-template "{?half}")
-         var-types
+         variable-types
          "?half=50%25")))
 
       (is
@@ -1235,7 +1235,7 @@
         (select-keys variables [:x :y])
         (match-uri
          (compile-uri-template "{?x,y}")
-         var-types
+         variable-types
          "?x=1024&y=768")))
 
       (is
@@ -1243,7 +1243,7 @@
         (select-keys variables [:x :y :empty])
         (match-uri
          (compile-uri-template "{?x,y,empty}")
-         var-types
+         variable-types
          "?x=1024&y=768&empty=")))
 
       (is
@@ -1251,7 +1251,7 @@
         (select-keys variables [:x :y])
         (match-uri
          (compile-uri-template "{?x,y,undef}")
-         var-types
+         variable-types
          "?x=1024&y=768")))
 
       (is
@@ -1260,7 +1260,7 @@
             (update :var subs 0 3))
         (match-uri
          (compile-uri-template "{?var:3}")
-         var-types
+         variable-types
          "?var=val")))
 
       (is
@@ -1268,7 +1268,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{?list}")
-         var-types
+         variable-types
          "?list=red,green,blue")))
 
       (is
@@ -1276,7 +1276,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{?list*}")
-         var-types
+         variable-types
          "?list=red&list=green&list=blue")))
 
       (is
@@ -1284,7 +1284,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{?keys}")
-         var-types
+         variable-types
          "?keys=semi,%3B,dot,.,comma,%2C")))
 
       (is
@@ -1292,7 +1292,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{?keys*}")
-         var-types
+         variable-types
          "?semi=%3B&dot=.&comma=%2C"))))
 
     (testing "Form-Style Query Continuation: {&var}"
@@ -1302,7 +1302,7 @@
         (select-keys variables [:who])
         (match-uri
          (compile-uri-template "{&who}")
-         var-types
+         variable-types
          "&who=fred")))
 
       (is
@@ -1310,7 +1310,7 @@
         (select-keys variables [:half])
         (match-uri
          (compile-uri-template "{&half}")
-         var-types
+         variable-types
          "&half=50%25")))
 
       (is
@@ -1318,7 +1318,7 @@
         (select-keys variables [:x])
         (match-uri
          (compile-uri-template "?fixed=yes{&x}")
-         var-types
+         variable-types
          "?fixed=yes&x=1024")))
 
       (is
@@ -1326,7 +1326,7 @@
         (select-keys variables [:x :y :empty])
         (match-uri
          (compile-uri-template "{&x,y,empty}")
-         var-types
+         variable-types
          "&x=1024&y=768&empty=")))
 
       (is
@@ -1334,7 +1334,7 @@
         (select-keys variables [:x :y])
         (match-uri
          (compile-uri-template "{&x,y,undef}")
-         var-types
+         variable-types
          "&x=1024&y=768")))
 
       (is
@@ -1343,7 +1343,7 @@
             (update :var subs 0 3))
         (match-uri
          (compile-uri-template "{&var:3}")
-         var-types
+         variable-types
          "&var=val")))
 
       (is
@@ -1351,7 +1351,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{&list}")
-         var-types
+         variable-types
          "&list=red,green,blue")))
 
       (is
@@ -1359,7 +1359,7 @@
         (select-keys variables [:list])
         (match-uri
          (compile-uri-template "{&list*}")
-         var-types
+         variable-types
          "&list=red&list=green&list=blue")))
 
       (is
@@ -1367,7 +1367,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{&keys}")
-         var-types
+         variable-types
          "&keys=semi,%3B,dot,.,comma,%2C")))
 
       (is
@@ -1375,7 +1375,7 @@
         (select-keys variables [:keys])
         (match-uri
          (compile-uri-template "{&keys*}")
-         var-types
+         variable-types
          "&semi=%3B&dot=.&comma=%2C"))))))
 
 (deftest readme-test

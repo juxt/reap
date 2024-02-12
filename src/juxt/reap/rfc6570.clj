@@ -82,7 +82,7 @@
                rfc3986/pct-encoded))))
         components)))}))
 
-(defn var->str [{:keys [varname prefix explode]} operator variables]
+(defn ^:private variable->str [{:keys [varname prefix explode]} operator variables]
   (when-let [val (or
                   (get variables (keyword varname))
                   (get variables varname))]
@@ -166,7 +166,7 @@
             pct-encode) prefixed-val-str))))))
 
 (defn component->str [{:keys [varlist operator]} variables]
-  (let [vals (keep (fn [v] (var->str v operator variables)) varlist)
+  (let [vals (keep (fn [v] (variable->str v operator variables)) varlist)
         s
         (str/join
          (case operator
@@ -195,13 +195,13 @@
   "Given a compiled uri-template (see compile-uri-template) and a URI as
   arguments, return the extracted uri-template expansions if the URI
   matches the uri-template."
-  [{:keys [components pattern]} var-types uri]
+  [{:keys [components pattern]} variable-types uri]
   (when-let [m (re-matches pattern uri)]
     (if (sequential? m)
       (let [variables
             (map expand
                  (remove string? components)
-                 (repeat var-types)
+                 (repeat variable-types)
                  (rest m))]
         (apply merge variables))
       ;; Case where there are no variables
