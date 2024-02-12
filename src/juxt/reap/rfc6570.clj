@@ -3,8 +3,8 @@
 (ns juxt.reap.rfc6570
   (:require
    [juxt.reap.regex :as re]
-   [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]
    [juxt.reap.decoders.rfc3986 :as rfc3986]
+   [juxt.reap.decoders.rfc5234 :as rfc5234]
    [juxt.reap.decoders.rfc6570 :refer [expand uri-template]]
    [juxt.reap.encoders.rfc6570 :refer [pct-encode pct-encode-reserved]]
    [clojure.string :as str]))
@@ -195,7 +195,7 @@
   "Given a compiled uri-template (see compile-uri-template) and a URI as
   arguments, return the extracted uri-template expansions if the URI
   matches the uri-template."
-  [{:keys [components pattern] :as compiled-uri-template} var-types uri]
+  [{:keys [components pattern]} var-types uri]
   (when-let [m (re-matches pattern uri)]
     (if (sequential? m)
       (let [variables
@@ -209,15 +209,18 @@
 
 (comment
   (match-uri
-   (compile-uri-template "http://example.com/search?{q,lang}")
+   (compile-uri-template "http://example.com/search{?q,lang}")
+   {:q :string :lang :string}
    "http://example.com/search?q=chien&lang=fr"))
 
 (comment
   (match-uri
    (compile-uri-template "http://example.com/~{username}/")
+   {:username :string}
    "http://example.com/~mal/"))
 
 (comment
   (match-uri
    (compile-uri-template "http://example.com/")
+   {}
    "http://example.com/"))

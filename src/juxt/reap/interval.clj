@@ -52,7 +52,7 @@
   (->interval [v]
     (if (= (count v) 2)
       (->Interval (int (first v)) (int (second v)))
-      (throw (ex-info "Vector must have two items")))))
+      (throw (ex-info "Vector must have two items" {})))))
 
 ;; Allen's Basic Relations
 

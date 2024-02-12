@@ -75,7 +75,7 @@
 
 (def ^:private precompiled-http-date-decoder (rfc7231/http-date {}))
 
-(defn ^java.util.Date http-date [s]
+(defn http-date ^java.util.Date [s]
   (when s
     (precompiled-http-date-decoder (re/input s))))
 

@@ -67,9 +67,8 @@
 
 (defn find-zero-or-more [m]
   (lazy-seq
-   (loop []
-     (when (re-find m)
-       (cons (re-groups m) (find-zero-or-more m))))))
+   (when (re-find m)
+     (cons (re-groups m) (find-zero-or-more m)))))
 
 (defn input [input]
   (re-matcher #"" input))

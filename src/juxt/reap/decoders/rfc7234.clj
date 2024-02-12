@@ -16,7 +16,7 @@
 (declare pragma-directive)
 
 ;; Accept-Ranges = acceptable-ranges
-(defn age [opts]
+(defn age [_]
   (p/complete
    (p/pattern-parser
     (re-pattern delta-seconds))))

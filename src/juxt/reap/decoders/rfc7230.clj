@@ -2,15 +2,13 @@
 
 (ns juxt.reap.decoders.rfc7230
   (:require
-   [clojure.string :as string]
+   [clojure.string :as str]
    [juxt.reap.combinators :as p]
    [juxt.reap.interval :as i]
    [juxt.reap.regex :as re]
    [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR]]
    [juxt.reap.decoders.rfc3986 :as rfc3986]
-   [clojure.string :as str]))
-
-(alias 'rfc7230 (create-ns 'juxt.reap.rfc7230))
+   [juxt.reap.rfc7230 :as-alias rfc7230]))
 
 (set! *warn-on-reflection* true)
 
@@ -167,12 +165,12 @@
 (defn unescape-quoted-string
   "Take a quoted-string and replace escaped characters."
   [s]
-  (string/replace s (re-pattern quoted-pair) #(subs % 1)))
+  (str/replace s (re-pattern quoted-pair) #(subs % 1)))
 
 (defn escape-quoted-string
   "Take a string and escape DQUOTEs."
   [s]
-  (string/replace s "\"" "\\\""))
+  (str/replace s "\"" "\\\""))
 
 ;; ctext = HTAB / SP / %x21-27 ; '!'-'''
 ;;  / %x2A-5B ; '*'-'['

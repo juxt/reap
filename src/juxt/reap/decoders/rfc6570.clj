@@ -193,7 +193,7 @@
           (recur varlist t (conj result vals)))
         result))))
 
-(defn expand [{:keys [varlist operator] :as expression} var-types expansion]
+(defn expand [{:keys [varlist operator]} var-types expansion]
   (let [varlist
         ;; We first filter the varlist to only include varnames that
         ;; we have type definitions for.

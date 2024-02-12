@@ -90,13 +90,13 @@
 
 ;; Groupings
 
-(defn ^String zero-or-more [alts]
+(defn zero-or-more ^String [alts]
   (re/re-str (str "[" (apply str (map re/re-str alts)) "]*")))
 
-(defn ^String one-or-more [alts]
+(defn one-or-more ^String [alts]
   (re/re-str (str "[" (apply str (map re/re-str alts)) "]+")))
 
-(defn ^String optional [alts]
+(defn optional ^String [alts]
   (re/re-str (str "[" (apply str (map re/re-str alts)) "]")))
 
 ;; Section B.1

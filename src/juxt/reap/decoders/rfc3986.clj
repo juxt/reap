@@ -2,17 +2,14 @@
 
 (ns juxt.reap.decoders.rfc3986
   (:require
-   [clojure.string :as string]
    [juxt.reap.combinators :as p]
-   [juxt.reap.interval :as i]
    [juxt.reap.regex :as re]
-   [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [HTAB SP VCHAR ALPHA DIGIT HEXDIG]]))
+   [juxt.reap.decoders.rfc5234 :as rfc5234 :refer [ALPHA DIGIT]]))
 
 (declare reg-name)
 (declare unreserved)
 (declare pct-encoded)
 (declare sub-delims)
-
 
 ;;    URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 

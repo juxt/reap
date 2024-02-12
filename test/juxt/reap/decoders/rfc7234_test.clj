@@ -4,7 +4,6 @@
   (:require
    [clojure.test :refer [deftest is]]
    [juxt.reap.regex :as re]
-   [juxt.reap.rfc7234 :as rfc7234]
    [juxt.reap.decoders.rfc7234 :as dec]))
 
 (deftest cache-control-test
