@@ -190,28 +190,6 @@ from the most complex!
 So it's no surprise that programmers who resort to writing custom
 parsing code might skip a few details.
 
-=== Alternatives
-
-There are a number of excellent tools for generating text parsers, from venerable ones such as flex/bison to more modern ones including https://www.antlr.org/[Antlr].
-
-In the Clojure eco-system, we have https://github.com/aphyr/clj-antlr[clj-antlr] and https://github.com/Engelberg/instaparse[Instaparse]. Note, however, that Antlr and Instaparse are tools for building parsers for Context Free Grammars (CFGs) rather than Parsing Expression Grammars (PEGs).
-The difference is that PEGs remove the ambiguity of CFGs.
-
-[quote, Bryan Ford, https://bford.info/pub/lang/peg.pdf]
-____
-Chomsky’s generative system of grammars, from which the ubiqui-
-tous context-free grammars (CFGs) and regular expressions (REs)
-arise, was originally designed as a formal tool for modelling and
-analyzing natural (human) languages. Due to their elegance and
-expressive power, computer scientists adopted generative grammars
-for describing machine-oriented languages as well. The ability of
-a CFG to express ambiguous syntax is an important and powerful
-tool for natural languages. Unfortunately, this power gets in the
-way when we use CFGs for machine-oriented languages that are
-intended to be precise and unambiguous. Ambiguity in CFGs is
-difficult to avoid even when we want to, and it makes general CFG
-parsing an inherently super-linear-time problem.
-____
 
 === Ingredients
 
@@ -234,12 +212,36 @@ https://en.wikipedia.org/wiki/Allen's_interval_algebra[Allen's interval algebra]
 
 https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators] are used to combine parsers built from regular expressions.
 
+See
+
 ==== Parsing Expression Grammars (2004)
 
 *reap* uses a technique known as https://en.wikipedia.org/wiki/Parsing_expression_grammar[Parsing expression grammar (PEG)].
 There are other dedicated PEG parsing libraries, including https://github.com/ericnormand/squarepeg[squarepeg] and https://github.com/aroemers/crustimoney[crustimoney].
 Reap is focussed on the practical problem of parsing real-world strings found in web protocols, rather than providing a general PEG parsing library.
 We don't currently support packrat caching (memoization), although that may be added in the future.
+
+The alternative to PEG is a Context Free Grammar. There are a number of excellent tools for generating CFG parsers, from venerable ones such as flex/bison to more modern ones including https://www.antlr.org/[Antlr].
+
+In the Clojure eco-system, we have https://github.com/aphyr/clj-antlr[clj-antlr] and https://github.com/Engelberg/instaparse[Instaparse].
+
+Note, however, this useful comparison between PEG and CFG parsers.
+
+[quote, Bryan Ford, https://bford.info/pub/lang/peg.pdf]
+____
+Chomsky’s generative system of grammars, from which the ubiqui-
+tous context-free grammars (CFGs) and regular expressions (REs)
+arise, was originally designed as a formal tool for modelling and
+analyzing natural (human) languages. Due to their elegance and
+expressive power, computer scientists adopted generative grammars
+for describing machine-oriented languages as well. The ability of
+a CFG to express ambiguous syntax is an important and powerful
+tool for natural languages. Unfortunately, this power gets in the
+way when we use CFGs for machine-oriented languages that are
+intended to be precise and unambiguous. Ambiguity in CFGs is
+difficult to avoid even when we want to, and it makes general CFG
+parsing an inherently super-linear-time problem.
+____
 
 == User Guide
 
@@ -285,6 +287,8 @@ https://bford.info/pub/lang/peg.pdf[Parsing Expression Grammars: A Recognition-B
 https://github.com/ericnormand/squarepeg[squarepeg]: Eric Normand's PEG parsing library (Clojure)
 
 https://github.com/aroemers/crustimoney[crustimoney]: Arnout Roemers' Clojure library for "PEG parsing, supporting various grammars, packrat caching and cuts."
+
+https://www.infoq.com/presentations/Parser-Combinators/[Parser Combinators: How to Parse (nearly) Anything]: Nate Young's Strange Look talk.
 
 == License
 
