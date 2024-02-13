@@ -105,8 +105,10 @@
    (rfc5234/alternatives
     0x21
     (i/->interval [0x23 0x24])
-    0x26
-    (i/->interval [0x28 0x3B])
+    ;; Note: This implements the RFC 6570 (Verified) ERRATA. See
+    ;; https://www.rfc-editor.org/errata/rfc6570 and
+    ;; https://github.com/uri-templates/uritemplate-test/issues/51
+    (i/->interval [0x26 0x3B])
     0x3D
     (i/->interval [0x3F 0x5B])
     0x5D
