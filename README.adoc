@@ -236,7 +236,10 @@ https://en.wikipedia.org/wiki/Parser_combinator[Parser combinators] are used to 
 
 ==== Parsing Expression Grammars (2004)
 
-*reap* is an implementation of a https://en.wikipedia.org/wiki/Parsing_expression_grammar[Parsing expression grammar (PEG)], using Clojure functions for non-terminals.
+*reap* uses a technique known as https://en.wikipedia.org/wiki/Parsing_expression_grammar[Parsing expression grammar (PEG)].
+There are other dedicated PEG parsing libraries, including https://github.com/ericnormand/squarepeg[squarepeg] and https://github.com/aroemers/crustimoney[crustimoney].
+Reap is focussed on the practical problem of parsing real-world strings found in web protocols, rather than providing a general PEG parsing library.
+We don't currently support packrat caching (memoization), although that may be added in the future.
 
 == User Guide
 
@@ -278,6 +281,10 @@ https://github.com/Engelberg/instaparse/blob/master/docs/ABNF.md[Instaparse: ABN
 https://cse.unl.edu/~choueiry/Documents/Allen-CACM1983.pdf[Maintaining Knowledge about Temporal Intervals, James F. Allen]
 
 https://bford.info/pub/lang/peg.pdf[Parsing Expression Grammars: A Recognition-Based Syntactic Foundation]
+
+https://github.com/ericnormand/squarepeg[squarepeg]: Eric Normand's PEG parsing library (Clojure)
+
+https://github.com/aroemers/crustimoney[crustimoney]: Arnout Roemers' Clojure library for "PEG parsing, supporting various grammars, packrat caching and cuts."
 
 == License
 
