@@ -29,7 +29,12 @@
 (def title
   (p/comp
    (fn [{:keys [title]}]
-     (let [segments (str/split title #":\s")]
+     (let [segments
+           ;; TODO: See
+           ;; https://docs.asciidoctor.org/asciidoc/latest/document/subtitle/ for
+           ;; discussion about assigning a custom separator to the document
+           ;; title. Not yet implemented.
+           (str/split title #":\s")]
        (if (< (count segments) 2)
          {:title (first segments)}
          {:title (str/join ": " (butlast segments))
