@@ -6,6 +6,7 @@
    [juxt.reap.regex :as re :refer [input]]
    [juxt.reap.combinators :as p]))
 
+;; from https://github.com/asciidocj/asciidocj
 ;; Document      ::= (Header?,Preamble?,Section*)
 
 ;; Header        ::= (Title,(AuthorInfo,RevisionInfo?)?)
@@ -94,25 +95,34 @@
         email-with-angle-brackets)))))))
 
 (def author-infos
-  (p/cons
-   author-info
-   (p/zero-or-more
-    (p/first
-     (p/sequence-group
-      (p/ignore (p/pattern-parser #";\s+"))
-      author-info)))))
+  (p/comp
+   vec
+   (p/cons
+    author-info
+    (p/zero-or-more
+     (p/first
+      (p/sequence-group
+       (p/ignore (p/pattern-parser #";\s+"))
+       author-info))))))
 
-#_(def header
+(def header
+  (p/into
+   {}
+   (p/alternatives
     (p/sequence-group
-     title
-     ))
+     (p/as-entry :title title)
+     (p/ignore
+      (p/pattern-parser #"\n"))
+     (p/as-entry :author-infos author-infos))
+    (p/sequence-group
+     (p/as-entry :title title)))))
 
 #_(def document
-  (p/complete
-   (p/sequence-group
-    (p/optionally header)
-    (p/optionally preamble)
-    (p/zero-or-more section))))
+    (p/complete
+     (p/sequence-group
+      (p/optionally header)
+      (p/optionally preamble)
+      (p/zero-or-more section))))
 
 (deftest parser-test
   (testing "document title"
@@ -137,4 +147,12 @@
         :email "pax@asciidoctor.org"}]
       (author-infos
        (input
-        "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>"))))))
+        "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>")))))
+  (testing "header"
+    (is
+     (=
+      {:title "= Document Title",
+       :author-infos
+       [{:authorname {:firstname "Author", :lastname "Name"},
+         :email "author@email.org"}]}
+      (header (input "= Document Title\nAuthor Name <author@email.org>"))))))
