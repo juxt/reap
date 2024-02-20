@@ -48,43 +48,53 @@
 ;; See https://stackoverflow.com/questions/8204680/java-regex-email
 (def email (p/pattern-parser #"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}"))
 
+(defn assoc-author-initials [author]
+  (assoc
+   author :authorinitials
+   (str/join
+    (keep
+     #(when % (subs % 0 1))
+     ((juxt :firstname :middlename :lastname) author)))))
+
 (def author
-  (p/into
-   {}
-   (p/alternatives
-    ;; Firstname Middlename Lastname
-    (p/sequence-group
-     (p/as-entry
-      :firstname
-      firstname)
-     (p/as-entry
-      :middlename
-      (p/first
-       (p/sequence-group
-        (p/ignore (p/pattern-parser #"\s+"))
-        middlename)))
-     (p/as-entry
-      :lastname
-      (p/first
-       (p/sequence-group
-        (p/ignore (p/pattern-parser #"\s+"))
-        lastname))))
-    ;; Firstname Lastname
-    (p/sequence-group
-     (p/as-entry
-      :firstname
-      firstname)
-     (p/as-entry
-      :lastname
-      (p/first
-       (p/sequence-group
-        (p/ignore (p/pattern-parser #"\s+"))
-        lastname))))
-    ;; Firstname
-    (p/sequence-group
-     (p/as-entry
-      :firstname
-      firstname)))))
+  (p/comp
+   assoc-author-initials
+   (p/into
+    {}
+    (p/alternatives
+     ;; Firstname Middlename Lastname
+     (p/sequence-group
+      (p/as-entry
+       :firstname
+       firstname)
+      (p/as-entry
+       :middlename
+       (p/first
+        (p/sequence-group
+         (p/ignore (p/pattern-parser #"\s+"))
+         middlename)))
+      (p/as-entry
+       :lastname
+       (p/first
+        (p/sequence-group
+         (p/ignore (p/pattern-parser #"\s+"))
+         lastname))))
+     ;; Firstname Lastname
+     (p/sequence-group
+      (p/as-entry
+       :firstname
+       firstname)
+      (p/as-entry
+       :lastname
+       (p/first
+        (p/sequence-group
+         (p/ignore (p/pattern-parser #"\s+"))
+         lastname))))
+     ;; Firstname
+     (p/sequence-group
+      (p/as-entry
+       :firstname
+       firstname))))))
 
 (def email-with-angle-brackets
   (p/first
@@ -164,10 +174,17 @@
     (is
      (=
       [{:author
-        {:firstname "Kismet", :middlename "R.", :lastname "Lee"},
+        {:firstname "Kismet"
+         :middlename "R."
+         :lastname "Lee"
+         :authorinitials "KRL"}
         :email "kismet@asciidoctor.org"}
-       {:author {:firstname "B.", :lastname "Steppenwolf"}}
-       {:author {:firstname "Pax", :lastname "Draeke"},
+       {:author {:firstname "B."
+                 :lastname "Steppenwolf"
+                 :authorinitials "BS"}}
+       {:author {:firstname "Pax"
+                 :lastname "Draeke"
+                 :authorinitials "PD"}
         :email "pax@asciidoctor.org"}]
       (author-infos
        (input
@@ -175,9 +192,11 @@
   (testing "header"
     (is
      (=
-      {:doctitle {:title "Document Title"},
+      {:doctitle {:title "Document Title"}
        :author-infos
-       [{:author {:firstname "Author", :lastname "Name"},
+       [{:author {:firstname "Author"
+                  :lastname "Name"
+                  :authorinitials "AN"}
          :email "author@email.org"}]}
       (header (input "= Document Title\nAuthor Name <author@email.org>")))))
   )
