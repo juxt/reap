@@ -141,7 +141,17 @@
 (deftest parser-test
   (testing "document title"
     (is (title (input "= The Intrepid Chronicles\nfoo")))
-    (is (not (title (input "The Intrepid Chronicles")))))
+    (is (not (title (input "The Intrepid Chronicles"))))
+    (is
+     (= {:title "foo"}
+        (title (input "= foo"))))
+    (is
+     (= {:title "foo"
+         :subtitle "bar"}
+        (title (input "= foo: bar"))))
+    (is
+     (= {:title "foo: bar" :subtitle "zip"}
+        (title (input "= foo: bar: zip")))))
   (testing "author"
     (is (author (input "Malcolm")))
     (is (author (input "Malcolm Sparks")))
@@ -170,17 +180,4 @@
        [{:author {:firstname "Author", :lastname "Name"},
          :email "author@email.org"}]}
       (header (input "= Document Title\nAuthor Name <author@email.org>")))))
-  (testing "title"
-    (is
-     (=
-      {:title "foo"}
-      (title (input "= foo"))))
-    (is
-     (=
-      {:title "foo"
-       :subtitle "bar"}
-      (title (input "= foo: bar"))))
-    (is
-     (=
-      {:title "foo: bar" :subtitle "zip"}
-      (title (input "= foo: bar: zip"))))))
+  )
