@@ -15,8 +15,12 @@
 ;; RFC 5234 Section 3.2. Alternatives: Rule1 / Rule2
 (defn alternatives [& parsers]
   (assert (every? some? parsers))
-  (fn [matcher]
-    (cc/some (fn [p] (p matcher)) parsers)))
+  (fn [^java.util.regex.Matcher matcher]
+    (let [start (.regionStart matcher)
+          end (.regionEnd matcher)]
+      (cc/some
+       (fn [p]
+         (p (doto matcher (.region start end)))) parsers))))
 
 ;; RFC 5234 Section 3.3. Incremental Alternatives: Rule1 =/ Rule2
 
