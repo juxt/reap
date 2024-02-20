@@ -198,5 +198,9 @@
                   :lastname "Name"
                   :authorinitials "AN"}
          :email "author@email.org"}]}
-      (header (input "= Document Title\nAuthor Name <author@email.org>")))))
-  )
+      (header (input "= Document Title\nAuthor Name <author@email.org>"))))))
+
+;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
+;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
+;; TODO: Reference the Author Information (https://docs.asciidoctor.org/asciidoc/latest/document/reference-author-attributes/)
+;; TODO: Compound Author Names (https://docs.asciidoctor.org/asciidoc/latest/document/compound-author-name/)
