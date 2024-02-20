@@ -4,7 +4,8 @@
   (:require
    [clojure.test :refer [deftest is testing]]
    [juxt.reap.regex :as re :refer [input]]
-   [juxt.reap.combinators :as p]))
+   [juxt.reap.combinators :as p]
+   [clojure.string :as str]))
 
 ;; from https://github.com/asciidocj/asciidocj
 ;; Document      ::= (Header?,Preamble?,Section*)
@@ -25,7 +26,15 @@
 ;; ListLabel     ::= (ListTerm+)
 ;; ListItem      ::= (ItemText,(List|ListParagraph|ListContinuation)*)
 
-(def title (p/pattern-parser #"=\s+.*"))
+(def title
+  (p/comp
+   (fn [{:keys [title]}]
+     (let [segments (str/split title #":\s")]
+       (if (< (count segments) 2)
+         {:title (first segments)}
+         {:title (str/join ": " (butlast segments))
+          :subtitle (last segments)})))
+   (p/pattern-parser #"=\s+(.*)" {:group {:title 1}})))
 
 (def firstname (p/pattern-parser #"[\p{Alpha}\.\']+"))
 (def middlename (p/pattern-parser #"[\p{Alpha}\.\']+"))
@@ -110,7 +119,7 @@
    {}
    (p/alternatives
     (p/sequence-group
-     (p/as-entry :title title)
+     (p/as-entry :doctitle title)
      (p/ignore
       (p/pattern-parser #"\n"))
      (p/as-entry :author-infos author-infos))
@@ -151,8 +160,22 @@
   (testing "header"
     (is
      (=
-      {:title "= Document Title",
+      {:doctitle {:title "Document Title"},
        :author-infos
        [{:authorname {:firstname "Author", :lastname "Name"},
          :email "author@email.org"}]}
-      (header (input "= Document Title\nAuthor Name <author@email.org>"))))))
+      (header (input "= Document Title\nAuthor Name <author@email.org>")))))
+  (testing "title"
+    (is
+     (=
+      {:title "foo"}
+      (title (input "= foo"))))
+    (is
+     (=
+      {:title "foo"
+       :subtitle "bar"}
+      (title (input "= foo: bar"))))
+    (is
+     (=
+      {:title "foo: bar" :subtitle "zip"}
+      (title (input "= foo: bar: zip"))))))
