@@ -48,7 +48,7 @@
 ;; See https://stackoverflow.com/questions/8204680/java-regex-email
 (def email (p/pattern-parser #"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}"))
 
-(def authorname
+(def author
   (p/into
    {}
    (p/alternatives
@@ -98,8 +98,8 @@
    {}
    (p/sequence-group
     (p/as-entry
-     :authorname
-     authorname)
+     :author
+     author)
     (p/optionally
      (p/as-entry
       :email
@@ -142,10 +142,10 @@
   (testing "document title"
     (is (title (input "= The Intrepid Chronicles\nfoo")))
     (is (not (title (input "The Intrepid Chronicles")))))
-  (testing "authorname"
-    (is (authorname (input "Malcolm")))
-    (is (authorname (input "Malcolm Sparks")))
-    (is (authorname (input "Malcolm James Sparks"))))
+  (testing "author"
+    (is (author (input "Malcolm")))
+    (is (author (input "Malcolm Sparks")))
+    (is (author (input "Malcolm James Sparks"))))
   (testing "email"
     (is (email (input "mal@juxt.pro")))
     (is (email (input "MAL@JUXT.PRO")))
@@ -153,11 +153,11 @@
   (testing "multiple authors"
     (is
      (=
-      [{:authorname
+      [{:author
         {:firstname "Kismet", :middlename "R.", :lastname "Lee"},
         :email "kismet@asciidoctor.org"}
-       {:authorname {:firstname "B.", :lastname "Steppenwolf"}}
-       {:authorname {:firstname "Pax", :lastname "Draeke"},
+       {:author {:firstname "B.", :lastname "Steppenwolf"}}
+       {:author {:firstname "Pax", :lastname "Draeke"},
         :email "pax@asciidoctor.org"}]
       (author-infos
        (input
@@ -167,7 +167,7 @@
      (=
       {:doctitle {:title "Document Title"},
        :author-infos
-       [{:authorname {:firstname "Author", :lastname "Name"},
+       [{:author {:firstname "Author", :lastname "Name"},
          :email "author@email.org"}]}
       (header (input "= Document Title\nAuthor Name <author@email.org>")))))
   (testing "title"
