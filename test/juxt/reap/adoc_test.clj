@@ -235,12 +235,15 @@
       (p/sequence-group
        (p/as-entry :author-line author-line)
        (p/as-entry :revision-line revision-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
+       (p/ignore (p/pattern-parser #"\R")))
       (p/sequence-group
        (p/as-entry :author-line author-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
+       (p/ignore (p/pattern-parser #"\R")))
       (p/sequence-group
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))))))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
+       (p/ignore (p/pattern-parser #"\R"))))))))
 
 #_(def document
     (p/complete
@@ -345,7 +348,7 @@
                   :authorinitials "AN"}
          :email "author@email.org"}]
        :attributes []}
-      (header (input "= Document Title\nAuthor Name <author@email.org>\n"))))
+      (header (input "= Document Title\nAuthor Name <author@email.org>\n\n"))))
 
     (is
      (= {:doctitle {:title "The Intrepid Chronicles"},
@@ -358,7 +361,7 @@
           :revision-remark "Fall incarnation"}
          :attributes [{:attribute-name "sectnums", :attribute-value true}
                       {:attribute-name "toclevels", :attribute-value "3"}]}
-        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))))
+        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n\n"))))
 
     (is
      (= {:comment-lines ["// this comment line is ignored"]
