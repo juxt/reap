@@ -219,6 +219,9 @@
       (when res
         (cc/into to res)))))
 
+(defn as-map [parser]
+  (into {} parser))
+
 (defn merge [& parsers]
   (let [p (cc/apply sequence-group parsers)]
     (fn [matcher]

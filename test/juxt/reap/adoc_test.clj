@@ -85,8 +85,7 @@
 (def author
   (p/comp
    assoc-author-initials
-   (p/into
-    {}
+   (p/as-map
     (p/alternatives
      ;; Firstname Middlename Lastname
      (p/sequence-group
@@ -130,8 +129,7 @@
     (p/ignore (p/pattern-parser #"\>")))))
 
 (def author-info
-  (p/into
-   {}
+  (p/as-map
    (p/sequence-group
     (p/as-entry
      :author
