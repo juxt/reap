@@ -182,12 +182,11 @@
       :revision-date "RevisionDate"
       :revision-remark "Remark"}})))
 
-
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
 (def attribute
   (p/alternatives
    (p/pattern-parser
-    #"\:([^:]+)\:\s+(\S.*)"
+    #"\:([^:]+)\:\s+(\S.*)\s*$"
     {:group
      {:attribute-name 1
       :attribute-value 2}})
