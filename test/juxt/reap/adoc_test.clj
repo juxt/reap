@@ -182,6 +182,7 @@
       :revision-date "RevisionDate"
       :revision-remark "Remark"}})))
 
+
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
 (def attribute
   (p/alternatives
@@ -190,10 +191,15 @@
     {:group
      {:attribute-name 1
       :attribute-value 2}})
-   (p/pattern-parser
-    #"\:([^:]+)\:\s*$"
-    {:group
-     {:attribute-name 1}})))
+   (p/comp
+    (fn [{:keys [attribute-label]}]
+      (let [[_ attribute-name] (re-matches #"([^!]+)\!?" attribute-label)]
+        {:attribute-name attribute-name
+         :attribute-value (not (str/ends-with? attribute-label "!"))}))
+    (p/pattern-parser
+     #"\:([^:]+)\:\s*$"
+     {:group
+      {:attribute-label 1}}))))
 
 (comment
   (attribute (input ":name-of-an-attribute: value of the attribute")))
@@ -302,12 +308,16 @@
            (revision-line (input "v7.5, 1-29-2020: A new analysis")))))
 
   (testing "attributes"
-    (is (= {:attribute-name "name-of-an-attribute"}
+    (is (= {:attribute-name "name-of-an-attribute"
+            :attribute-value true}
            (attribute (input ":name-of-an-attribute:"))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value "value of the attribute"}
            (attribute (input ":name-of-an-attribute: value of the attribute"))))
-   (is (not (attribute (input ":foo:bar")))))
+    (is (= {:attribute-name "name-of-an-attribute"
+            :attribute-value false}
+           (attribute (input ":name-of-an-attribute!:"))))
+    (is (not (attribute (input ":foo:bar")))))
 
   (testing "header"
     (is
