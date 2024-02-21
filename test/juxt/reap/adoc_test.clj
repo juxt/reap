@@ -41,19 +41,28 @@
           :subtitle (last segments)})))
    (p/pattern-parser #"=\s+(.*)" {:group {:title 1}})))
 
+(defn decode-compound-name
+  "Decode a compound name.
+
+  Compound author names are names that contain spaces, such as 'Ann
+  Marie'. To support these, we encode a space with an underscore
+  https://docs.asciidoctor.org/asciidoc/latest/document/compound-author-name/."
+
+  [s] (str/replace s \_ \space))
+
 (def firstname
   (p/comp
-   #(str/replace % \_ \space)
+   decode-compound-name
    (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
 
 (def middlename
   (p/comp
-   #(str/replace % \_ \space)
+   decode-compound-name
    (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
 
 (def lastname
   (p/comp
-   #(str/replace % \_ \space)
+   decode-compound-name
    (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
 
 ;; See https://stackoverflow.com/questions/8204680/java-regex-email
