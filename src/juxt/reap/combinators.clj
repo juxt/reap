@@ -51,6 +51,12 @@
     (fn [matcher]
       (or (super matcher) '()))))
 
+(defn one-or-more [parser]
+  (fn [matcher]
+    (if-let [result (cc/seq ((zero-or-more parser) matcher))]
+      result
+      :ignore)))
+
 (defn seq [parser]
   (fn [matcher]
     (let [res (parser matcher)]
