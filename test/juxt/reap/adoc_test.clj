@@ -350,7 +350,7 @@
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value nil}
            (attribute-entry (input ":name-of-an-attribute!: \n"))))
-   (is (not (attribute-entry (input ":foo:bar")))))
+    (is (not (attribute-entry (input ":foo:bar")))))
 
   (testing "header"
     (is
@@ -395,7 +395,13 @@
           {:attribute-name "url-repo"
            :attribute-value "https://my-git-repo.com"}]}
         (header
-         (input (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc"))))))))
+         (input (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc"))))))
+
+    (is
+     (=
+      {:doctitle {:title "The Intrepid Chronicles"}, :attributes []}
+      (header
+       (input (slurp (io/resource "juxt/reap/adoc_samples/example-2.adoc"))))))))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
