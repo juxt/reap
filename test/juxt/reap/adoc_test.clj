@@ -129,6 +129,37 @@
        (p/ignore (p/pattern-parser #";\s+"))
        author-info))))))
 
+
+(def revision-line
+  (p/alternatives
+   ;; "When the revision line only contains a revision number, prefix
+   ;; the number with a v." --
+   ;; https://docs.asciidoctor.org/asciidoc/latest/document/revision-line/
+   (p/pattern-parser
+    #"v[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*$"
+    {:group {:revision-number "RevisionNumber"}})
+
+   ;; "When the revision line contains a version and a date, separate
+   ;; the version number from the date with a comma"
+   (p/pattern-parser
+    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:,\s*(?<RevisionDate>[\p{Digit}-]+))\s*$"
+    {:group
+     {:revision-number "RevisionNumber"
+      :revision-date "RevisionDate"}})
+
+   (p/pattern-parser
+    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:\:\s*(?<Remark>.*))?$"
+    {:group
+     {:revision-number "RevisionNumber"
+      :revision-remark "Remark"}})
+
+   (p/pattern-parser
+    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*\,\s*(?<RevisionDate>[\p{Digit}-]+)\s*\:\s*(?<Remark>.*)$"
+    {:group
+     {:revision-number "RevisionNumber"
+      :revision-date "RevisionDate"
+      :revision-remark "Remark"}})))
+
 (def header
   (p/into
    {}
@@ -189,6 +220,29 @@
       (author-infos
        (input
         "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>")))))
+
+  (testing "revision line"
+    (is (= {:revision-number "7.5"}
+           (revision-line (input "v7.5"))))
+    (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
+           (revision-line (input "7.5, 1-29-2020"))))
+    (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
+           (revision-line (input "v7.5, 1-29-2020"))))
+    (is (= {:revision-number "7.5"
+            :revision-remark "A new analysis"}
+           (revision-line (input "7.5: A new analysis"))))
+    (is (= {:revision-number "7.5"
+            :revision-remark "A new analysis"}
+           (revision-line (input "v7.5: A new analysis"))))
+    (is (= {:revision-number "7.5"
+            :revision-date "1-29-2020"
+            :revision-remark "A new analysis"}
+           (revision-line (input "7.5, 1-29-2020: A new analysis"))))
+    (is (= {:revision-number "7.5"
+            :revision-date "1-29-2020"
+            :revision-remark "A new analysis"}
+           (revision-line (input "v7.5, 1-29-2020: A new analysis")))))
+
   (testing "header"
     (is
      (=
