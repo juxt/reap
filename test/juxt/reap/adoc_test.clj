@@ -198,7 +198,7 @@
      {:group {:revision-number "RevisionNumber"}}))))
 
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
-(def attribute
+(def attribute-entry
   (p/alternatives
    (p/comp
     trim-vals
@@ -218,7 +218,7 @@
       {:attribute-label 1}}))))
 
 (comment
-  (attribute (input ":name-of-an-attribute: value of the attribute\n")))
+  (attribute-entry (input ":name-of-an-attribute: value of the attribute\n")))
 
 (def header
   (p/as-map
@@ -235,12 +235,12 @@
       (p/sequence-group
        (p/as-entry :author-line author-line)
        (p/as-entry :revision-line revision-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry))))
       (p/sequence-group
        (p/as-entry :author-line author-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry))))
       (p/sequence-group
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute)))))))))
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))))))))
 
 #_(def document
     (p/complete
@@ -326,14 +326,14 @@
   (testing "attributes"
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value true}
-           (attribute (input ":name-of-an-attribute:  \n"))))
+           (attribute-entry (input ":name-of-an-attribute:  \n"))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value "value of the attribute"}
-           (attribute (input ":name-of-an-attribute: value of the attribute  \n"))))
+           (attribute-entry (input ":name-of-an-attribute: value of the attribute  \n"))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value false}
-           (attribute (input ":name-of-an-attribute!: \n"))))
-    (is (not (attribute (input ":foo:bar")))))
+           (attribute-entry (input ":name-of-an-attribute!: \n"))))
+   (is (not (attribute-entry (input ":foo:bar")))))
 
   (testing "header"
     (is
