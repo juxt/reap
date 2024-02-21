@@ -55,6 +55,9 @@
    decode-compound-name
    (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
 
+(comment
+  (firstname (input "Ann_Marie")))
+
 (def middlename
   (p/comp
    decode-compound-name
