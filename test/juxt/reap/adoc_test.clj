@@ -142,7 +142,7 @@
    ;; "When the revision line contains a version and a date, separate
    ;; the version number from the date with a comma"
    (p/pattern-parser
-    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:,\s*(?<RevisionDate>[\p{Digit}-]+))\s*$"
+    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:,\s*(?<RevisionDate>[\p{Alnum}-,\s]+))\s*$"
     {:group
      {:revision-number "RevisionNumber"
       :revision-date "RevisionDate"}})
@@ -154,7 +154,7 @@
       :revision-remark "Remark"}})
 
    (p/pattern-parser
-    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*\,\s*(?<RevisionDate>[\p{Digit}-]+)\s*\:\s*(?<Remark>.*)$"
+    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*\,\s*(?<RevisionDate>[\p{Alnum}-,\s]+)\s*\:\s*(?<Remark>.*)$"
     {:group
      {:revision-number "RevisionNumber"
       :revision-date "RevisionDate"
@@ -168,9 +168,19 @@
      (p/as-entry :doctitle title)
      (p/ignore
       (p/pattern-parser #"\n"))
-     (p/as-entry :author-infos author-infos))
+     (p/as-entry :author-infos author-infos)
+     (p/ignore
+      (p/pattern-parser #"\n"))
+     (p/as-entry :revision-info revision-line))
+
     (p/sequence-group
-     (p/as-entry :title title)))))
+     (p/as-entry :doctitle title)
+     (p/ignore
+      (p/pattern-parser #"\n"))
+     (p/as-entry :author-infos author-infos))
+
+    (p/sequence-group
+     (p/as-entry :doctitle title)))))
 
 #_(def document
     (p/complete
@@ -242,7 +252,6 @@
             :revision-date "1-29-2020"
             :revision-remark "A new analysis"}
            (revision-line (input "v7.5, 1-29-2020: A new analysis")))))
-
   (testing "header"
     (is
      (=
@@ -252,7 +261,17 @@
                   :lastname "Name"
                   :authorinitials "AN"}
          :email "author@email.org"}]}
-      (header (input "= Document Title\nAuthor Name <author@email.org>"))))))
+      (header (input "= Document Title\nAuthor Name <author@email.org>"))))
+    (is
+     (= {:doctitle {:title "The Intrepid Chronicles"},
+         :author-infos
+         [{:author
+           {:firstname "Kismet", :lastname "Lee", :authorinitials "KL"}}],
+         :revision-info
+         {:revision-number "2.9",
+          :revision-date "October 31, 2021",
+          :revision-remark "Fall incarnation"}}
+        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n"))))))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
