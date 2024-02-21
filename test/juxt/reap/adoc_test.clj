@@ -26,20 +26,20 @@
 ;; ListLabel     ::= (ListTerm+)
 ;; ListItem      ::= (ItemText,(List|ListParagraph|ListContinuation)*)
 
-(def title
+(def doctitle
   (p/comp
-   (fn [{:keys [title]}]
+   (fn [{:keys [doctitle]}]
      (let [segments
            ;; TODO: See
            ;; https://docs.asciidoctor.org/asciidoc/latest/document/subtitle/ for
            ;; discussion about assigning a custom separator to the document
            ;; title. Not yet implemented.
-           (str/split title #":\s")]
+           (str/split doctitle #":\h+")]
        (if (< (count segments) 2)
          {:title (first segments)}
          {:title (str/join ": " (butlast segments))
           :subtitle (last segments)})))
-   (p/pattern-parser #"=\s+(.*)" {:group {:title 1}})))
+   (p/pattern-parser #"=\h+(.*)\R" {:group {:doctitle 1}})))
 
 (defn decode-compound-name
   "Decode a compound name.
@@ -53,7 +53,7 @@
 (def firstname
   (p/comp
    decode-compound-name
-   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
+   (p/pattern-parser #"[\p{IsAlphabetic}\p{Graph}&&[^;<:]]+")))
 
 (comment
   (firstname (input "Ann_Marie")))
@@ -61,12 +61,15 @@
 (def middlename
   (p/comp
    decode-compound-name
-   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
+   (p/pattern-parser #"[\p{IsAlphabetic}\p{Graph}&&[^;<:]]+")))
 
 (def lastname
   (p/comp
    decode-compound-name
-   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
+   (p/pattern-parser #"[\p{IsAlphabetic}\p{Graph}&&[^;<:]]+")))
+
+(comment
+  (lastname (input "López_del_Toro")))
 
 ;; See https://stackoverflow.com/questions/8204680/java-regex-email
 (def email (p/pattern-parser #"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}"))
@@ -94,13 +97,13 @@
        :middlename
        (p/first
         (p/sequence-group
-         (p/ignore (p/pattern-parser #"\s+"))
+         (p/ignore (p/pattern-parser #"\h+"))
          middlename)))
       (p/as-entry
        :lastname
        (p/first
         (p/sequence-group
-         (p/ignore (p/pattern-parser #"\s+"))
+         (p/ignore (p/pattern-parser #"\h+"))
          lastname))))
      ;; Firstname Lastname
      (p/sequence-group
@@ -111,7 +114,7 @@
        :lastname
        (p/first
         (p/sequence-group
-         (p/ignore (p/pattern-parser #"\s+"))
+         (p/ignore (p/pattern-parser #"\h+"))
          lastname))))
      ;; Firstname
      (p/sequence-group
@@ -138,92 +141,101 @@
       :email
       (p/first
        (p/sequence-group
-        (p/ignore (p/pattern-parser #"\s+"))
+        (p/ignore (p/pattern-parser #"\h+"))
         email-with-angle-brackets)))))))
 
-(def author-infos
-  (p/comp
-   vec
-   (p/cons
-    author-info
-    (p/zero-or-more
-     (p/first
-      (p/sequence-group
-       (p/ignore (p/pattern-parser #";\s+"))
-       author-info))))))
+(def author-line
+  (p/first
+   (p/sequence-group
+    (p/comp
+     vec
+     (p/cons
+      author-info
+      (p/first
+       (p/sequence-group
+        (p/zero-or-more
+         (p/first
+          (p/sequence-group
+           (p/ignore (p/pattern-parser #";\h+"))
+           author-info)))))))
+    (p/ignore (p/pattern-parser #"\R")))))
+
+(defn trim-vals [m]
+  (update-vals m str/trim))
 
 (def revision-line
-  (p/alternatives
-   ;; "When the revision line only contains a revision number, prefix
-   ;; the number with a v." --
-   ;; https://docs.asciidoctor.org/asciidoc/latest/document/revision-line/
-   (p/pattern-parser
-    #"v[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*$"
-    {:group {:revision-number "RevisionNumber"}})
+  (p/comp
+   trim-vals
+   (p/alternatives
+    (p/pattern-parser
+     #"^v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*\,\h*(?<RevisionDate>[\p{Alnum}-,\h]+)\h*\:\h*(?<Remark>.*)\R"
+     {:group
+      {:revision-number "RevisionNumber"
+       :revision-date "RevisionDate"
+       :revision-remark "Remark"}})
 
-   ;; "When the revision line contains a version and a date, separate
-   ;; the version number from the date with a comma"
-   (p/pattern-parser
-    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:,\s*(?<RevisionDate>[\p{Alnum}-,\s]+))\s*$"
-    {:group
-     {:revision-number "RevisionNumber"
-      :revision-date "RevisionDate"}})
+    ;; "When the revision line contains a version and a date, separate
+    ;; the version number from the date with a comma"
+    (p/pattern-parser
+     #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:,\h*(?<RevisionDate>[\p{Alnum}\-,\h]+))\R"
+     {:group
+      {:revision-number "RevisionNumber"
+       :revision-date "RevisionDate"}})
 
-   (p/pattern-parser
-    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*(?:\:\s*(?<Remark>.*))?$"
-    {:group
-     {:revision-number "RevisionNumber"
-      :revision-remark "Remark"}})
+    (p/pattern-parser
+     #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:\:\h*(?<Remark>.*))?\R"
+     {:group
+      {:revision-number "RevisionNumber"
+       :revision-remark "Remark"}})
 
-   (p/pattern-parser
-    #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\s*\,\s*(?<RevisionDate>[\p{Alnum}-,\s]+)\s*\:\s*(?<Remark>.*)$"
-    {:group
-     {:revision-number "RevisionNumber"
-      :revision-date "RevisionDate"
-      :revision-remark "Remark"}})))
+    ;; "When the revision line only contains a revision number, prefix
+    ;; the number with a v." --
+    ;; https://docs.asciidoctor.org/asciidoc/latest/document/revision-line/
+    (p/pattern-parser
+     #"v[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\R"
+     {:group {:revision-number "RevisionNumber"}}))))
 
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
 (def attribute
   (p/alternatives
-   (p/pattern-parser
-    #"\:([^:]+)\:\s+(\S.*)\s*$"
-    {:group
-     {:attribute-name 1
-      :attribute-value 2}})
+   (p/comp
+    trim-vals
+    (p/pattern-parser
+     #"^\:([^:]+)\:\h+(\H.*)\R"
+     {:group
+      {:attribute-name 1
+       :attribute-value 2}}))
    (p/comp
     (fn [{:keys [attribute-label]}]
       (let [[_ attribute-name] (re-matches #"([^!]+)\!?" attribute-label)]
         {:attribute-name attribute-name
          :attribute-value (not (str/ends-with? attribute-label "!"))}))
     (p/pattern-parser
-     #"\:([^:]+)\:\s*$"
+     #"^\:([^:]+)\:\h*\R"
      {:group
       {:attribute-label 1}}))))
 
 (comment
-  (attribute (input ":name-of-an-attribute: value of the attribute")))
+  (attribute (input ":name-of-an-attribute: value of the attribute\n")))
 
 (def header
   (p/into
    {}
    (p/alternatives
     (p/sequence-group
-     (p/as-entry :doctitle title)
-     (p/ignore
-      (p/pattern-parser #"\n"))
-     (p/as-entry :author-infos author-infos)
-     (p/ignore
-      (p/pattern-parser #"\n"))
-     (p/as-entry :revision-info revision-line))
+     (p/as-entry :doctitle doctitle)
+     (p/as-entry :author-line author-line)
+     (p/as-entry :revision-line revision-line)
+     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
 
     (p/sequence-group
-     (p/as-entry :doctitle title)
-     (p/ignore
-      (p/pattern-parser #"\n"))
-     (p/as-entry :author-infos author-infos))
+     (p/as-entry :doctitle doctitle)
+     (p/as-entry :author-line author-line)
+     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
 
     (p/sequence-group
-     (p/as-entry :doctitle title)))))
+     (p/as-entry :doctitle doctitle)
+     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute)))))))
 
 #_(def document
     (p/complete
@@ -234,18 +246,18 @@
 
 (deftest parser-test
   (testing "document title"
-    (is (title (input "= The Intrepid Chronicles\nfoo")))
-    (is (not (title (input "The Intrepid Chronicles"))))
+    (is (doctitle (input "= The Intrepid Chronicles\nfoo")))
+    (is (not (doctitle (input "The Intrepid Chronicles"))))
     (is
      (= {:title "foo"}
-        (title (input "= foo"))))
+        (doctitle (input "= foo\n"))))
     (is
      (= {:title "foo"
          :subtitle "bar"}
-        (title (input "= foo: bar"))))
+        (doctitle (input "= foo: bar\n"))))
     (is
      (= {:title "foo: bar" :subtitle "zip"}
-        (title (input "= foo: bar: zip")))))
+        (doctitle (input "= foo: bar: zip\n")))))
 
   (testing "author"
     (is (author (input "Malcolm")))
@@ -257,7 +269,7 @@
      (=
       [{:author {:firstname "Ann Marie" :lastname "Jenson" :authorinitials "AJ"}}
        {:author {:firstname "Tomás" :lastname "López del Toro" :authorinitials "TL"}}]
-      (author-infos (input "Ann_Marie Jenson; Tomás López_del_Toro")))))
+      (author-line (input "Ann_Marie Jenson; Tomás López_del_Toro\n")))))
 
   (testing "email"
     (is (email (input "mal@juxt.pro")))
@@ -280,65 +292,72 @@
                  :lastname "Draeke"
                  :authorinitials "PD"}
         :email "pax@asciidoctor.org"}]
-      (author-infos
+      (author-line
        (input
-        "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>")))))
+        "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>\n")))))
 
   (testing "revision line"
     (is (= {:revision-number "7.5"}
-           (revision-line (input "v7.5"))))
+           (revision-line (input "v7.5\n"))))
     (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
-           (revision-line (input "7.5, 1-29-2020"))))
+           (revision-line (input "7.5, 1-29-2020\n"))))
     (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
-           (revision-line (input "v7.5, 1-29-2020"))))
+           (revision-line (input "v7.5, 1-29-2020\n"))))
     (is (= {:revision-number "7.5"
             :revision-remark "A new analysis"}
-           (revision-line (input "7.5: A new analysis"))))
+           (revision-line (input "7.5: A new analysis\n"))))
     (is (= {:revision-number "7.5"
             :revision-remark "A new analysis"}
-           (revision-line (input "v7.5: A new analysis"))))
+           (revision-line (input "v7.5: A new analysis\n"))))
     (is (= {:revision-number "7.5"
             :revision-date "1-29-2020"
             :revision-remark "A new analysis"}
-           (revision-line (input "7.5, 1-29-2020: A new analysis"))))
+           (revision-line (input "7.5, 1-29-2020: A new analysis\n"))))
     (is (= {:revision-number "7.5"
             :revision-date "1-29-2020"
             :revision-remark "A new analysis"}
-           (revision-line (input "v7.5, 1-29-2020: A new analysis")))))
+           (revision-line (input "v7.5, 1-29-2020: A new analysis\n")))))
 
   (testing "attributes"
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value true}
-           (attribute (input ":name-of-an-attribute:"))))
+           (attribute (input ":name-of-an-attribute:  \n"))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value "value of the attribute"}
-           (attribute (input ":name-of-an-attribute: value of the attribute"))))
+           (attribute (input ":name-of-an-attribute: value of the attribute  \n"))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value false}
-           (attribute (input ":name-of-an-attribute!:"))))
+           (attribute (input ":name-of-an-attribute!: \n"))))
     (is (not (attribute (input ":foo:bar")))))
 
   (testing "header"
     (is
      (=
       {:doctitle {:title "Document Title"}
-       :author-infos
+       :author-line
        [{:author {:firstname "Author"
                   :lastname "Name"
                   :authorinitials "AN"}
-         :email "author@email.org"}]}
-      (header (input "= Document Title\nAuthor Name <author@email.org>"))))
+         :email "author@email.org"}]
+       :attributes []}
+      (header (input "= Document Title\nAuthor Name <author@email.org>\n"))))
 
     (is
      (= {:doctitle {:title "The Intrepid Chronicles"},
-         :author-infos
+         :author-line
          [{:author
            {:firstname "Kismet", :lastname "Lee", :authorinitials "KL"}}],
-         :revision-info
+         :revision-line
          {:revision-number "2.9",
           :revision-date "October 31, 2021",
-          :revision-remark "Fall incarnation"}}
-        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n"))))))
+          :revision-remark "Fall incarnation"}
+         :attributes [{:attribute-name "sectnums", :attribute-value true}
+                      {:attribute-name "toclevels", :attribute-value "3"}]}
+        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))))))
+
+#_(header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))
+
+;;(attribute (input ":sectnums:\n"))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
