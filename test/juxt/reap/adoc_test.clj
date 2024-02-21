@@ -41,9 +41,20 @@
           :subtitle (last segments)})))
    (p/pattern-parser #"=\s+(.*)" {:group {:title 1}})))
 
-(def firstname (p/pattern-parser #"[\p{Alpha}\.\']+"))
-(def middlename (p/pattern-parser #"[\p{Alpha}\.\']+"))
-(def lastname (p/pattern-parser #"[\p{Alpha}\.\']+"))
+(def firstname
+  (p/comp
+   #(str/replace % \_ \space)
+   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
+
+(def middlename
+  (p/comp
+   #(str/replace % \_ \space)
+   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
+
+(def lastname
+  (p/comp
+   #(str/replace % \_ \space)
+   (p/pattern-parser #"[\p{IsAlphabetic}_\.\']+")))
 
 ;; See https://stackoverflow.com/questions/8204680/java-regex-email
 (def email (p/pattern-parser #"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,6}"))
@@ -129,7 +140,6 @@
        (p/ignore (p/pattern-parser #";\s+"))
        author-info))))))
 
-
 (def revision-line
   (p/alternatives
    ;; "When the revision line only contains a revision number, prefix
@@ -203,14 +213,24 @@
     (is
      (= {:title "foo: bar" :subtitle "zip"}
         (title (input "= foo: bar: zip")))))
+
   (testing "author"
     (is (author (input "Malcolm")))
     (is (author (input "Malcolm Sparks")))
     (is (author (input "Malcolm James Sparks"))))
+
+  (testing "compound names in the author line"
+    (is
+     (=
+      [{:author {:firstname "Ann Marie" :lastname "Jenson" :authorinitials "AJ"}}
+       {:author {:firstname "Tomás" :lastname "López del Toro" :authorinitials "TL"}}]
+      (author-infos (input "Ann_Marie Jenson; Tomás López_del_Toro")))))
+
   (testing "email"
     (is (email (input "mal@juxt.pro")))
     (is (email (input "MAL@JUXT.PRO")))
     (is (not (email (input "mal")))))
+
   (testing "multiple authors"
     (is
      (=
@@ -262,6 +282,7 @@
                   :authorinitials "AN"}
          :email "author@email.org"}]}
       (header (input "= Document Title\nAuthor Name <author@email.org>"))))
+
     (is
      (= {:doctitle {:title "The Intrepid Chronicles"},
          :author-infos
@@ -276,4 +297,3 @@
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
 ;; TODO: Reference the Author Information (https://docs.asciidoctor.org/asciidoc/latest/document/reference-author-attributes/)
-;; TODO: Compound Author Names (https://docs.asciidoctor.org/asciidoc/latest/document/compound-author-name/)
