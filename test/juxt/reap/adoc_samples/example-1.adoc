@@ -1,0 +1,8 @@
+// this comment line is ignored
+= Document Title
+Kismet R. Lee <kismet@asciidoctor.org>
+:description: The document's description.
+:sectanchors:
+:url-repo: https://my-git-repo.com
+
+The document body starts here.

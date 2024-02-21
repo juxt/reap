@@ -5,7 +5,8 @@
    [clojure.test :refer [deftest is testing]]
    [juxt.reap.regex :as re :refer [input]]
    [juxt.reap.combinators :as p]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.java.io :as io]))
 
 ;; from https://github.com/asciidocj/asciidocj
 ;; Document      ::= (Header?,Preamble?,Section*)
@@ -25,6 +26,9 @@
 ;; ListEntry     ::= (ListLabel,ListItem)
 ;; ListLabel     ::= (ListTerm+)
 ;; ListItem      ::= (ItemText,(List|ListParagraph|ListContinuation)*)
+
+(def comment-line
+  (p/pattern-parser #"//.*\R" {}))
 
 (def doctitle
   (p/comp
@@ -166,7 +170,7 @@
    trim-vals
    (p/alternatives
     (p/pattern-parser
-     #"^v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*\,\h*(?<RevisionDate>[\p{Alnum}-,\h]+)\h*\:\h*(?<Remark>.*)\R"
+     #"^v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*\,\h*(?<RevisionDate>[\p{Alnum}-,\h]+)\h*\:\h*(?<Remark>.*)\R"
      {:group
       {:revision-number "RevisionNumber"
        :revision-date "RevisionDate"
@@ -175,13 +179,13 @@
     ;; "When the revision line contains a version and a date, separate
     ;; the version number from the date with a comma"
     (p/pattern-parser
-     #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:,\h*(?<RevisionDate>[\p{Alnum}\-,\h]+))\R"
+     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:,\h*(?<RevisionDate>[\p{Alnum}\-,\h]+))\R"
      {:group
       {:revision-number "RevisionNumber"
        :revision-date "RevisionDate"}})
 
     (p/pattern-parser
-     #"v?[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:\:\h*(?<Remark>.*))?\R"
+     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:\:\h*(?<Remark>.*))?\R"
      {:group
       {:revision-number "RevisionNumber"
        :revision-remark "Remark"}})
@@ -190,7 +194,7 @@
     ;; the number with a v." --
     ;; https://docs.asciidoctor.org/asciidoc/latest/document/revision-line/
     (p/pattern-parser
-     #"v[^\p{Digit}]*?(?<RevisionNumber>[\p{Digit}\.]+)\R"
+     #"v[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\R"
      {:group {:revision-number "RevisionNumber"}}))))
 
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
@@ -217,23 +221,26 @@
   (attribute (input ":name-of-an-attribute: value of the attribute\n")))
 
 (def header
-  (p/into
-   {}
-   (p/alternatives
-    (p/sequence-group
+  (p/as-map
+   (p/cons
+    ;; Comment lines are optional
+    (p/as-entry
+     :comment-lines
+     (p/comp
+      (fn [lines] (mapv str/trim lines))
+      (p/one-or-more comment-line)))
+    (p/cons
      (p/as-entry :doctitle doctitle)
-     (p/as-entry :author-line author-line)
-     (p/as-entry :revision-line revision-line)
-     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
-
-    (p/sequence-group
-     (p/as-entry :doctitle doctitle)
-     (p/as-entry :author-line author-line)
-     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
-
-    (p/sequence-group
-     (p/as-entry :doctitle doctitle)
-     (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute)))))))
+     (p/alternatives
+      (p/sequence-group
+       (p/as-entry :author-line author-line)
+       (p/as-entry :revision-line revision-line)
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
+      (p/sequence-group
+       (p/as-entry :author-line author-line)
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute))))
+      (p/sequence-group
+       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute)))))))))
 
 #_(def document
     (p/complete
@@ -351,11 +358,27 @@
           :revision-remark "Fall incarnation"}
          :attributes [{:attribute-name "sectnums", :attribute-value true}
                       {:attribute-name "toclevels", :attribute-value "3"}]}
-        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))))))
+        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))))
 
-#_(header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3\n"))
-
-;;(attribute (input ":sectnums:\n"))
+    (is
+     (= {:comment-lines ["// this comment line is ignored"]
+         :doctitle {:title "Document Title"}
+         :author-line
+         [{:author
+           {:firstname "Kismet"
+            :middlename "R."
+            :lastname "Lee"
+            :authorinitials "KRL"}
+           :email "kismet@asciidoctor.org"}]
+         :attributes
+         [{:attribute-name "description"
+           :attribute-value "The document's description."}
+          {:attribute-name "sectanchors"
+           :attribute-value true}
+          {:attribute-name "url-repo"
+           :attribute-value "https://my-git-repo.com"}]}
+        (header
+         (input (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc"))))))))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
