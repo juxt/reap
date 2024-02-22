@@ -3,7 +3,7 @@
 (ns juxt.reap.adoc-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [juxt.reap.regex :as re :refer [input]]
+   [juxt.reap.regex :as re]
    [juxt.reap.combinators :as p]
    [clojure.string :as str]
    [clojure.java.io :as io]))
@@ -32,12 +32,20 @@
 ;; character or the boundary of the document." --
 ;; https://docs.asciidoctor.org/asciidoc/latest/document-structure/
 
-;; Therefore, we define a line as this regex pattern: ^.*(?:\R|\z)
-;; Note that \R is chosen rather than \n, for seamless operation on
-;; Windows/MacOS (in slight deviation from Asciidoctor)
+;; Therefore, we define a line as this regex pattern: ^.*(?:\n|\z)
+
+(defn normalize
+  "Normalize all the lines of the given string, as per
+  https://docs.asciidoctor.org/asciidoc/latest/normalization/"
+  [s]
+  (->>
+   (str/split s #"\h*\R") ; trim trailing whitespace
+   (str/join "\n")))
+
+(defn input [s] (re/input (normalize s)))
 
 (def comment-line
-  (p/pattern-parser #"//.*(?:\R|\z)" {}))
+  (p/pattern-parser #"^(//.*)(?:\n|\z)" {:group 1}))
 
 (def doctitle
   (p/comp
@@ -52,7 +60,7 @@
          {:title (first segments)}
          {:title (str/join ": " (butlast segments))
           :subtitle (last segments)})))
-   (p/pattern-parser #"=\h+(.*)(?:\R|\z)" {:group {:doctitle 1}})))
+   (p/pattern-parser #"=\h+(.*)(?:\n|\z)" {:group {:doctitle 1}})))
 
 (defn decode-compound-name
   "Decode a compound name.
@@ -169,7 +177,7 @@
           (p/sequence-group
            (p/ignore (p/pattern-parser #";\h+"))
            author-info)))))))
-    (p/ignore (p/pattern-parser #"(?:\R|\z)")))))
+    (p/ignore (p/pattern-parser #"(?:\n|\z)")))))
 
 (defn trim-vals [m]
   (update-vals m str/trim))
@@ -179,7 +187,7 @@
    trim-vals
    (p/alternatives
     (p/pattern-parser
-     #"^v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*\,\h*(?<RevisionDate>[\p{Alnum}-,\h]+)\h*\:\h*(?<Remark>.*)(?:\R|\z)"
+     #"^v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*\,\h*(?<RevisionDate>[\p{Alnum}-,\h]+)\h*\:\h*(?<Remark>.*)(?:\n|\z)"
      {:group
       {:revision-number "RevisionNumber"
        :revision-date "RevisionDate"
@@ -188,13 +196,13 @@
     ;; "When the revision line contains a version and a date, separate
     ;; the version number from the date with a comma"
     (p/pattern-parser
-     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:,\h*(?<RevisionDate>[\p{Alnum}\-,\h]+))(?:\R|\z)"
+     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:,\h*(?<RevisionDate>[\p{Alnum}\-,\h]+))(?:\n|\z)"
      {:group
       {:revision-number "RevisionNumber"
        :revision-date "RevisionDate"}})
 
     (p/pattern-parser
-     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:\:\h*(?<Remark>.*))?(?:\R|\z)"
+     #"v?[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)\h*(?:\:\h*(?<Remark>.*))?(?:\n|\z)"
      {:group
       {:revision-number "RevisionNumber"
        :revision-remark "Remark"}})
@@ -203,7 +211,7 @@
     ;; the number with a v." --
     ;; https://docs.asciidoctor.org/asciidoc/latest/document/revision-line/
     (p/pattern-parser
-     #"v[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)(?:\R|\z)"
+     #"v[^\p{Digit}\:]*?(?<RevisionNumber>[\p{Digit}\.]+)(?:\n|\z)"
      {:group {:revision-number "RevisionNumber"}}))))
 
 ;; https://docs.asciidoctor.org/asciidoc/latest/attributes/attribute-entries/
@@ -216,7 +224,7 @@
         {:attribute-name attribute-name
          :attribute-value (str/trim attribute-value)}))
     (p/pattern-parser
-     #"^\:([^:]+)\:\h+(\S.*)(?:\R|\z)"
+     #"^\:([^:]+)\:\h+(\S.*)(?:\n|\z)"
      {:group
       {:attribute-name 1
        :attribute-value 2}}))
@@ -227,12 +235,12 @@
         {:attribute-name attribute-name
          :attribute-value (when (not (str/ends-with? attribute-label "!")) "")}))
     (p/pattern-parser
-     #"^\:([^:]+)\:\h*(?:\R|\z)"
+     #"^\:([^:]+)\:(?:\n|\z)"
      {:group
       {:attribute-label 1}}))))
 
 (comment
-  (attribute-entry (input ":name-of-an-attribute: value of the attribute\n")))
+  (attribute-entry (input ":name-of-an-attribute:   value of the attribute  \n")))
 
 (def header
   (p/as-map
@@ -240,9 +248,7 @@
     ;; Comment lines are optional
     (p/as-entry
      :comment-lines
-     (p/comp
-      (fn [lines] (mapv str/trim lines))
-      (p/one-or-more comment-line)))
+     (p/one-or-more comment-line))
     (p/cons
      (p/as-entry :doctitle doctitle)
      (p/alternatives
@@ -250,14 +256,14 @@
        (p/as-entry :author-line author-line)
        (p/as-entry :revision-line revision-line)
        (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\R|\z)")))
+       (p/ignore (p/pattern-parser #"(?:\n|\z)")))
       (p/sequence-group
        (p/as-entry :author-line author-line)
        (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\R|\z)")))
+       (p/ignore (p/pattern-parser #"(?:\n|\z)")))
       (p/sequence-group
        (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\R|\z)"))))))))
+       (p/ignore (p/pattern-parser #"(?:\n|\z)"))))))))
 
 #_(def document
     (p/complete
