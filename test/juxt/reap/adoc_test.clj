@@ -272,6 +272,11 @@
       (p/optionally preamble)
       (p/zero-or-more section))))
 
+(def block-element-delimiter
+  (p/pattern-parser
+   #"^(\/{4,}|\={4,}|\-{4,}|\.{4,}|\-{2}|\*{4,}|\|={3}|\,={3}|\:={3}|\!={3}|\+{4,}|\_{4,})(?:\n|\z)"
+   {:group 1}))
+
 (deftest parser-test
   (testing "document title"
     (is (doctitle (input "= The Intrepid Chronicles\nfoo")))
@@ -407,7 +412,40 @@
      (=
       {:doctitle {:title "The Intrepid Chronicles"}, :attributes []}
       (header
-       (input (slurp (io/resource "juxt/reap/adoc_samples/example-2.adoc"))))))))
+       (input (slurp (io/resource "juxt/reap/adoc_samples/example-2.adoc")))))))
+
+
+  (testing "block element delimiter"
+    (is (block-element-delimiter (input "////")))
+    (is (block-element-delimiter (input "//////")))
+    (is (not (block-element-delimiter (input "///"))))
+
+    (is (block-element-delimiter (input "====")))
+    (is (block-element-delimiter (input "======")))
+    (is (not (block-element-delimiter (input "==="))))
+
+    (is (block-element-delimiter (input "----")))
+    (is (block-element-delimiter (input "------")))
+    (is (not (block-element-delimiter (input "---"))))
+
+    (is (block-element-delimiter (input "....")))
+    (is (block-element-delimiter (input "......")))
+    (is (not (block-element-delimiter (input "..."))))
+
+    (is (block-element-delimiter (input "--")))
+    (is (not (block-element-delimiter (input "-"))))
+    (is (not (block-element-delimiter (input "---"))))
+
+    (is (block-element-delimiter (input "|===")))
+    (is (not (block-element-delimiter (input "|=="))))
+    (is (not (block-element-delimiter (input "|===="))))
+    (is (block-element-delimiter (input ",===")))
+    (is (block-element-delimiter (input ":===")))
+    (is (block-element-delimiter (input "!===")))
+
+    (is (block-element-delimiter (input "++++")))
+    (is (block-element-delimiter (input "++++++")))
+    (is (not (block-element-delimiter (input "+++"))))))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
