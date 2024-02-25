@@ -32,8 +32,6 @@
 ;; character or the boundary of the document." --
 ;; https://docs.asciidoctor.org/asciidoc/latest/document-structure/
 
-;; Therefore, we define a line as this regex pattern: ^.*(?:\n|\z)
-
 (defn normalize
   "Normalize all the lines of the given string, as per
   https://docs.asciidoctor.org/asciidoc/latest/normalization/"
@@ -233,7 +231,7 @@
         {:attribute-name attribute-name
          :attribute-value (when (not (str/ends-with? attribute-label "!")) "")}))
     (p/pattern-parser
-     #"^\:([^:]+)\:(?:\n|\z)"
+     #"^\:([^:]+)\:\h*(?:\n|\z)"
      {:group
       {:attribute-label 1}}))))
 
@@ -322,8 +320,7 @@
             :revision-remark "A new analysis"}
            (revision-line (re/input "v7.5, 1-29-2020: A new analysis")))))
 
-  ;; TODO: Restore this
-  #_(testing "attributes"
+  (testing "attributes"
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value ""}
            (attribute-entry (re/input ":name-of-an-attribute:  "))))
