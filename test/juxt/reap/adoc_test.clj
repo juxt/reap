@@ -386,19 +386,21 @@
 
    :post-doctitle
    (fn [acc line]
-     (if-let [author-line (author-line (re/input line))]
-       (-> acc
-           (assoc :author-line author-line)
-           (assoc :state :post-author-line))
-       (if-let [revision-line (revision-line (re/input line))]
+     (if (str/blank? line)
+       (assoc acc :state :body)
+       (if-let [author-line (author-line (re/input line))]
          (-> acc
-             (assoc :revision-line revision-line)
-             (assoc :state :post-revision-line))
-         (throw
-          (ex-info
-           "Unexpected input"
-           {:state (:state acc)
-            :line line})))))
+             (assoc :author-line author-line)
+             (assoc :state :post-author-line))
+         (if-let [revision-line (revision-line (re/input line))]
+           (-> acc
+               (assoc :revision-line revision-line)
+               (assoc :state :post-revision-line))
+           (throw
+            (ex-info
+             "Unexpected input"
+             {:state (:state acc)
+              :line line}))))))
 
    :post-author-line
    (fn [acc line]
@@ -468,4 +470,7 @@
        :attribute-value "https://my-git-repo.com"}],
      :current-block ["The document body starts here."]}
 
-    (parse-document-lines (normalize (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc")))))))
+    (parse-document-lines (normalize (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc"))))
+    ))
+
+  (is (parse-document-lines (normalize (slurp (io/resource "juxt/reap/adoc_samples/example-2.adoc"))))))
