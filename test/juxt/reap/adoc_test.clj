@@ -368,84 +368,84 @@
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
 ;; TODO: Reference the Author Information (https://docs.asciidoctor.org/asciidoc/latest/document/reference-author-attributes/)
 
-(defn parse-document-lines [lines]
-  (let [state-transition-model
-        {:start
-         (fn [acc line]
-           (if-let [comment-line (adoc-comment-line (re/input line))]
-             (-> acc
-                 (update :head-comment-lines (fnil conj []) comment-line))
-             (if-let [doctitle (doctitle (re/input line))]
-               (-> acc
-                   (assoc :doctitle doctitle)
-                   (assoc :state :post-doctitle))
-               (throw
-                (ex-info
-                 "Unexpected input"
-                 {:state (:state acc)
-                  :line line})))))
-
-         :post-doctitle
-         (fn [acc line]
-           (if-let [author-line (author-line (re/input line))]
-             (-> acc
-                 (assoc :author-line author-line)
-                 (assoc :state :post-author-line))
-             (if-let [revision-line (revision-line (re/input line))]
-               (-> acc
-                   (assoc :revision-line revision-line)
-                   (assoc :state :post-revision-line))
-               (throw
-                (ex-info
-                 "Unexpected input"
-                 {:state (:state acc)
-                  :line line})))))
-
-         :post-author-line
-         (fn [acc line]
-           (if-let [revision-line (revision-line (re/input line))]
-             (-> acc
-                 (assoc :revision-line revision-line)
-                 (assoc :state :document-attributes))
-             (if-let [attribute-entry (attribute-entry (re/input line))]
-               (-> acc
-                   (update :document-attributes (fnil conj []) attribute-entry)
-                   (assoc :state :document-attributes))
-               (throw
-                (ex-info
-                 "Unexpected input"
-                 {:state (:state acc)
-                  :line line})))))
-
-         :document-attributes
-         (fn [acc line]
-           (if-let [attribute-entry (attribute-entry (re/input line))]
-             (-> acc
-                 (update :document-attributes (fnil conj []) attribute-entry))
-             (if [(str/blank? line)]
-               (assoc acc :state :body)
-               (throw
-                (ex-info
-                 "Unexpected input"
-                 {:state (:state acc)
-                  :line line})))))
-
-         :body (fn [acc line]
-                 (->
-                  acc
-                  (update :current-block (fnil conj []) line)))}]
-
-    (reduce
-     (fn [{:keys [state] :as acc} line]
-       (if-let [f (state-transition-model state)]
-         (f acc line)
+(def state-transition-model
+  {:start
+   (fn [acc line]
+     (if-let [comment-line (adoc-comment-line (re/input line))]
+       (-> acc
+           (update :head-comment-lines (fnil conj []) comment-line))
+       (if-let [doctitle (doctitle (re/input line))]
+         (-> acc
+             (assoc :doctitle doctitle)
+             (assoc :state :post-doctitle))
          (throw
           (ex-info
-           "No such state"
-           {:state state
-            :result-so-far acc}))))
-     {:state :start}
-     lines)))
+           "Unexpected input"
+           {:state (:state acc)
+            :line line})))))
+
+   :post-doctitle
+   (fn [acc line]
+     (if-let [author-line (author-line (re/input line))]
+       (-> acc
+           (assoc :author-line author-line)
+           (assoc :state :post-author-line))
+       (if-let [revision-line (revision-line (re/input line))]
+         (-> acc
+             (assoc :revision-line revision-line)
+             (assoc :state :post-revision-line))
+         (throw
+          (ex-info
+           "Unexpected input"
+           {:state (:state acc)
+            :line line})))))
+
+   :post-author-line
+   (fn [acc line]
+     (if-let [revision-line (revision-line (re/input line))]
+       (-> acc
+           (assoc :revision-line revision-line)
+           (assoc :state :document-attributes))
+       (if-let [attribute-entry (attribute-entry (re/input line))]
+         (-> acc
+             (update :document-attributes (fnil conj []) attribute-entry)
+             (assoc :state :document-attributes))
+         (throw
+          (ex-info
+           "Unexpected input"
+           {:state (:state acc)
+            :line line})))))
+
+   :document-attributes
+   (fn [acc line]
+     (if-let [attribute-entry (attribute-entry (re/input line))]
+       (-> acc
+           (update :document-attributes (fnil conj []) attribute-entry))
+       (if [(str/blank? line)]
+         (assoc acc :state :body)
+         (throw
+          (ex-info
+           "Unexpected input"
+           {:state (:state acc)
+            :line line})))))
+
+   :body (fn [acc line]
+           (->
+            acc
+            (update :current-block (fnil conj []) line)))})
+
+(defn parse-document-lines [lines]
+  (reduce
+   (fn [{:keys [state] :as acc} line]
+     (if-let [f (state-transition-model state)]
+       (f acc line)
+       (throw
+        (ex-info
+         "No such state"
+         {:state state
+          :result-so-far acc}))))
+   {:state :start}
+   lines))
 
 (deftest document-parsing-test
   (is
