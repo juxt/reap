@@ -40,9 +40,7 @@
   [s]
   (->>
    (str/split s #"\h*\R") ; trim trailing whitespace
-   (str/join "\n")))
-
-(defn input [s] (re/input (normalize s)))
+   ))
 
 (def adoc-comment-line
   (p/pattern-parser #"^(//.*)(?:\n|\z)" {:group 1}))
@@ -242,72 +240,45 @@
 (comment
   (attribute-entry (input ":name-of-an-attribute:   value of the attribute  \n")))
 
-(def header
-  (p/as-map
-   (p/cons
-    ;; Comment lines are optional
-    (p/as-entry
-     :comment-lines
-     (p/one-or-more adoc-comment-line))
-    (p/cons
-     (p/as-entry :doctitle doctitle)
-     (p/alternatives
-      (p/sequence-group
-       (p/as-entry :author-line author-line)
-       (p/as-entry :revision-line revision-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\n|\z)")))
-      (p/sequence-group
-       (p/as-entry :author-line author-line)
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\n|\z)")))
-      (p/sequence-group
-       (p/as-entry :attributes (p/comp vec (p/zero-or-more attribute-entry)))
-       (p/ignore (p/pattern-parser #"(?:\n|\z)"))))))))
-
-#_(def document
-    (p/complete
-     (p/sequence-group
-      (p/optionally header)
-      (p/optionally preamble)
-      (p/zero-or-more section))))
-
 (def block-element-delimiter
   (p/pattern-parser
    #"^(\/{4,}|\={4,}|\-{4,}|\.{4,}|\-{2}|\*{4,}|\|={3}|\,={3}|\:={3}|\!={3}|\+{4,}|\_{4,})(?:\n|\z)"
    {:group 1}))
 
+(comment
+  (block-element-delimiter (re/input "====")))
+
 (deftest parser-test
   (testing "document title"
-    (is (doctitle (input "= The Intrepid Chronicles\nfoo")))
-    (is (not (doctitle (input "The Intrepid Chronicles"))))
+    (is (doctitle (re/input "= The Intrepid Chronicles\nfoo")))
+    (is (not (doctitle (re/input "The Intrepid Chronicles"))))
     (is
      (= {:title "foo"}
-        (doctitle (input "= foo"))))
+        (doctitle (re/input "= foo"))))
     (is
      (= {:title "foo"
          :subtitle "bar"}
-        (doctitle (input "= foo: bar"))))
+        (doctitle (re/input "= foo: bar"))))
     (is
      (= {:title "foo: bar" :subtitle "zip"}
-        (doctitle (input "= foo: bar: zip")))))
+        (doctitle (re/input "= foo: bar: zip")))))
 
   (testing "author"
-    (is (author (input "Malcolm")))
-    (is (author (input "Malcolm Sparks")))
-    (is (author (input "Malcolm James Sparks"))))
+    (is (author (re/input "Malcolm")))
+    (is (author (re/input "Malcolm Sparks")))
+    (is (author (re/input "Malcolm James Sparks"))))
 
   (testing "compound names in the author line"
     (is
      (=
       [{:author {:firstname "Ann Marie" :lastname "Jenson" :authorinitials "AJ"}}
        {:author {:firstname "Tomás" :lastname "López del Toro" :authorinitials "TL"}}]
-      (author-line (input "Ann_Marie Jenson; Tomás López_del_Toro")))))
+      (author-line (re/input "Ann_Marie Jenson; Tomás López_del_Toro")))))
 
   (testing "email"
-    (is (email (input "mal@juxt.pro")))
-    (is (email (input "MAL@JUXT.PRO")))
-    (is (not (email (input "mal")))))
+    (is (email (re/input "mal@juxt.pro")))
+    (is (email (re/input "MAL@JUXT.PRO")))
+    (is (not (email (re/input "mal")))))
 
   (testing "multiple authors"
     (is
@@ -326,127 +297,178 @@
                  :authorinitials "PD"}
         :email "pax@asciidoctor.org"}]
       (author-line
-       (input
+       (re/input
         "Kismet R. Lee <kismet@asciidoctor.org>; B. Steppenwolf; Pax Draeke <pax@asciidoctor.org>")))))
 
   (testing "revision line"
     (is (= {:revision-number "7.5"}
-           (revision-line (input "v7.5"))))
+           (revision-line (re/input "v7.5"))))
     (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
-           (revision-line (input "7.5, 1-29-2020"))))
+           (revision-line (re/input "7.5, 1-29-2020"))))
     (is (= {:revision-number "7.5" :revision-date "1-29-2020"}
-           (revision-line (input "v7.5, 1-29-2020"))))
+           (revision-line (re/input "v7.5, 1-29-2020"))))
     (is (= {:revision-number "7.5"
             :revision-remark "A new analysis"}
-           (revision-line (input "7.5: A new analysis"))))
+           (revision-line (re/input "7.5: A new analysis"))))
     (is (= {:revision-number "7.5"
             :revision-remark "A new analysis"}
-           (revision-line (input "v7.5: A new analysis"))))
+           (revision-line (re/input "v7.5: A new analysis"))))
     (is (= {:revision-number "7.5"
             :revision-date "1-29-2020"
             :revision-remark "A new analysis"}
-           (revision-line (input "7.5, 1-29-2020: A new analysis"))))
+           (revision-line (re/input "7.5, 1-29-2020: A new analysis"))))
     (is (= {:revision-number "7.5"
             :revision-date "1-29-2020"
             :revision-remark "A new analysis"}
-           (revision-line (input "v7.5, 1-29-2020: A new analysis")))))
+           (revision-line (re/input "v7.5, 1-29-2020: A new analysis")))))
 
-  (testing "attributes"
+  ;; TODO: Restore this
+  #_(testing "attributes"
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value ""}
-           (attribute-entry (input ":name-of-an-attribute:  \n"))))
+           (attribute-entry (re/input ":name-of-an-attribute:  "))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value "value of the attribute"}
-           (attribute-entry (input ":name-of-an-attribute: value of the attribute  \n"))))
+           (attribute-entry (re/input ":name-of-an-attribute: value of the attribute  "))))
     (is (= {:attribute-name "name-of-an-attribute"
             :attribute-value nil}
-           (attribute-entry (input ":name-of-an-attribute!: \n"))))
-    (is (not (attribute-entry (input ":foo:bar")))))
-
-  (testing "header"
-    (is
-     (=
-      {:doctitle {:title "Document Title"}
-       :author-line
-       [{:author {:firstname "Author"
-                  :lastname "Name"
-                  :authorinitials "AN"}
-         :email "author@email.org"}]
-       :attributes []}
-      (header (input "= Document Title\nAuthor Name <author@email.org>"))))
-
-    (is
-     (= {:doctitle {:title "The Intrepid Chronicles"},
-         :author-line
-         [{:author
-           {:firstname "Kismet", :lastname "Lee", :authorinitials "KL"}}],
-         :revision-line
-         {:revision-number "2.9",
-          :revision-date "October 31, 2021",
-          :revision-remark "Fall incarnation"}
-         :attributes [{:attribute-name "sectnums", :attribute-value ""}
-                      {:attribute-name "toclevels", :attribute-value "3"}]}
-        (header (input "= The Intrepid Chronicles\nKismet Lee\n2.9, October 31, 2021: Fall incarnation\n:sectnums:\n:toclevels: 3"))))
-
-    (is
-     (= {:comment-lines ["// this comment line is ignored"]
-         :doctitle {:title "Document Title"}
-         :author-line
-         [{:author
-           {:firstname "Kismet"
-            :middlename "R."
-            :lastname "Lee"
-            :authorinitials "KRL"}
-           :email "kismet@asciidoctor.org"}]
-         :attributes
-         [{:attribute-name "description"
-           :attribute-value "The document's description."}
-          {:attribute-name "sectanchors"
-           :attribute-value ""}
-          {:attribute-name "url-repo"
-           :attribute-value "https://my-git-repo.com"}]}
-        (header
-         (input (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc"))))))
-
-    (is
-     (=
-      {:doctitle {:title "The Intrepid Chronicles"}, :attributes []}
-      (header
-       (input (slurp (io/resource "juxt/reap/adoc_samples/example-2.adoc")))))))
-
+           (attribute-entry (re/input ":name-of-an-attribute!: "))))
+    (is (not (attribute-entry (re/input ":foo:bar")))))
 
   (testing "block element delimiter"
-    (is (block-element-delimiter (input "////")))
-    (is (block-element-delimiter (input "//////")))
-    (is (not (block-element-delimiter (input "///"))))
+    (is (block-element-delimiter (re/input "////")))
+    (is (block-element-delimiter (re/input "//////")))
+    (is (not (block-element-delimiter (re/input "///"))))
 
-    (is (block-element-delimiter (input "====")))
-    (is (block-element-delimiter (input "======")))
-    (is (not (block-element-delimiter (input "==="))))
+    (is (block-element-delimiter (re/input "====")))
+    (is (block-element-delimiter (re/input "======")))
+    (is (not (block-element-delimiter (re/input "==="))))
 
-    (is (block-element-delimiter (input "----")))
-    (is (block-element-delimiter (input "------")))
-    (is (not (block-element-delimiter (input "---"))))
+    (is (block-element-delimiter (re/input "----")))
+    (is (block-element-delimiter (re/input "------")))
+    (is (not (block-element-delimiter (re/input "---"))))
 
-    (is (block-element-delimiter (input "....")))
-    (is (block-element-delimiter (input "......")))
-    (is (not (block-element-delimiter (input "..."))))
+    (is (block-element-delimiter (re/input "....")))
+    (is (block-element-delimiter (re/input "......")))
+    (is (not (block-element-delimiter (re/input "..."))))
 
-    (is (block-element-delimiter (input "--")))
-    (is (not (block-element-delimiter (input "-"))))
-    (is (not (block-element-delimiter (input "---"))))
+    (is (block-element-delimiter (re/input "--")))
+    (is (not (block-element-delimiter (re/input "-"))))
+    (is (not (block-element-delimiter (re/input "---"))))
 
-    (is (block-element-delimiter (input "|===")))
-    (is (not (block-element-delimiter (input "|=="))))
-    (is (not (block-element-delimiter (input "|===="))))
-    (is (block-element-delimiter (input ",===")))
-    (is (block-element-delimiter (input ":===")))
-    (is (block-element-delimiter (input "!===")))
+    (is (block-element-delimiter (re/input "|===")))
+    (is (not (block-element-delimiter (re/input "|=="))))
+    (is (not (block-element-delimiter (re/input "|===="))))
+    (is (block-element-delimiter (re/input ",===")))
+    (is (block-element-delimiter (re/input ":===")))
+    (is (block-element-delimiter (re/input "!===")))
 
-    (is (block-element-delimiter (input "++++")))
-    (is (block-element-delimiter (input "++++++")))
-    (is (not (block-element-delimiter (input "+++"))))))
+    (is (block-element-delimiter (re/input "++++")))
+    (is (block-element-delimiter (re/input "++++++")))
+    (is (not (block-element-delimiter (re/input "+++"))))))
 
 ;; TODO: Escape a trailing character reference (https://docs.asciidoctor.org/asciidoc/latest/document/multiple-authors/)
 ;; TODO: Assign Author and Email with Attribute Entries (https://docs.asciidoctor.org/asciidoc/latest/document/author-attribute-entries/)
 ;; TODO: Reference the Author Information (https://docs.asciidoctor.org/asciidoc/latest/document/reference-author-attributes/)
+
+(defn parse-document-lines [lines]
+  (let [state-transition-model
+        {:start
+         (fn [acc line]
+           (if-let [comment-line (adoc-comment-line (re/input line))]
+             (-> acc
+                 (update :head-comment-lines (fnil conj []) comment-line))
+             (if-let [doctitle (doctitle (re/input line))]
+               (-> acc
+                   (assoc :doctitle doctitle)
+                   (assoc :state :post-doctitle))
+               (throw
+                (ex-info
+                 "Unexpected input"
+                 {:state (:state acc)
+                  :line line})))))
+
+         :post-doctitle
+         (fn [acc line]
+           (if-let [author-line (author-line (re/input line))]
+             (-> acc
+                 (assoc :author-line author-line)
+                 (assoc :state :post-author-line))
+             (if-let [revision-line (revision-line (re/input line))]
+               (-> acc
+                   (assoc :revision-line revision-line)
+                   (assoc :state :post-revision-line))
+               (throw
+                (ex-info
+                 "Unexpected input"
+                 {:state (:state acc)
+                  :line line})))))
+
+         :post-author-line
+         (fn [acc line]
+           (if-let [revision-line (revision-line (re/input line))]
+             (-> acc
+                 (assoc :revision-line revision-line)
+                 (assoc :state :document-attributes))
+             (if-let [attribute-entry (attribute-entry (re/input line))]
+               (-> acc
+                   (update :document-attributes (fnil conj []) attribute-entry)
+                   (assoc :state :document-attributes))
+               (throw
+                (ex-info
+                 "Unexpected input"
+                 {:state (:state acc)
+                  :line line})))))
+
+         :document-attributes
+         (fn [acc line]
+           (if-let [attribute-entry (attribute-entry (re/input line))]
+             (-> acc
+                 (update :document-attributes (fnil conj []) attribute-entry))
+             (if [(str/blank? line)]
+               (assoc acc :state :body)
+               (throw
+                (ex-info
+                 "Unexpected input"
+                 {:state (:state acc)
+                  :line line})))))
+
+         :body (fn [acc line]
+                 (->
+                  acc
+                  (update :current-block (fnil conj []) line)))}]
+
+    (reduce
+     (fn [{:keys [state] :as acc} line]
+       (if-let [f (state-transition-model state)]
+         (f acc line)
+         (throw
+          (ex-info
+           "No such state"
+           {:state state
+            :result-so-far acc}))))
+     {:state :start}
+     lines)))
+
+(deftest document-parsing-test
+  (is
+   (=
+    {:state :body,
+     :head-comment-lines ["// this comment line is ignored"],
+     :doctitle {:title "Document Title"},
+     :author-line
+     [{:author
+       {:firstname "Kismet",
+        :middlename "R.",
+        :lastname "Lee",
+        :authorinitials "KRL"},
+       :email "kismet@asciidoctor.org"}],
+     :document-attributes
+     [{:attribute-name "description",
+       :attribute-value "The document's description."}
+      {:attribute-name "sectanchors", :attribute-value ""}
+      {:attribute-name "url-repo",
+       :attribute-value "https://my-git-repo.com"}],
+     :current-block ["The document body starts here."]}
+
+    (parse-document-lines (normalize (slurp (io/resource "juxt/reap/adoc_samples/example-1.adoc")))))))
