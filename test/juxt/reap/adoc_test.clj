@@ -44,7 +44,7 @@
 
 (defn input [s] (re/input (normalize s)))
 
-(def comment-line
+(def adoc-comment-line
   (p/pattern-parser #"^(//.*)(?:\n|\z)" {:group 1}))
 
 (def doctitle
@@ -248,7 +248,7 @@
     ;; Comment lines are optional
     (p/as-entry
      :comment-lines
-     (p/one-or-more comment-line))
+     (p/one-or-more adoc-comment-line))
     (p/cons
      (p/as-entry :doctitle doctitle)
      (p/alternatives
