@@ -119,7 +119,7 @@
 (defn pattern-parser
   ([^Pattern pat]
    (pattern-parser pat {}))
-  ([^Pattern pat opts]
+  ([^Pattern pat {:keys [location] :as opts}]
    (fn [matcher]
      (.usePattern ^Matcher matcher pat)
      (when (.lookingAt ^Matcher matcher)
@@ -136,16 +136,26 @@
                     (let [vl
                           (cond
                             (int? v)
-                            (.group ^Matcher matcher ^long v)
+                            (if location
+                              {:value (.group ^Matcher matcher ^long v)
+                               :location [(.start ^Matcher matcher ^long v)
+                                          (.end ^Matcher matcher ^long v)]}
+                              (.group ^Matcher matcher ^long v))
                             (string? v)
-                            (.group ^Matcher matcher ^String v)
+                            (if location
+                              {:value (.group ^Matcher matcher ^String v)
+                               :location [(.start ^Matcher matcher ^String v)
+                                          (.end ^Matcher matcher ^String v)]}
+                              (.group ^Matcher matcher ^String v))
                             :else
                             (throw
                              (ex-info
                               "Bad map value group type"
                               {:group v
                                :group-type (type v)})))]
-                      (cond-> acc vl (conj [k vl]))))
+                      (cond-> acc
+                        vl (conj [k vl])
+                        )))
                   {} grp)
                  :else
                  (throw
