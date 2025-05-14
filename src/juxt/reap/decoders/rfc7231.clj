@@ -369,7 +369,24 @@
               language-tag))))))))))))
 
 ;; Content-Location = absolute-URI / partial-URI
-;; TODO
+;; Implemented by Claude
+(defn content-location [_]
+  (p/complete
+   (p/alternatives
+    ;; absolute-URI
+    (p/comp
+     (fn [[uri]]
+       #::rfc{:uri uri
+              :type :absolute})
+     (p/pattern-parser
+      (re-pattern "([a-zA-Z][a-zA-Z0-9+.-]*:[^#]*)")))
+    ;; partial-URI
+    (p/comp
+     (fn [[uri]]
+       #::rfc{:uri uri
+              :type :partial})
+     (p/pattern-parser
+      (re-pattern "([^:#]*)"))))))
 
 ;; Content-Type = media-type
 (defn content-type [opts]

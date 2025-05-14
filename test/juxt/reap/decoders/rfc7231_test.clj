@@ -242,6 +242,24 @@
   ;; TODO
   )
 
+(deftest content-location-test
+  (are [input expected]
+      (= expected
+         ((dec/content-location {})
+          (re/input input)))
+    
+    "http://example.org/index.html"
+    #::rfc7231{:uri "http://example.org/index.html"
+               :type :absolute}
+    
+    "/index.html"
+    #::rfc7231{:uri "/index.html"
+               :type :partial}
+    
+    "/products?id=123&sort=price"
+    #::rfc7231{:uri "/products?id=123&sort=price"
+               :type :partial}))
+
 
 #_;; ANSI C's format
 ((rfc7231/http-date {})
