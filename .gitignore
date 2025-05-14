@@ -1,2 +1,27 @@
+# Clojure
 .nrepl-port
 .cpcache/
+target/
+.lein-*
+.lein-failures
+.lein-repl-history
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+
+# IDE specific files
+.calva/
+.clj-kondo/.cache/
+.lsp/
+.vscode/
+.idea/
+*.iml
+.dir-locals.el
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Claude Code
+**/.claude/settings.local.json
